@@ -9,3 +9,11 @@ openai==1.42.0
 tiktoken==0.7.0
 libcst==1.4.0
 pyvis
+langchain
+langgraph
+langchain_openai
+networkx
+tree-sitter
+tree-sitter-languages
+tqdm
+python-dotenv
