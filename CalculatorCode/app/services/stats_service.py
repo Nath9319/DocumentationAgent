@@ -1,102 +1,136 @@
-import pandas as pd
 import numpy as np
-import sqlite3
-import os
-import statsmodels.api as sm
+import pandas as pd
 from scipy import stats
-from typing import List, Dict, Any, Optional
+import sqlite3
+from typing import List, Dict
+import scipy.stats as st
 
-from app.core.exceptions import DataError
 
 class StatsService:
-    """Service for performing statistical analysis."""
 
-    def _get_dataframe_from_sqlite(self, db_path: str, table_name: str) -> pd.DataFrame:
-        """Helper to connect to SQLite and get a DataFrame."""
-        if not os.path.exists(db_path):
-            raise DataError(f"Database file not found at path: {db_path}")
-        try:
-            conn = sqlite3.connect(db_path)
-            df = pd.read_sql_query(f'SELECT * FROM "{table_name}"', conn)
-            conn.close()
-            return df
-        except Exception as e:
-            raise DataError(f"Database error: {e}. Check table name and DB path.")
+    def _load_data(self, db_path: str, table_name: str, columns=None):
+        """
+        Load data from SQLite database into a pandas DataFrame.
+        If columns is None, load all columns.
+        """
+        with sqlite3.connect(db_path) as conn:
+            query = f"SELECT * FROM {table_name}"
+            df = pd.read_sql_query(query, conn)
+        if columns:
+            df = df[columns]
+        return df
 
-    def calculate_descriptive_stats(self, series: pd.Series) -> Dict[str, Any]:
-        """Calculates descriptive statistics for a pandas Series."""
-        if not pd.api.types.is_numeric_dtype(series):
-            raise DataError("Data series must be numeric for statistics.")
-        
-        stats_dict = series.describe().to_dict()
-        stats_dict['median'] = series.median()
-        stats_dict['variance'] = series.var()
-        stats_dict['skewness'] = series.skew()
-        stats_dict['kurtosis'] = series.kurt()
-        
-        for key, value in stats_dict.items():
-            stats_dict[key] = float(value) if pd.notna(value) else None
-            
-        return stats_dict
+    def perform_ols_regression(self, db_path, table_name, dependent_var, independent_vars):
+        """
+        Perform OLS regression using numpy's least squares (without statsmodels).
+        Returns a summary dictionary with coefficients, intercept, R-squared, and p-values.
+        """
 
-    def perform_ols_regression(self, db_path: str, table_name: str, dependent_var: str, independent_vars: List[str]) -> str:
-        """Performs Ordinary Least Squares (OLS) regression."""
-        df = self._get_dataframe_from_sqlite(db_path, table_name)
-        
-        all_vars = [dependent_var] + independent_vars
-        for var in all_vars:
-            if var not in df.columns:
-                raise DataError(f"Variable '{var}' not found in table '{table_name}'.")
+        df = self._load_data(db_path, table_name, [dependent_var] + independent_vars)
 
-        y = df[dependent_var]
-        X = df[independent_vars]
-        X = sm.add_constant(X)
+        # Prepare design matrix X and response vector y
+        X = df[independent_vars].values
+        y = df[dependent_var].values
 
-        model = sm.OLS(y, X).fit()
-        return str(model.summary())
+        # Add intercept term (column of ones)
+        X = np.column_stack((np.ones(X.shape[0]), X))
 
-    def calculate_determinant(self, matrix: List[List[float]]) -> float:
-        """Calculates the determinant of a square matrix."""
-        np_matrix = np.array(matrix)
-        if np_matrix.ndim != 2 or np_matrix.shape[0] != np_matrix.shape[1]:
-            raise DataError("Input must be a square matrix.")
-        return np.linalg.det(np_matrix)
+        # Compute OLS coefficients using least squares
+        coef, residuals, rank, s = np.linalg.lstsq(X, y, rcond=None)
 
-    def calculate_inverse(self, matrix: List[List[float]]) -> List[List[float]]:
-        """Calculates the inverse of a square matrix."""
-        np_matrix = np.array(matrix)
-        try:
-            inverse_matrix = np.linalg.inv(np_matrix)
-            return inverse_matrix.tolist()
-        except np.linalg.LinAlgError:
-            raise DataError("Matrix is singular and cannot be inverted.")
-            
-    def perform_independent_ttest(self, sample1: List[float], sample2: List[float]) -> Dict[str, float]:
-        """Performs an independent two-sample t-test."""
-        ttest_result = stats.ttest_ind(sample1, sample2, equal_var=False)
+        # Predicted values and residuals
+        y_pred = X @ coef
+        residuals = y - y_pred
+
+        # Calculate statistics
+        n = len(y)
+        p = X.shape[1]  # number of parameters (including intercept)
+        dof = n - p
+        mse = np.sum(residuals**2) / dof
+
+        # Variance-Covariance Matrix
+        XTX_inv = np.linalg.inv(X.T @ X)
+        var_b = mse * XTX_inv
+        se = np.sqrt(np.diag(var_b))
+
+        # t-statistics for coefficients
+        t_stats = coef / se
+
+        # Two-sided p-values
+        p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=dof))
+
+        # R-squared
+        ss_total = np.sum((y - np.mean(y))**2)
+        ss_residual = np.sum(residuals**2)
+        r_squared = 1 - (ss_residual / ss_total)
+
+        # Format results
+        summary = {
+            "coefficients": dict(zip(['intercept'] + independent_vars, coef)),
+            "standard_errors": dict(zip(['intercept'] + independent_vars, se)),
+            "t_statistics": dict(zip(['intercept'] + independent_vars, t_stats)),
+            "p_values": dict(zip(['intercept'] + independent_vars, p_values)),
+            "r_squared": r_squared
+        }
+        return summary
+
+    def calculate_correlation_matrix(self, db_path, table_name, columns):
+        """
+        Calculate Pearson correlation matrix for specified columns.
+        """
+        df = self._load_data(db_path, table_name, columns)
+        corr_matrix = df.corr(method='pearson').to_dict()
+        return corr_matrix
+
+    def perform_independent_ttest(self, sample1, sample2):
+        """
+        Perform independent two-sample t-test.
+        sample1 and sample2 should be lists or numpy arrays.
+        """
+        t_stat, p_value = stats.ttest_ind(sample1, sample2, equal_var=False)
         return {
-            "t_statistic": float(ttest_result.statistic),
-            "p_value": float(ttest_result.pvalue)
+            "t_statistic": t_stat,
+            "p_value": p_value
+        }
+    def calculate_standard_deviation(self, data: list) -> float:
+        """
+        Calculate the standard deviation of a list of numbers.
+        """
+        return float(np.std(data))
+    
+    def calculate_descriptive_stats(self, data: List[float]) -> dict:
+        """Calculate descriptive statistics for a list of numbers.
+        Returns a dictionary with mean, median, mode, variance, and standard deviation."""
+        return {
+            "mean": float(np.mean(data)),
+            "median": float(np.median(data)),
+            "mode": float(stats.mode(data, keepdims=True).mode[0]),
+            "variance": float(np.var(data)),
+            "std_dev": float(np.std(data)),
         }
 
-    def calculate_correlation_matrix(self, db_path: str, table_name: str, columns: Optional[List[str]]) -> Dict[str, Any]:
-        """Calculates the correlation matrix for specified columns."""
-        df = self._get_dataframe_from_sqlite(db_path, table_name)
-        
-        if columns:
-            for col in columns:
-                if col not in df.columns:
-                    raise DataError(f"Column '{col}' not found in table.")
-            data_to_correlate = df[columns]
-        else:
-            # Use all numeric columns if none are specified
-            data_to_correlate = df.select_dtypes(include=np.number)
+    def calculate_z_scores(self, data: List[float]) -> List[float]:
+        """Calculate Z-Scores for a list of numbers."""
+        return list(((np.array(data) - np.mean(data)) / np.std(data)).round(4))
 
-        if data_to_correlate.shape[1] < 2:
-            raise DataError("At least two numeric columns are required for correlation.")
+    
 
-        corr_matrix = data_to_correlate.corr()
-        return corr_matrix.to_dict()
+    def calculate_confidence_interval(self, data: List[float], confidence: float) -> dict:
+        """Calculate the confidence interval for a list of numbers."""
+        n = len(data)
+        mean = np.mean(data)
+        stderr = st.sem(data)
+        margin = stderr * st.t.ppf((1 + confidence) / 2., n-1)
+        return {
+            "mean": float(mean),
+            "confidence_level": confidence,
+            "interval": [float(mean - margin), float(mean + margin)]
+        }
+    
 
-# Instantiate the service
+
+    
+
+
+# Singleton instance
 stats_service = StatsService()

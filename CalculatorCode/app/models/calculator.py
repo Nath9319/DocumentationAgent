@@ -1,6 +1,9 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 import numpy as np
+from pydantic import BaseModel
+from typing import List
+
 
 # This file defines the Pydantic models for request body validation.
 # We've added custom @field_validator methods. These functions are automatically
@@ -113,4 +116,25 @@ class LoanPaymentInput(BaseModel):
     rate: float = Field(..., gt=0, description="Interest rate per period")
     nper: int = Field(..., gt=0, description="Total number of payment periods")
     pv: float = Field(..., gt=0, description="Present value or principal of the loan (must be positive)")
+
+
+class StdDevInput(BaseModel):
+    """Model for Standard Deviation calculation."""
+    data: List[float]
+
+
+class DescriptiveStatsInput(BaseModel):
+    """Model for Descriptive Statistics calculation."""
+    data: List[float]
+
+class ZScoreInput(BaseModel):
+    data: List[float]
+    """Model for Z-Score calculation."""
+
+class ConfidenceIntervalInput(BaseModel):
+    """Model for Confidence Interval calculation."""
+    data: List[float]
+    confidence: float = 0.95  # Default to 95%
+
+
 
