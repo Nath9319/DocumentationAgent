@@ -1,13 +1,15 @@
+# File: main.py
+#
 # This is the main entry point for the AI Documentation Agent.
-# It handles command-line arguments, sets up the environment,
-# constructs the code graph, and invokes the LangGraph agent.
+# This version includes a higher recursion limit to handle large repositories
+# without encountering a GraphRecursionError.
 
 import os
 import sys
 import pickle
 from dotenv import load_dotenv
 
-from RepoGraph.construct_graph import CodeGraph
+from core.construct_graph import CodeGraph
 from agent.agent_graph import create_agent_graph
 
 def run_documentation_agent(repo_path: str):
@@ -21,8 +23,8 @@ def run_documentation_agent(repo_path: str):
     
     # --- Step 1: Environment Setup ---
     load_dotenv()
-    if not os.getenv("OPENAI_API_KEY"):
-        print("Error: OPENAI_API_KEY not found in .env file.")
+    if not os.getenv("AZURE_OPENAI_API_KEY") or not os.getenv("AZURE_OPENAI_ENDPOINT"):
+        print("Error: AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT must be set in the .env file.")
         sys.exit(1)
 
     if not os.path.isdir(repo_path):
@@ -38,8 +40,7 @@ def run_documentation_agent(repo_path: str):
     else:
         print(f"No graph file found. Constructing new graph for '{repo_path}'...")
         code_graph_builder = CodeGraph(root=repo_path)
-        py_files = code_graph_builder.find_files(repo_path)
-        _, repo_graph = code_graph_builder.get_code_graph(py_files)
+        repo_graph = code_graph_builder.build_graph()
         
         with open(graph_file, 'wb') as f:
             pickle.dump(repo_graph, f)
@@ -63,15 +64,25 @@ def run_documentation_agent(repo_path: str):
         "output_dir": output_dir
     }
     
-    print("\n--- Invoking Agent ---")
-    # The .stream() method runs the agent and yields the state after each step.
-    for step in agent_app.stream(initial_state):
-        # This loop will print the state of the graph as it executes.
-        # It's useful for debugging and seeing the agent's progress.
-        # The key is the name of the node that just executed.
+    # --- MODIFIED SEGMENT: Set a higher recursion limit ---
+    # The default is 25, which is too low for documenting a whole repo.
+    # We get the total number of nodes to set a sensible limit.
+    total_nodes = len(repo_graph.nodes())
+    # We set the limit to be higher than the number of nodes, as each node
+    # takes several steps in the graph. A buffer of 5 steps per node is safe.
+    recursion_limit = total_nodes * 5
+    
+    config = {"recursion_limit": recursion_limit}
+    # --- END MODIFIED SEGMENT ---
+
+    print(f"\n--- Invoking Agent (Total nodes: {total_nodes}, Recursion limit set to: {recursion_limit}) ---")
+    
+    # Pass the config dictionary to the .stream() method.
+    for step in agent_app.stream(initial_state, config=config):
+        # This loop will print the state of the graph as it executes,
+        # which is useful for debugging and seeing the agent's progress.
         node_name = list(step.keys())[0]
-        print(f"\nCompleted step: {node_name}")
-        # print(f"Current State: {list(step.values())[0]}")
+        print(f"Completed step: {node_name}")
         print("--------------------")
 
 if __name__ == "__main__":

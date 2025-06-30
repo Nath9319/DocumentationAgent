@@ -12,8 +12,4 @@ pyvis
 langchain
 langgraph
 langchain_openai
-networkx
-tree-sitter
-tree-sitter-languages
-tqdm
 python-dotenv

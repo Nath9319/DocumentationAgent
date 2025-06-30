@@ -1,8 +1,10 @@
+# File: agent/agent_state.py
+#
 # This file defines the structure of the state object for our LangGraph agent.
 # The state is a critical component that gets passed between each node (step)
 # in the graph, carrying all the necessary information for the agent to do its work.
 
-from typing import TypedDict, List, Dict, Any
+from typing import TypedDict, List, Dict, Set
 import networkx as nx
 
 class AgentState(TypedDict):
@@ -11,6 +13,11 @@ class AgentState(TypedDict):
 
     Attributes:
         repo_graph (nx.MultiDiGraph): The complete code graph of the repository.
+        
+        # --- ADDED: The master set of all nodes that need processing. ---
+        nodes_to_process: Set[str]
+        # ---
+        
         nodes_to_document (List[str]): A queue of node names that are ready to be documented.
                                        A node is ready when all its dependencies are documented.
         documented_nodes (Dict[str, str]): A cache mapping a documented node's name
@@ -22,6 +29,7 @@ class AgentState(TypedDict):
         output_dir (str): The directory where documentation files should be saved.
     """
     repo_graph: nx.MultiDiGraph
+    nodes_to_process: Set[str]
     nodes_to_document: List[str]
     documented_nodes: Dict[str, str]
     current_node_name: str
