@@ -75,4 +75,4 @@ def create_graph_visualization(graph_path="graph.pkl", output_filename="graph_vi
         print(f"An error occurred while saving the visualization: {e}")
 
 if __name__ == '__main__':
-    create_graph_visualization()
+    create_graph_visualization(graph_path="output\CalculatorCode\conceptual_graph.pkl", output_filename="conceptual_graph_visualization.html")

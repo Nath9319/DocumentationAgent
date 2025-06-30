@@ -1,3 +1,5 @@
+# File: agent/agent_graph.py
+#
 # This file wires together all the agent nodes into a stateful graph
 # using the LangGraph library. It defines the control flow of the agent.
 
@@ -8,56 +10,53 @@ from .agent_nodes import (
     select_next_node,
     gather_documentation_context,
     generate_documentation,
-    save_documentation_and_update_queue,
+    generate_conceptual_graph_data,
+    update_documentation_queue,
     should_continue
 )
 
 def create_agent_graph() -> StateGraph:
     """
-    Creates and configures the LangGraph agent for generating documentation.
-
-    Returns:
-        StateGraph: A compiled LangGraph application ready to be invoked.
+    Creates and configures the LangGraph agent for dual graph generation.
     """
-    # Instantiate the state machine graph.
     graph = StateGraph(AgentState)
 
-    # --- Define the Nodes (Steps) of the Agent ---
-    # Each node is a function that modifies the agent's state.
+    # Define the Nodes
     graph.add_node("initialize_queue", initialize_documentation_queue)
     graph.add_node("select_node", select_next_node)
     graph.add_node("gather_context", gather_documentation_context)
     graph.add_node("generate_doc", generate_documentation)
-    graph.add_node("save_and_update", save_documentation_and_update_queue)
+    graph.add_node("generate_conceptual_data", generate_conceptual_graph_data)
+    graph.add_node("update_queue", update_documentation_queue)
 
-    # --- Define the Edges (Control Flow) of the Agent ---
-
-    # 1. Start by initializing the documentation queue.
+    # Define the Edges (Control Flow)
     graph.set_entry_point("initialize_queue")
-
-    # 2. After initialization, check if there's work to do.
-    graph.add_edge("initialize_queue", "select_node")
-
-    # 3. After selecting a node, gather its context.
-    graph.add_edge("select_node", "gather_context")
-
-    # 4. After gathering context, generate the documentation.
-    graph.add_edge("gather_context", "generate_doc")
-
-    # 5. After generating the documentation, save it and update the queue.
-    graph.add_edge("generate_doc", "save_and_update")
     
-    # 6. After saving, decide whether to continue or end.
     graph.add_conditional_edges(
-        "save_and_update",
+        "initialize_queue",
         should_continue,
+        {"continue": "select_node", "end": END}
+    )
+    
+    graph.add_conditional_edges(
+        "select_node",
+        # A simple router based on whether a node was selected
+        lambda x: "gather_context" if not x.get("is_finished") else "end",
         {
-            "continue": "select_node", # Loop back to select the next node.
-            "end": END                 # Terminate the process.
+            "gather_context": "gather_context",
+            "end": END,
         }
     )
-
-    # Compile the graph into a runnable application.
-    agent_app = graph.compile()
     
+    graph.add_edge("gather_context", "generate_doc")
+    graph.add_edge("generate_doc", "generate_conceptual_data")
+    graph.add_edge("generate_conceptual_data", "update_queue")
+    
+    graph.add_conditional_edges(
+        "update_queue",
+        should_continue,
+        {"continue": "select_node", "end": END}
+    )
+
+    agent_app = graph.compile()
     return agent_app
