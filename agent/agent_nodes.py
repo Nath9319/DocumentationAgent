@@ -1,7 +1,7 @@
 # File: agent/agent_nodes.py
 #
 # This file implements the core logic for each step in the agent's workflow.
-# All functions have been refactored to return partial state updates for robustness.
+# This version is updated to build a conceptual graph with rich, combined metadata.
 
 import os
 import json
@@ -13,19 +13,14 @@ from .agent_state import AgentState
 from core.graph_searcher import RepoSearcher
 from prompts.templates import DOCUMENTATION_PROMPT_TEMPLATE, CONCEPTUAL_GRAPH_PROMPT_TEMPLATE
 
+# ... (initialize_documentation_queue, select_next_node, gather_documentation_context, generate_documentation functions remain the same as the previous corrected version) ...
+
 def initialize_documentation_queue(state: AgentState) -> dict:
-    """
-    Initializes the agent's state by identifying all "leaf" nodes and
-    setting up the master tracking set.
-    """
     print("--- Initializing Documentation Queue ---")
     repo_graph = state['repo_graph']
     all_nodes = set(repo_graph.nodes())
-    
     leaf_nodes = [node for node in repo_graph.nodes() if repo_graph.out_degree(node) == 0]
-
-    print(f"Found {len(leaf_nodes)} leaf nodes to start with across all components.")
-    
+    print(f"Found {len(leaf_nodes)} leaf nodes to start with.")
     return {
         "nodes_to_process": all_nodes,
         "documented_nodes": {},
@@ -35,71 +30,44 @@ def initialize_documentation_queue(state: AgentState) -> dict:
     }
 
 def select_next_node(state: AgentState) -> dict:
-    """
-    Selects the next node to document from the queue, with a fallback
-    for cyclic or disconnected graph components.
-    """
     print("\n--- Selecting Next Node to Document ---")
-    
     nodes_to_document = state['nodes_to_document']
-    
     if not nodes_to_document:
-        print("Primary queue is empty. Checking for remaining undocumented nodes...")
         remaining_nodes = state['nodes_to_process'] - set(state['documented_nodes'].keys())
         if not remaining_nodes:
-            print("No remaining nodes to document.")
             return {"is_finished": True}
-        
         next_node_name = list(remaining_nodes)[0]
-        print(f"Force-selecting '{next_node_name}' to break a cycle or start a new component.")
     else:
         next_node_name = nodes_to_document.pop(0)
-
     node_info = state['repo_graph'].nodes[next_node_name]
     print(f"Selected: '{next_node_name}' (Category: {node_info.get('category')})")
-
     return {
         "current_node_name": next_node_name,
         "current_node_info": node_info,
-        "nodes_to_document": nodes_to_document, # Return the modified list
+        "nodes_to_document": nodes_to_document,
     }
 
 def gather_documentation_context(state: AgentState) -> dict:
-    """
-    Gathers all necessary context for the LLM to document the current node.
-    """
     if state.get("is_finished"): return {}
     print(f"--- Gathering Context for '{state['current_node_name']}' ---")
-    
     searcher = RepoSearcher(graph=state['repo_graph'])
     dependencies = searcher.get_dependencies(state['current_node_name'])
-    
     context_str = ""
     if not dependencies:
         context_str = "This node has no internal dependencies."
     else:
         for dep_name in dependencies:
             if dep_name in state['documented_nodes']:
-                doc = state['documented_nodes'][dep_name]
-                context_str += f"\n- Dependency `{dep_name}`:\n{doc}\n---"
-    
+                context_str += f"\n- Dependency `{dep_name}`:\n{state['documented_nodes'][dep_name]}\n---"
     return {"context_for_llm": context_str}
 
 def generate_documentation(state: AgentState) -> dict:
-    """
-    Invokes the LLM to generate documentation for the current node.
-    """
     if state.get("is_finished"): return {}
     print(f"--- Generating Documentation for '{state['current_node_name']}' ---")
-    
     node_info = state['current_node_info']
-    llm = AzureChatOpenAI(
-        deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"),
-        temperature=0.2, max_tokens=1024
-    )
+    llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), temperature=0.2, max_tokens=1024)
     prompt = PromptTemplate.from_template(DOCUMENTATION_PROMPT_TEMPLATE)
     chain = prompt | llm | StrOutputParser()
-    
     print("Invoking LLM for documentation...")
     generated_doc = chain.invoke({
         "node_name": state['current_node_name'],
@@ -111,16 +79,16 @@ def generate_documentation(state: AgentState) -> dict:
         "dependencies_context": state['context_for_llm'],
         "source_code": node_info.get('info', '# Source code not available')
     })
-    
     documented_nodes = state['documented_nodes']
     documented_nodes[state['current_node_name']] = generated_doc
-    
     return {"documented_nodes": documented_nodes}
 
+
+# --- MODIFIED: This function now builds the rich conceptual graph ---
 def generate_conceptual_graph_data(state: AgentState) -> dict:
     """
-    Uses the generated documentation to ask the LLM to extract high-level
-    conceptual nodes and edges.
+    Builds the conceptual graph by merging AST metadata with LLM-generated
+    semantic metadata for the current node.
     """
     if state.get("is_finished"): return {}
     current_node = state['current_node_name']
@@ -142,38 +110,36 @@ def generate_conceptual_graph_data(state: AgentState) -> dict:
     })
 
     conceptual_graph = state['conceptual_graph']
-    final_output_data = state['final_output_data']
     
     try:
         graph_data = json.loads(response_str)
-        for node in graph_data.get('nodes', []):
-            if 'id' in node and not conceptual_graph.has_node(node['id']):
-                conceptual_graph.add_node(node['id'], **node)
         
-        for edge in graph_data.get('edges', []):
-            if 'source' in edge and 'target' in edge:
-                conceptual_graph.add_edge(edge['source'], edge['target'], label=edge.get('label', 'RELATED_TO'))
+        # 1. Get the base metadata from the original AST graph
+        base_metadata = state['repo_graph'].nodes[current_node]
         
-        final_output_data[current_node] = {
-            'documentation': state['documented_nodes'][current_node],
-            'conceptual_data': graph_data
-        }
-    except json.JSONDecodeError:
-        print(f"Warning: Failed to decode JSON for node '{current_node}'.")
-        final_output_data[current_node] = {
-            'documentation': state['documented_nodes'][current_node],
-            'conceptual_data': None
-        }
+        # 2. Get the new semantic metadata from the LLM
+        semantic_metadata = graph_data.get('semantic_metadata', {})
+        
+        # 3. Merge them to create the rich node for the conceptual graph
+        # If the node doesn't exist, add it with all merged data.
+        if not conceptual_graph.has_node(current_node):
+            conceptual_graph.add_node(current_node, **base_metadata)
+        
+        # Update the node with the new semantic attributes
+        nx.set_node_attributes(conceptual_graph, {current_node: semantic_metadata})
 
-    return {
-        "conceptual_graph": conceptual_graph,
-        "final_output_data": final_output_data
-    }
+        # 4. Add the new semantic edges
+        for edge in graph_data.get('semantic_edges', []):
+            target_node = edge.get('target')
+            if target_node and conceptual_graph.has_node(target_node):
+                conceptual_graph.add_edge(current_node, target_node, label=edge.get('label', 'RELATED_TO'))
+
+    except (json.JSONDecodeError, KeyError) as e:
+        print(f"Warning: Failed to process conceptual data for node '{current_node}': {e}")
+
+    return {"conceptual_graph": conceptual_graph}
 
 def update_documentation_queue(state: AgentState) -> dict:
-    """
-    Updates the documentation queue with new nodes that are now ready.
-    """
     if state.get("is_finished"): return {}
     current_node = state['current_node_name']
     print(f"--- Updating Queue after processing '{current_node}' ---")
@@ -194,17 +160,11 @@ def update_documentation_queue(state: AgentState) -> dict:
     return {"nodes_to_document": nodes_to_document}
 
 def should_continue(state: AgentState) -> str:
-    """
-    Determines whether the agent should continue its work.
-    """
     if state.get("is_finished"):
         return "end"
-        
     num_documented = len(state['documented_nodes'])
     num_total = len(state['nodes_to_process'])
-    
     print(f"--- Progress Check: {num_documented} / {num_total} nodes documented. ---")
-
     if num_documented < num_total:
         return "continue"
     else:
