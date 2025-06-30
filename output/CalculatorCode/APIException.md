@@ -1,68 +1,66 @@
 # Documentation for `APIException`
 
+# APIException Class Documentation
+
+## Overview
+The `APIException` class is a custom exception designed for use within an API context. It extends the built-in `Exception` class and provides a structured way to handle errors by associating them with HTTP status codes and detailed messages. This enables the implementation of a custom exception handler that can return structured JSON error responses.
+
+### File Path
+`app/core/exceptions.py`
+
+### Class Definition
 ```python
 class APIException(Exception):
     """
     Custom base exception class for the API.
-
-    This exception class is designed to facilitate the creation of structured
-    JSON error messages in the API. It serves as a base class for all
-    custom exceptions that may be raised within the API, allowing for
-    consistent error handling and messaging.
-
-    Attributes:
-    ----------
-    message : str
-        A descriptive message that provides details about the exception.
-    status_code : int
-        An HTTP status code associated with the exception, indicating the
-        type of error that occurred.
-
-    Methods:
-    -------
-    __init__(self, message: str, status_code: int = 500):
-        Initializes the APIException with a message and an optional status code.
+    This allows us to create a custom exception handler in main.py
+    to return structured JSON error messages.
     """
-
-    def __init__(self, message: str, status_code: int = 500):
-        """
-        Initializes the APIException with a message and an optional status code.
-
-        Parameters:
-        ----------
-        message : str
-            A descriptive message that provides details about the exception.
-        status_code : int, optional
-            An HTTP status code associated with the exception (default is 500).
-        """
-        self.message = message
-        self.status_code = status_code
-        super().__init__(self.message)
 ```
 
-### Documentation Breakdown:
+## Constructor: `__init__`
 
-- **Class Name:** `APIException`
-- **Category:** Class
-- **File Path:** `Calculator\app\core\exceptions.py`
-- **Lines:** 1 to 10
+### Description
+The `__init__` method initializes an instance of the `APIException` class. It captures an HTTP status code and a detailed message, which are essential for effective error reporting and handling in API responses.
 
-### Purpose:
-The `APIException` class is a custom exception designed for use within the API. It allows for the creation of structured JSON error messages, enabling consistent error handling across the application.
+### Parameters
+- `status_code` (int): The HTTP status code associated with the error (e.g., `404` for "Not Found").
+- `detail` (str): A detailed message that describes the nature of the error.
 
-### Attributes:
-- **message (str):** 
-  - Description: A descriptive message that provides details about the exception.
-  
-- **status_code (int):** 
-  - Description: An HTTP status code associated with the exception, indicating the type of error that occurred. Defaults to 500 (Internal Server Error).
+### Behavior
+When an instance of `APIException` is created, the provided `status_code` and `detail` are stored as instance attributes. The method also calls the initializer of the parent `Exception` class with the `detail` message, ensuring that the exception can be raised with a meaningful description.
 
-### Methods:
-- **`__init__(self, message: str, status_code: int = 500):`**
-  - Description: Initializes the `APIException` with a message and an optional status code.
-  
-  - **Parameters:**
-    - **message (str):** A descriptive message that provides details about the exception.
-    - **status_code (int, optional):** An HTTP status code associated with the exception (default is 500).
+### Example Usage
+To raise an `APIException`, you can use the following syntax:
+```python
+raise APIException(404, "Resource not found")
+```
+This example illustrates how to create an exception indicating that a resource was not found, along with the corresponding HTTP status code.
 
-This documentation provides a comprehensive overview of the `APIException` class, detailing its purpose, attributes, and initialization method, ensuring that developers can effectively utilize it within the API's error handling framework.
+### Source Code
+```python
+def __init__(self, status_code: int, detail: str):
+    """
+    Initializes an instance of the APIException class.
+
+    Parameters:
+    ----------
+    status_code : int
+        The HTTP status code associated with the exception.
+    detail : str
+        A detailed message describing the exception.
+
+    This constructor sets the status code and detail attributes for the 
+    APIException instance and calls the parent class's initializer 
+    with the detail message.
+
+    Example:
+    --------
+    >>> raise APIException(404, "Resource not found")
+    """
+    self.status_code = status_code
+    self.detail = detail
+    super().__init__(self.detail)
+```
+
+This documentation provides a comprehensive overview of the `APIException` class and its constructor, facilitating better understanding and usage within the codebase.

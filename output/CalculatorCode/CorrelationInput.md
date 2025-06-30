@@ -1,55 +1,54 @@
 # Documentation for `CorrelationInput`
 
 ```python
-class CorrelationInput:
+class CorrelationInput(BaseModel):
     """
-    Model for correlation matrix input validation.
+    Model for correlation matrix input.
 
-    This class ensures that the input provided for the correlation matrix 
-    contains at least two columns. It utilizes the `check_min_columns` 
-    method to validate the input data.
+    This class represents the input required to generate a correlation matrix.
+    It ensures that at least two columns are specified when provided. The input
+    consists of a table name, an optional list of column names, and a database path.
 
     Attributes:
-        data (list): The input data representing the columns for the 
-                     correlation matrix.
+        table_name (str): The name of the table from which to derive the correlation matrix.
+        columns (Optional[List[str]]): A list of column names to be included in the correlation matrix.
+            Must contain at least two elements if specified.
+        db_path (str): The path to the database file. Defaults to 'data/sample_database.db'.
 
     Methods:
-        validate_data: Validates the input data by checking the number of 
-                       columns using the `check_min_columns` method.
-    
-    Raises:
-        ValueError: If the input data does not contain at least two columns.
+        check_min_columns(cls, v): Validates that the number of columns specified is at least two.
     """
 
-    def __init__(self, data):
-        self.data = check_min_columns(self.__class__, data)
+    table_name: str
+    columns: Optional[List[str]] = None
+    db_path: str = 'data/sample_database.db'
 
+    @field_validator('columns')
     @classmethod
-    def validate_data(cls, v):
+    def check_min_columns(cls, v):
         """
-        Validates the input data for the correlation matrix.
+        Validate the number of columns specified for a correlation matrix.
 
-        This method checks if the provided input `v` meets the minimum 
-        requirement of having at least two columns. It calls the 
-        `check_min_columns` method to perform the validation.
+        This class method checks if the provided value `v` (representing the columns)
+        contains at least two elements. If `v` is not None and contains fewer than 
+        two columns, a ValueError is raised with an appropriate message.
 
-        Args:
-            cls: The class that calls this method.
-            v: The input value to be validated, expected to be a list or 
-               similar iterable representing columns.
-
-        Raises:
-            ValueError: If `v` is None or if the length of `v` is less than 2.
+        Parameters:
+            cls (Type[CorrelationInput]): The class that this method is bound to.
+            v (Optional[List[Any]]): The value representing the columns to be validated.
 
         Returns:
-            The validated input value `v` if it meets the minimum column 
-            requirement.
-        """
-        return check_min_columns(cls, v)
-```
+            Optional[List[Any]]: The validated columns if the check passes.
 
-### Key Points:
-- **Purpose:** The `CorrelationInput` class is designed to validate input data for a correlation matrix, ensuring that it contains at least two columns.
-- **Attributes:** The class has an attribute `data` that holds the validated input.
-- **Methods:** It includes a class method `validate_data` for validating the input data.
-- **Error Handling:** It raises a `ValueError` if the input does not meet the required conditions.
+        Raises:
+            ValueError: If fewer than two columns are specified.
+        """
+        if v is not None and len(v) < 2:
+            raise ValueError('At least two columns must be specified for a correlation matrix.')
+        return v
+``` 
+
+### Summary of Documentation:
+- **Purpose**: The class docstring provides a clear overview of the `CorrelationInput` class, detailing its role in managing input for correlation matrix generation.
+- **Attributes**: Each attribute is described with its type and purpose, ensuring users understand what data is required.
+- **Methods**: The method `check_min_columns` is documented to explain its functionality, parameters, return values, and exceptions raised, aligning with best practices for clarity and usability.

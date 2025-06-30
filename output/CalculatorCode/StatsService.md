@@ -3,128 +3,118 @@
 ```python
 class StatsService:
     """
-    Service for performing statistical analysis.
-
-    The StatsService class provides methods for retrieving data from an SQLite database, 
-    calculating descriptive statistics, performing regression analysis, and computing 
-    correlation matrices. It is designed to facilitate various statistical operations 
-    on datasets stored in SQLite tables.
+    StatsService provides various statistical analysis methods for datasets 
+    stored in an SQLite database or in-memory lists. It includes functionalities 
+    for loading data, performing regression analysis, calculating correlation 
+    matrices, conducting t-tests, and computing descriptive statistics.
 
     Methods:
     --------
-    _get_dataframe_from_sqlite(db_path: str, table_name: str) -> pd.DataFrame:
-        Retrieves a DataFrame from a specified SQLite database table.
-    
-    calculate_descriptive_stats(series: pd.Series) -> Dict[str, Any]:
-        Calculates descriptive statistics for a pandas Series.
-    
-    perform_ols_regression(db_path: str, table_name: str, dependent_var: str, 
-                            independent_vars: List[str]) -> str:
-        Performs Ordinary Least Squares (OLS) regression on data retrieved from a specified 
-        SQLite database table.
-    
-    calculate_determinant(matrix: List[List[float]]) -> float:
-        Calculates the determinant of a square matrix.
-    
-    calculate_inverse(matrix: List[List[float]]) -> List[List[float]]:
-        Calculates the inverse of a square matrix.
-    
-    perform_independent_ttest(sample1: List[float], sample2: List[float]) -> Dict[str, float]:
-        Performs an independent two-sample t-test.
-    
-    calculate_correlation_matrix(db_path: str, table_name: str, 
-                                  columns: Optional[List[str]]) -> Dict[str, Any]:
-        Calculates the correlation matrix for specified columns.
+    _load_data(db_path: str, table_name: str, columns=None) -> pandas.DataFrame:
+        Load data from an SQLite database into a pandas DataFrame.
+
+    perform_ols_regression(db_path: str, table_name: str, dependent_var: str, independent_vars: list) -> dict:
+        Perform Ordinary Least Squares (OLS) regression and return a summary of results.
+
+    calculate_correlation_matrix(db_path: str, table_name: str, columns: list) -> dict:
+        Calculate the Pearson correlation matrix for specified columns in a database table.
+
+    perform_independent_ttest(sample1: list, sample2: list) -> dict:
+        Perform an independent two-sample t-test and return the t-statistic and p-value.
+
+    calculate_standard_deviation(data: list) -> float:
+        Calculate the standard deviation of a list of numbers.
+
+    calculate_descriptive_stats(data: List[float]) -> dict:
+        Calculate descriptive statistics for a list of numbers.
+
+    calculate_z_scores(data: List[float]) -> List[float]:
+        Calculate Z-Scores for a list of numbers.
+
+    calculate_confidence_interval(data: List[float], confidence: float) -> dict:
+        Calculate the confidence interval for a list of numbers.
     """
 
-    def _get_dataframe_from_sqlite(self, db_path: str, table_name: str) -> pd.DataFrame:
+    def _load_data(self, db_path: str, table_name: str, columns=None):
         """
-        Retrieve a DataFrame from a specified SQLite database table.
+        Load data from an SQLite database into a pandas DataFrame.
 
-        This function connects to an SQLite database located at the given 
-        `db_path`, executes a query to select all records from the specified 
-        `table_name`, and returns the results as a pandas DataFrame.
+        This method connects to the specified SQLite database and retrieves data 
+        from the given table. If the `columns` parameter is not provided (i.e., 
+        it is None), all columns from the table will be loaded into the DataFrame. 
+        If specific columns are specified, only those columns will be included in 
+        the resulting DataFrame.
 
         Parameters:
         ----------
         db_path : str
-            The file path to the SQLite database.
+            The file path to the SQLite database from which to load data.
+        
         table_name : str
-            The name of the table from which to retrieve data.
+            The name of the table in the database to query data from.
+        
+        columns : list, optional
+            A list of column names to load from the table. If None, all columns 
+            will be loaded. Default is None.
 
         Returns:
         -------
-        pd.DataFrame
-            A DataFrame containing the data from the specified table.
+        pandas.DataFrame
+            A DataFrame containing the data retrieved from the specified table 
+            in the SQLite database.
 
         Raises:
         ------
-        DataError
-            If the database file does not exist at the specified path, or 
-            if there is an error during the database query (e.g., invalid 
-            table name or database connection issues).
-
-        Example:
-        --------
-        df = self._get_dataframe_from_sqlite('path/to/database.db', 'my_table')
+        sqlite3.Error
+            If there is an error connecting to the database or executing the query.
+        KeyError
+            If any specified columns do not exist in the DataFrame.
         """
-        if not os.path.exists(db_path):
-            raise DataError(f"Database file not found at path: {db_path}")
-        try:
-            conn = sqlite3.connect(db_path)
-            df = pd.read_sql_query(f'SELECT * FROM "{table_name}"', conn)
-            conn.close()
-            return df
-        except Exception as e:
-            raise DataError(f"Database error: {e}. Check table name and DB path.")
+        with sqlite3.connect(db_path) as conn:
+            query = f'SELECT * FROM {table_name}'
+            df = pd.read_sql_query(query, conn)
+        if columns:
+            df = df[columns]
+        return df
 
-    def calculate_descriptive_stats(self, series: pd.Series) -> Dict[str, Any]:
+    def perform_ols_regression(self, db_path: str, table_name: str, dependent_var: str, independent_vars: list) -> dict:
         """
-        Calculates descriptive statistics for a pandas Series.
+        Perform Ordinary Least Squares (OLS) regression using NumPy's least squares method.
 
-        This function computes a variety of descriptive statistics for the 
-        provided pandas Series, including count, mean, standard deviation, 
-        minimum, maximum, quartiles, median, variance, skewness, and kurtosis. 
-        The function ensures that the input series is numeric and raises an 
-        error if it is not.
+        This method loads data from a specified database table, performs OLS regression on the 
+        provided dependent and independent variables, and returns a summary of the regression results.
 
         Parameters:
         ----------
-        series : pd.Series
-            A pandas Series containing numeric data for which descriptive 
-            statistics are to be calculated.
+        db_path : str
+            The file path to the database from which to load the data.
+        
+        table_name : str
+            The name of the table in the database containing the data.
+        
+        dependent_var : str
+            The name of the dependent variable (the outcome variable).
+        
+        independent_vars : list of str
+            A list of names of the independent variables (predictor variables).
 
         Returns:
         -------
-        Dict[str, Any]
-            A dictionary containing the calculated descriptive statistics. 
-            The keys include:
-            - 'count': Number of non-null entries
-            - 'mean': Mean of the series
-            - 'std': Standard deviation of the series
-            - 'min': Minimum value in the series
-            - '25%': 25th percentile (first quartile)
-            - '50%': Median (second quartile)
-            - '75%': 75th percentile (third quartile)
-            - 'max': Maximum value in the series
-            - 'median': Median of the series
-            - 'variance': Variance of the series
-            - 'skewness': Skewness of the series
-            - 'kurtosis': Kurtosis of the series
-
-        Raises:
-        ------
-        DataError
-            If the input series is not numeric.
+        dict
+            A dictionary containing the following keys:
+            - 'coefficients': A dictionary mapping variable names to their estimated coefficients.
+            - 'standard_errors': A dictionary mapping variable names to their estimated standard errors.
+            - 't_statistics': A dictionary mapping variable names to their t-statistics.
+            - 'p_values': A dictionary mapping variable names to their p-values.
+            - 'r_squared': The R-squared value of the regression model, indicating the proportion of variance explained by the model.
 
         Notes:
         -----
-        The function converts all calculated statistics to float, replacing 
-        any NaN values with None for better readability in the output.
+        This implementation does not use the `statsmodels` library and relies solely on NumPy for calculations.
+        Ensure that the database and table specified contain the necessary columns for the dependent and independent variables.
         """
-        if not pd.api.types.is_numeric_dtype(series):
-            raise DataError("Data series must be numeric for statistics.")
-        
-        stats_dict = series.describe().to_dict()
-        stats_dict['median'] = series.median()
-        stats_dict['
+        df = self._load_data(db_path, table_name, [dependent_var] + independent_vars)
+        X = df[independent_vars].values
+        y = df[dependent_var].values
+        X = np.column_stack((np.ones(X.shape[0]), X))
+        coef,

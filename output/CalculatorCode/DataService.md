@@ -2,128 +2,109 @@
 
 ```python
 class DataService:
-    """
-    Service for loading data into pandas objects from files and databases.
+    """Service for loading data into pandas objects from files and databases.
 
-    The DataService class provides methods to retrieve data from various sources, including
-    CSV files and SQLite databases. It facilitates the extraction of entire tables or specific
-    columns as pandas DataFrames or Series, respectively.
+    The DataService class provides methods to retrieve data from various sources, including 
+    SQLite databases and CSV files. It facilitates the loading of data into pandas DataFrames 
+    and Series, enabling easy manipulation and analysis of the data.
 
     Methods:
-    --------
-    get_dataframe_from_sqlite(db_path: str, table_name: str) -> pd.DataFrame:
-        Retrieves an entire table from a SQLite database as a pandas DataFrame.
-
-    get_series_from_file(file: UploadFile, column_name: str) -> pd.Series:
-        Reads a CSV file, extracts a specified column, and returns it as a pandas Series.
-
-    get_series_from_sqlite(db_path: str, table_name: str, column_name: str) -> pd.Series:
-        Retrieves a specified column from a SQLite table and returns it as a pandas Series.
-
-    Example:
-    --------
-    >>> data_service = DataService()
-    >>> df = data_service.get_dataframe_from_sqlite('path/to/database.db', 'my_table')
-    >>> series = data_service.get_series_from_file(uploaded_file, 'column_name')
-    >>> series_from_db = data_service.get_series_from_sqlite('path/to/database.db', 'my_table', 'my_column')
+        - get_dataframe_from_sqlite(db_path: str, table_name: str) -> pd.DataFrame:
+            Connects to a SQLite database and retrieves an entire table as a pandas DataFrame.
+        
+        - get_series_from_file(file: UploadFile, column_name: str) -> pd.Series:
+            Reads a CSV file, extracts a specified column, and returns it as a pandas Series.
+        
+        - get_series_from_sqlite(db_path: str, table_name: str, column_name: str) -> pd.Series:
+            Reads a specific column from a SQLite table and returns it as a pandas Series.
     """
 
     def get_dataframe_from_sqlite(self, db_path: str, table_name: str) -> pd.DataFrame:
         """
-        Retrieve an entire table from a SQLite database as a pandas DataFrame.
+        Connects to a SQLite database and retrieves an entire table as a pandas DataFrame.
 
-        This function connects to a SQLite database specified by the `db_path` parameter,
-        executes a SQL query to select all records from the specified `table_name`, 
-        and returns the results as a pandas DataFrame. 
-
-        If the database file does not exist, or if the specified table is empty or does not exist,
-        a DataError is raised. This function is utilized by the ValidationService and StatsService.
+        This method establishes a connection to the specified SQLite database and executes a SQL query 
+        to fetch all records from the given table. It returns the results as a pandas DataFrame. 
+        This function is utilized by both the ValidationService and StatsService.
 
         Parameters:
-        ----------
-        db_path : str
-            The file path to the SQLite database.
-        table_name : str
-            The name of the table to retrieve data from.
+        - db_path (str): The file path to the SQLite database.
+        - table_name (str): The name of the table to retrieve data from.
 
         Returns:
-        -------
-        pd.DataFrame
-            A pandas DataFrame containing the data from the specified table.
+        - pd.DataFrame: A DataFrame containing the data from the specified table.
 
         Raises:
-        ------
-        DataError
-            If the database file is not found, if the table is empty, or if any database error occurs.
+        - DataError: If the database file does not exist, if the table is empty or does not exist, 
+          or if any database-related error occurs during the operation.
+
+        Example Usage:
+        ```python
+        try:
+            data_service = DataService()
+            df = data_service.get_dataframe_from_sqlite('path/to/database.db', 'my_table')
+            print(df)
+        except DataError as e:
+            print(e.detail)
+        ```
+
+        Notes:
+        - Ensure that the SQLite database file exists at the specified path before calling this method.
+        - The method will raise a `DataError` with a descriptive message if any issues arise during execution.
         """
-        # Implementation...
+        if not os.path.exists(db_path):
+            raise DataError(f'Database file not found at path: {db_path}')
+        try:
+            conn = sqlite3.connect(db_path)
+            query = f'SELECT * FROM "{table_name}"'
+            df = pd.read_sql_query(query, conn)
+            conn.close()
+            if df.empty:
+                raise DataError(f"Table '{table_name}' is empty or does not exist.")
+            return df
+        except Exception as e:
+            raise DataError(f'A database error occurred: {e}. Check table and database path.')
 
     def get_series_from_file(self, file: UploadFile, column_name: str) -> pd.Series:
         """
         Reads a CSV file, extracts a specified column, and returns it as a pandas Series.
 
-        Parameters:
-        ----------
-        file : UploadFile
-            The uploaded CSV file from which to extract the column.
-        column_name : str
-            The name of the column to extract from the CSV file.
-
-        Returns:
-        -------
-        pd.Series
-            A pandas Series containing the data from the specified column.
-
-        Raises:
-        ------
-        DataError
-            If the uploaded file is not a CSV, if the specified column does not exist,
-            or if there is an error processing the file.
-
-        Example:
-        --------
-        >>> series = get_series_from_file(uploaded_file, 'column_name')
-        >>> print(series)
-        """
-        # Implementation...
-
-    def get_series_from_sqlite(self, db_path: str, table_name: str, column_name: str) -> pd.Series:
-        """
-        Retrieves a specified column from a SQLite table and returns it as a pandas Series.
-
-        This function connects to a SQLite database, reads the specified table, and extracts
-        the data from the specified column. If the column does not exist in the table, a 
-        DataError is raised.
+        This method takes an uploaded CSV file and a column name as input. It validates the file type,
+        reads the content, and attempts to extract the specified column from the CSV. If the file is not
+        a valid CSV or if the specified column does not exist, a `DataError` is raised.
 
         Parameters:
-        ----------
-        db_path : str
-            The file path to the SQLite database.
-        table_name : str
-            The name of the table from which to retrieve the column.
-        column_name : str
-            The name of the column to be extracted from the table.
+        - file (UploadFile): The uploaded CSV file to read.
+        - column_name (str): The name of the column to extract from the CSV.
 
         Returns:
-        -------
-        pd.Series
-            A pandas Series containing the data from the specified column.
+        - pd.Series: A pandas Series containing the data from the specified column.
 
         Raises:
-        ------
-        DataError
-            If the specified column is not found in the table.
+        - DataError: If the file is not a CSV, if the column does not exist in the CSV, or if there is
+          an error processing the file.
 
         Example:
-        --------
-        >>> series = get_series_from_sqlite('path/to/database.db', 'my_table', 'my_column')
-        >>> print(series)
-        """
-        # Implementation...
-```
+        ```python
+        try:
+            series = data_service.get_series_from_file(uploaded_file, 'column_name')
+        except DataError as e:
+            print(e.detail)  # Handle the error appropriately
+        ```
 
-### Documentation Breakdown:
-- **Class Purpose**: The docstring at the class level provides a high-level overview of the `DataService` class, including its purpose and the types of data it can handle.
-- **Methods Overview**: Each method is briefly described, indicating its functionality and return type.
-- **Example Usage**: An example of how to instantiate the class and use its methods is provided, which helps users understand practical applications of the class.
-- **Detailed Method Documentation**: Each method includes its own docstring that follows a consistent format, detailing parameters, return types,
+        Notes:
+        - Ensure that the uploaded file is a valid CSV format.
+        - The method reads the entire file into memory, which may not be suitable for very large files.
+        """
+        if not file.filename.endswith('.csv'):
+            raise DataError('Invalid file type. Please upload a CSV file.')
+        try:
+            content = file.file.read().decode('utf-8')
+            df = pd.read_csv(StringIO(content))
+            if column_name not in df.columns:
+                raise DataError(f"Column '{column_name}' not found in the CSV file.")
+            return df[column_name]
+        except Exception as e:
+            raise DataError(f'Error processing file: {e}')
+
+    def get_series_from_sqlite(self, db_path: str, table_name: str, column_name: str) -> pd.Series

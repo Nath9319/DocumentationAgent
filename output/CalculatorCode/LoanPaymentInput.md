@@ -1,43 +1,34 @@
 # Documentation for `LoanPaymentInput`
 
 ```python
-class LoanPaymentInput:
+class LoanPaymentInput(BaseModel):
     """
     Model for Loan Payment calculation.
 
-    This class serves as a data structure to hold the necessary inputs 
-    for calculating loan payments. It encapsulates the parameters required 
-    for the loan payment calculation process, ensuring that all relevant 
-    data is organized and easily accessible.
+    This class represents the input parameters required to calculate loan payments.
+    It inherits from BaseModel and utilizes Pydantic's Field for data validation.
 
     Attributes:
-        principal (float): The total amount of the loan.
-        annual_interest_rate (float): The annual interest rate as a percentage.
-        loan_term_years (int): The duration of the loan in years.
+        rate (float): The interest rate per period. Must be greater than 0.
+        nper (int): The total number of payment periods. Must be greater than 0.
+        pv (float): The present value or principal of the loan. Must be a positive value.
 
-    Methods:
-        __init__(self, principal: float, annual_interest_rate: float, loan_term_years: int):
-            Initializes a LoanPaymentInput instance with the specified loan parameters.
+    Example:
+        loan_input = LoanPaymentInput(rate=5.0, nper=60, pv=30000)
     """
 
-    def __init__(self, principal: float, annual_interest_rate: float, loan_term_years: int):
-        """
-        Initializes a LoanPaymentInput instance with the specified loan parameters.
-
-        Args:
-            principal (float): The total amount of the loan.
-            annual_interest_rate (float): The annual interest rate as a percentage.
-            loan_term_years (int): The duration of the loan in years.
-        """
-        self.principal = principal
-        self.annual_interest_rate = annual_interest_rate
-        self.loan_term_years = loan_term_years
-```
+    rate: float = Field(..., gt=0, description='Interest rate per period')
+    nper: int = Field(..., gt=0, description='Total number of payment periods')
+    pv: float = Field(..., gt=0, description='Present value or principal of the loan (must be positive)')
+``` 
 
 ### Documentation Breakdown:
 
-- **Class Overview**: The class is introduced as a model for loan payment calculations, providing context for its purpose.
-- **Attributes**: Each attribute is clearly defined with its type and purpose, allowing users to understand what data they need to provide.
-- **Constructor Method**: The `__init__` method is documented to explain how to instantiate the class, including parameter types and descriptions. 
+- **Class Purpose**: The `LoanPaymentInput` class is designed to encapsulate the necessary parameters for calculating loan payments, ensuring that the inputs are valid through the use of Pydantic's validation features.
+  
+- **Attributes**:
+  - `rate`: Represents the interest rate applied to the loan. It must be a positive float.
+  - `nper`: Indicates the total number of payment periods for the loan. It must be a positive integer.
+  - `pv`: The present value or principal amount of the loan, which must also be a positive float.
 
-This documentation provides a comprehensive understanding of the `LoanPaymentInput` class, making it easier for developers to utilize it effectively within the codebase.
+- **Example Usage**: An example is provided to demonstrate how to instantiate the class with valid parameters.

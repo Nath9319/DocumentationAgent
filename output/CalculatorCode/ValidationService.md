@@ -1,101 +1,120 @@
 # Documentation for `ValidationService`
 
-# ValidationService Documentation
-
-## Overview
-The `ValidationService` class is designed to perform complex, cross-service validations that extend beyond simple model field checks. It connects various models to the data layer, ensuring that requests are not only well-formed but also logically valid against the actual data stored in the database.
-
-## File Path
-`Calculator/app/services/validation_service.py`
-
-## Class Definition
 ```python
 class ValidationService:
+    """
+    A service dedicated to performing complex, cross-service validations
+    that go beyond simple model field checks. This service connects models
+    to the data layer to ensure requests are not just well-formed, but
+    also logically valid against the actual data.
+    """
+
     def __init__(self, data_svc: DataService = data_service):
-        ...
-```
+        """
+        Initializes the ValidationService with a dependency on the DataService.
 
-### Constructor: `__init__`
+        This constructor sets up the ValidationService instance by accepting an 
+        optional DataService instance. If no instance is provided, a default 
+        instance is used.
 
-#### Purpose
-The `__init__` function serves as the constructor for the `ValidationService` class, establishing a dependency on the `DataService`. This allows the `ValidationService` to utilize the functionalities provided by the `DataService` for its operations.
+        Parameters:
+        ----------
+        data_svc : DataService, optional
+            An instance of DataService that the ValidationService will use for 
+            data-related operations. If not specified, the default instance 
+            (data_service) will be utilized.
 
-#### Parameters
-- **data_svc** (`DataService`, optional): 
-  - An instance of `DataService` that the `ValidationService` will use. 
-  - **Default**: If not specified, a default instance named `data_service` will be utilized.
+        Example:
+        --------
+        >>> validation_service = ValidationService()
+        >>> validation_service_with_custom_data_svc = ValidationService(custom_data_service)
+        """
+        self.data_svc = data_svc
 
-#### Attributes
-- **data_svc** (`DataService`): 
-  - The `DataService` instance that is assigned to the `ValidationService`, enabling it to perform validation tasks.
+    def validate_regression_inputs(self, payload: RegressionInput):
+        """
+        Validates the inputs for regression analysis by checking the existence and data type 
+        of specified columns in a database table.
 
-### Method: `validate_regression_inputs`
+        This method connects the `RegressionInput` model with the `DataService` to perform 
+        comprehensive validation of the regression inputs.
 
-#### Purpose
-The `validate_regression_inputs` method validates the inputs required for regression analysis. It connects to the database to ensure that the specified columns exist in the given table and that they contain numeric data suitable for regression modeling.
+        Args:
+            payload (RegressionInput): The Pydantic model containing the request data, 
+                                       including the database path, table name, dependent variable, 
+                                       and independent variables.
 
-#### Parameters
-- **payload** (`RegressionInput`): A Pydantic model containing the request data, which includes:
-  - `db_path`: The path to the database.
-  - `table_name`: The name of the table to validate.
-  - `dependent_var`: The dependent variable for the regression analysis.
-  - `independent_vars`: A list of independent variables for the regression analysis.
+        Raises:
+            DataError: If any of the following validation checks fail:
+                - The specified columns do not exist in the database table.
+                - The specified columns are not of numeric type.
+                - The specified columns contain only null values.
 
-#### Raises
-- **DataError**: Raised if any of the following validation checks fail:
-  - The specified column does not exist in the table.
-  - The column data type is not numeric.
-  - The column contains only null values.
+        Returns:
+            bool: Returns `True` if all validation checks pass.
 
-#### Returns
-- **bool**: Returns `True` upon successful validation.
+        Example:
+            try:
+                is_valid = validation_service.validate_regression_inputs(payload)
+            except DataError as e:
+                print(f"Validation error: {e.detail}")
 
-#### Example Usage
-```python
-payload = RegressionInput(
-    db_path="path/to/database.db",
-    table_name="my_table",
-    dependent_var="target_variable",
-    independent_vars=["feature1", "feature2"]
-)
+        Notes:
+            This method performs the following steps:
+            1. Retrieves the DataFrame from the specified SQLite database and table.
+            2. Checks each variable (dependent and independent) for existence in the DataFrame.
+            3. Validates that each variable is numeric and contains valid data.
+        """
+        print(f'Performing deep validation for regression on table: {payload.table_name}')
+        df = self.data_svc.get_dataframe_from_sqlite(payload.db_path, payload.table_name)
+        all_vars = [payload.dependent_var] + payload.independent_vars
+        for var in all_vars:
+            if var not in df.columns:
+                raise DataError(f"Column '{var}' not found in table '{payload.table_name}'.")
+            if not pd.api.types.is_numeric_dtype(df[var]):
+                raise DataError(f"Column '{var}' must be numeric for regression analysis.")
+            if df[var].isnull().all():
+                raise DataError(f"Column '{var}' contains no valid data; all values are null.")
+        print('Regression input validation successful.')
+        return True
 
-try:
-    validation_service.validate_regression_inputs(payload)
-except DataError as e:
-    print(f"Validation failed: {e}")
-```
+    def validate_correlation_inputs(self, payload: CorrelationInput):
+        """
+        Validates that the specified columns for a correlation analysis exist in the provided DataFrame 
+        and are of numeric type.
 
-### Method: `validate_correlation_inputs`
+        This method performs the following checks:
+        - Ensures that at least two numeric columns are available for correlation analysis.
+        - Confirms that each specified column exists in the DataFrame.
+        - Validates that each specified column is numeric.
 
-#### Purpose
-The `validate_correlation_inputs` method validates that the specified columns for a correlation analysis exist in the given table and are of numeric type. It ensures that the columns provided in the `payload` exist in the DataFrame retrieved from the specified SQLite database.
+        Args:
+            payload (CorrelationInput): The Pydantic model containing the parameters for correlation analysis,
+                                        including the database path, table name, and columns to check.
 
-#### Parameters
-- **payload** (`CorrelationInput`): The Pydantic model containing the correlation analysis parameters, including the database path, table name, and columns to validate.
+        Raises:
+            DataError: If any of the validation checks fail, indicating issues such as:
+                - Fewer than two numeric columns available for correlation.
+                - Specified columns not found in the DataFrame.
+                - Specified columns not being of numeric type.
 
-#### Raises
-- **DataError**: Raised if validation fails due to:
-  - Fewer than two numeric columns specified.
-  - Any specified column does not exist in the DataFrame.
-  - Any specified column is not of numeric type.
+        Returns:
+            bool: Returns `True` if all validations pass successfully.
 
-#### Returns
-- **bool**: Returns `True` if validation is successful.
+        Example:
+            try:
+                validation_service.validate_correlation_inputs(correlation_input)
+            except DataError as e:
+                print(f"Validation error: {e.detail}")
 
-#### Example Usage
-```python
-payload = CorrelationInput(
-    db_path="path/to/database.db",
-    table_name="my_table",
-    columns=["feature1", "feature2"]
-)
-
-try:
-    validation_service.validate_correlation_inputs(payload)
-except DataError as e:
-    print(f"Validation failed: {e}")
-```
-
-## Notes
-- The `ValidationService` class integrates data models with a data service to perform comprehensive validation checks.
-- Ensure that the `DataService` is properly initialized and accessible within the context where these methods are called.
+        Notes:
+            - The method retrieves the DataFrame from a SQLite database using the provided database path and table name.
+            - If no columns are specified in the payload, the method defaults to checking all numeric columns in the DataFrame.
+        """
+        print(f'Performing deep validation for correlation on table: {payload.table_name}')
+        df = self.data_svc.get_dataframe_from_sqlite(payload.db_path, payload.table_name)
+        columns_to_check = payload.columns
+        if not columns_to_check:
+            columns_to_check = df.select_dtypes(include='number').columns.tolist()
+        if len(columns_to_check) < 2:
+            raise DataError('Correlation analysis requires at least two

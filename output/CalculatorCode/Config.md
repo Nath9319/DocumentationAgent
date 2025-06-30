@@ -3,43 +3,32 @@
 ```python
 class Config:
     """
-    A class to manage configuration settings for the application.
-
-    This class provides a centralized way to access and modify configuration
-    parameters used throughout the application. It is designed to be easily
-    extensible for future configuration needs.
+    A class to manage application configuration settings.
 
     Attributes:
-        settings (dict): A dictionary to store configuration settings.
+        env_file (str): The name of the environment file to load configuration variables from. 
+                        Default is '.env'.
     """
+    env_file = '.env'
+``` 
 
-    def __init__(self):
-        """
-        Initializes the Config class with default settings.
+### Documentation Overview
 
-        The default settings can be modified by the user as needed.
-        """
-        self.settings = {}
-```
+#### Class: `Config`
 
-### Documentation for `Config` Class
-
-#### Overview
-The `Config` class is designed to manage configuration settings for the application. It serves as a centralized repository for accessing and modifying various parameters that control the behavior of the application.
+The `Config` class is designed to encapsulate configuration settings for the application. It primarily holds the name of the environment file from which configuration variables can be loaded.
 
 #### Attributes
-- **settings (dict)**: A dictionary that holds the configuration settings. This attribute can be populated with key-value pairs representing different configuration options.
 
-#### Methods
-- **`__init__()`**: Initializes a new instance of the `Config` class and sets up the `settings` attribute as an empty dictionary. This method allows for the addition of default settings or user-defined configurations.
+- **`env_file` (str)**: This attribute specifies the name of the environment file that contains configuration variables. The default value is set to `'.env'`.
 
-#### Usage
-To utilize the `Config` class, instantiate it and modify the `settings` attribute as needed. This allows for flexible configuration management throughout the application.
+### Usage
+
+To use the `Config` class, you can access the `env_file` attribute to determine the configuration file being used:
 
 ```python
 config = Config()
-config.settings['theme'] = 'dark'
-config.settings['language'] = 'en'
+print(config.env_file)  # Output: '.env'
 ```
 
-This documentation provides a clear understanding of the `Config` class, its purpose, and how to use it effectively within the application.
+This class serves as a foundational component for managing application settings and can be extended or modified as needed to accommodate additional configuration requirements.

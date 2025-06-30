@@ -1,56 +1,29 @@
 # Documentation for `SingleInput`
 
 ```python
-class SingleInput:
-    """
-    Model for operations requiring a single number.
-
-    This class serves as a base for mathematical operations that
-    take a single numerical input. It can be extended to implement
-    specific operations such as square, square root, or any other
-    unary operation.
+class SingleInput(BaseModel):
+    """Model for operations requiring a single number.
 
     Attributes:
-        value (float): The single numerical input for the operation.
+        number (float): The single numeric input required for the operation.
     """
-
-    def __init__(self, value: float):
-        """
-        Initializes the SingleInput instance with a given value.
-
-        Args:
-            value (float): The number to be used in the operation.
-        """
-        self.value = value
+    number: float
 ```
 
-### Documentation Overview
+### Documentation for `SingleInput` Class
 
-#### Class: `SingleInput`
-
-- **File Path:** `Calculator\app\models\calculator.py`
-- **Lines:** 12 to 14
-
-#### Description
-The `SingleInput` class is designed to model mathematical operations that require only a single numerical input. It provides a foundation for creating various unary operations by encapsulating the input value.
+#### Overview
+The `SingleInput` class is a model designed to represent operations that require a single numeric input. It inherits from `BaseModel`, which may provide additional functionality or structure common to all models in the application.
 
 #### Attributes
-- **value (float)**: This attribute holds the single numerical input that will be used in the operation.
-
-#### Initialization
-- **`__init__(self, value: float)`**: Constructor method that initializes the `SingleInput` instance with a specified numerical value.
+- **number (float)**: This attribute holds the single numeric value necessary for the operation. It is expected to be a floating-point number.
 
 #### Usage
-This class can be extended to implement specific operations that utilize the single input, such as:
-- Squaring the input value
-- Calculating the square root
-- Any other unary mathematical operation
+This class can be instantiated with a floating-point number to represent the input for various calculations or operations that require only one numeric value. 
 
-### Example
+#### Example
 ```python
-# Example usage of SingleInput
-single_input = SingleInput(4)
-print(single_input.value)  # Output: 4
+single_input = SingleInput(number=42.0)
 ```
 
-This documentation provides a clear understanding of the `SingleInput` class, its purpose, attributes, and potential usage within the codebase.
+In this example, an instance of `SingleInput` is created with the number `42.0`, which can then be used in subsequent operations that require a single input.

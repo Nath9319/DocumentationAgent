@@ -1,38 +1,44 @@
 # Documentation for `Settings`
 
 ```python
-class Settings:
+class Settings(BaseSettings):
     """
-    Application settings, loaded from environment variables.
+    A class to manage application settings, loaded from environment variables.
 
-    This class is responsible for managing the configuration settings 
-    of the application. It retrieves values from the environment, allowing 
-    for flexible configuration without hardcoding values in the source code. 
-    This approach enhances security and adaptability, especially in 
-    different deployment environments.
+    This class inherits from `BaseSettings` and is designed to encapsulate
+    the configuration settings for the application. The settings are primarily
+    loaded from environment variables, allowing for flexible configuration
+    across different environments.
 
     Attributes:
-        - (str) DATABASE_URL: The URL for the database connection.
-        - (str) SECRET_KEY: A secret key used for cryptographic operations.
-        - (str) DEBUG: A flag indicating whether the application is in debug mode.
+        APP_NAME (str): The name of the application. Default is 'Scientific Calculator API'.
+        API_V1_STR (str): The base path for the API version 1. Default is '/api/v1'.
+
+    Configuration:
+        The class uses a nested `Config` class to specify additional settings.
+        The `env_file` attribute indicates that environment variables should
+        be loaded from a file named '.env'.
+
+    Example:
+        To access the settings, you can create an instance of the Settings class:
+        
+        ```python
+        settings = Settings()
+        print(settings.APP_NAME)  # Outputs: Scientific Calculator API
+        ```
+
+    Note:
+        Ensure that the required environment variables are defined in the
+        specified `.env` file for the application to function correctly.
     """
+    APP_NAME: str = 'Scientific Calculator API'
+    API_V1_STR: str = '/api/v1'
 
-    # Class implementation goes here
-```
+    class Config:
+        env_file = '.env'
+``` 
 
-### Documentation Breakdown:
-
-- **Class Name:** `Settings`
-- **Category:** Class
-- **File Path:** `Calculator\app\core\config.py`
-- **Lines:** 3 to 12
-- **Purpose:** To manage application settings loaded from environment variables.
-- **Key Features:**
-  - Retrieves configuration values from the environment.
-  - Supports flexible and secure application configuration.
-- **Attributes (Examples):**
-  - `DATABASE_URL`: Connection string for the database.
-  - `SECRET_KEY`: Key for cryptographic functions.
-  - `DEBUG`: Boolean flag for enabling debug mode.
-
-This documentation provides a clear overview of the `Settings` class, its purpose, and its attributes, making it easier for developers to understand and utilize the class effectively.
+### Key Points:
+- The docstring provides a clear overview of the class purpose, attributes, and usage.
+- It includes an example to demonstrate how to instantiate the class and access its attributes.
+- Important notes about environment variables and configuration are highlighted for clarity.

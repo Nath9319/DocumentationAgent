@@ -1,52 +1,45 @@
 # Documentation for `DataError`
 
+# Documentation for `DataError`
+
+## Class: `DataError`
+
+**Category:** Class  
+**File Path:** `app/core/exceptions.py`  
+**Lines:** 17 to 19  
+
+### Description
+The `DataError` class is a custom exception that inherits from `APIException`. It is designed to represent errors that occur during data processing, such as validation failures or unexpected data formats. This exception provides a mechanism to communicate specific error details to the caller while maintaining a standard HTTP status code.
+
+### Inheritance
+- Inherits from: `APIException`
+
+### Constructor: `__init__`
+
+#### Method: `__init__`
+
+**Category:** Method  
+**File Path:** `app/core/exceptions.py`  
+**Lines:** 18 to 19  
+
+#### Description
+The `__init__` method initializes a new instance of the `DataError` class. It sets a default error message and a status code for the exception, which is fixed at `400`, indicating a client-side error.
+
+#### Parameters
+- **detail** (`str`, optional): A descriptive message that provides details about the error. Defaults to `'An error occurred while processing data.'`.
+
+#### Example Usage
 ```python
-class DataError(Exception):
-    """
-    Exception raised for errors in data processing.
-
-    This class extends the built-in Exception class to provide a specific 
-    error type for data-related issues within the application. It can be 
-    used to signal problems such as invalid data formats, missing data, 
-    or any other data integrity issues that may arise during processing.
-
-    Attributes:
-    ----------
-    message : str
-        A description of the error encountered.
-    """
-
-    def __init__(self, message: str):
-        """
-        Initializes the DataError with a specific error message.
-
-        Parameters:
-        ----------
-        message : str
-            A description of the data error that occurred.
-        """
-        super().__init__(message)
-        self.message = message
+try:
+    # Some data processing logic
+    raise DataError("Invalid data format.")
+except DataError as e:
+    print(e.detail)  # Output: Invalid data format.
 ```
 
-### Documentation Breakdown for `DataError` Class:
+#### Notes
+- The `DataError` class is typically used in scenarios where data validation or processing fails, allowing for clear communication of the error to the caller.
+- The default message can be overridden by providing a custom message when raising the exception.
 
-- **Class Name:** `DataError`
-- **Category:** Class
-- **File Path:** `Calculator\app\core\exceptions.py`
-- **Lines:** 17 to 19
-
-### Purpose:
-The `DataError` class is a custom exception designed to handle errors specifically related to data processing within the application. It provides a clear mechanism for signaling issues that may arise due to invalid or corrupt data.
-
-### Attributes:
-- **message (str):** 
-  - Description: A string that contains a description of the error encountered during data processing.
-
-### Constructor:
-- **`__init__(self, message: str)`**
-  - Purpose: Initializes a new instance of the `DataError` class with a specified error message.
-  - Parameters:
-    - **message (str):** A detailed description of the data error that occurred, which will be passed to the base `Exception` class.
-
-This documentation provides a comprehensive overview of the `DataError` class, detailing its purpose, attributes, and constructor, thereby enabling developers to effectively utilize this exception in their error handling strategies within the codebase.
+### Summary
+The `DataError` class serves as a specialized exception for handling data-related issues, enhancing error reporting and debugging in applications that require robust data processing capabilities.
