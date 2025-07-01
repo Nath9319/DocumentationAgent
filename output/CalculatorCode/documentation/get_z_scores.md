@@ -1,24 +1,23 @@
 # Documentation for `get_z_scores`
 
-```markdown
-### get_z_scores(data: List[float]) -> List[float]
+### get_z_scores() -> List[float]
 
-**Description:**  
-Calculates the z-scores for a given list of numerical data. A z-score indicates how many standard deviations an element is from the mean of the dataset, providing a way to understand the relative position of each data point within the distribution.
+**Description:**
+The `get_z_scores` function is designed to calculate the z-scores for a given dataset. Z-scores are statistical measurements that describe a value's relationship to the mean of a group of values. This function processes input data, computes the z-scores using a dedicated service, and returns the results in a structured format.
 
 **Parameters:**
-- `data` (`List[float]`): A list of numerical values for which the z-scores will be calculated.
+- `data` (`List[float]`): A list of numerical values for which the z-scores are to be calculated. This input is expected to be a list of floats representing the dataset.
 
-**Expected Input:**  
-- `data` should be a non-empty list of floats or integers. The list must contain numerical values only, as non-numeric types will lead to errors during computation.
+**Expected Input:**
+- The `data` parameter should be a list containing numerical values (floats or integers). The list must not be empty, as z-scores cannot be computed without a mean and standard deviation. If the input data is invalid (e.g., non-numeric values or an empty list), the function may raise an `APIException`.
 
-**Returns:**  
-`List[float]`: A list of z-scores corresponding to each value in the input list. Each z-score represents the number of standard deviations a data point is from the mean.
+**Returns:**
+`List[float]`: A list of calculated z-scores corresponding to the input data. Each z-score represents the number of standard deviations a data point is from the mean of the dataset.
 
-**Detailed Logic:**  
-- The function begins by calculating the mean of the input data.
-- It then computes the standard deviation of the data points.
-- For each value in the input list, the function calculates the z-score using the formula: \( z = \frac{(X - \text{mean})}{\text{std\_dev}} \), where \( X \) is the individual data point.
-- The calculated z-scores are collected into a list and returned.
-- If the input data is invalid (e.g., empty or contains non-numeric values), the function raises an `APIException` with an appropriate error message and status code, ensuring consistent error handling throughout the API.
-```
+**Detailed Logic:**
+- The function begins by validating the input data to ensure it is a non-empty list of numerical values.
+- It then calls the `calculate_z_scores` method from the `stats_svc` service, passing the validated data for processing.
+- The `calculate_z_scores` method computes the z-scores based on the statistical properties of the dataset (mean and standard deviation).
+- Finally, the function returns the list of z-scores to the caller, allowing for further analysis or reporting.
+
+This function is part of an API endpoint and is typically invoked in response to a POST request, leveraging the `router.post` decorator to handle incoming requests and dependencies.

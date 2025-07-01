@@ -1,30 +1,27 @@
 # Documentation for `DataService`
 
-```markdown
 ### DataService
 
-**Description:**  
-The `DataService` class serves as a utility for loading data into pandas objects from various sources, including files and databases. It provides methods to read data from CSV files and SQLite databases, facilitating data manipulation and analysis within the application.
+**Description:**
+The `DataService` class is designed to facilitate the loading of data into pandas DataFrame objects from various sources, including files and databases. It provides methods to handle different data formats, ensuring that users can easily access and manipulate their data within a pandas environment.
 
-**Parameters/Attributes:**  
-None (the class does not have any attributes defined in the provided context).
+**Parameters/Attributes:**
+- `db_connection` (`sqlite3.Connection`): A connection object to a SQLite database, used for executing SQL queries.
+- `file_path` (`str`): The path to the file from which data will be loaded, applicable for CSV files.
+- `data_source` (`str`): A string indicating the source of the data, which could be a file path or a database identifier.
 
-**Expected Input:**  
-- The methods within the `DataService` class expect valid file paths for CSV files and established SQLite database connections. 
-- For methods that retrieve data from a CSV file, the `file_path` must point to an accessible CSV file, and the `column_name` must correspond to an existing column header in that file.
-- For methods that interact with a SQLite database, the `table_name` and `column_name` must match existing entities in the database.
+**Expected Input:**
+- The `db_connection` should be a valid SQLite connection object, established using `sqlite3.connect()`.
+- The `file_path` must be a string representing the path to a CSV file, which should exist on the filesystem.
+- The `data_source` should be a string that specifies whether the data is coming from a file or a database.
 
-**Returns:**  
-- The methods return pandas objects: either a `pandas.DataFrame` or a `pd.Series`, depending on the method invoked. 
-- If the specified data cannot be retrieved due to issues such as non-existent files, columns, or tables, a `DataError` may be raised.
+**Returns:**
+`DataFrame`: The class methods return a pandas DataFrame containing the loaded data, allowing for further data manipulation and analysis.
 
-**Detailed Logic:**  
-- The `DataService` class includes several key methods:
-  - `get_dataframe_from_sqlite`: This method connects to a SQLite database and retrieves an entire table, returning it as a pandas DataFrame. It executes a SQL query to select all records from a predefined table and handles any connection or retrieval errors by raising a `DataError`.
-  
-  - `get_series_from_file`: This method reads a CSV file from a specified path, extracts data from a designated column, and returns it as a pandas Series. It checks for the existence of the specified column and raises a `DataError` if the column is not found or if the file is improperly formatted.
-  
-  - `get_series_from_sqlite`: This method retrieves data from a specified column in a SQLite database table and returns it as a pandas Series. It constructs a SQL query to select all entries from the specified column and raises a `DataError` if the column or table does not exist.
-
-- Each method is designed to handle typical data integrity issues and relies on the pandas library for efficient data manipulation. The class is structured to provide a seamless interface for data retrieval, ensuring that users can easily access and work with data stored in various formats.
-```
+**Detailed Logic:**
+- The class initializes with parameters for database connection, file path, and data source.
+- It includes methods to check the existence of files using `os.path.exists`, ensuring that the specified file is available before attempting to load it.
+- For loading data from a SQLite database, the class utilizes `pd.read_sql_query` to execute SQL commands and retrieve data as a DataFrame.
+- When loading data from a CSV file, it employs `pd.read_csv` to read the contents of the file into a DataFrame.
+- The class also incorporates functionality to handle in-memory data using `StringIO`, allowing for flexible data loading scenarios.
+- The methods are designed to provide clear error handling and informative messages if the data loading process encounters issues, ensuring a robust user experience.

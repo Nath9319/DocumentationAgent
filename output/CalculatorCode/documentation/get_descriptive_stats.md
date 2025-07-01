@@ -1,30 +1,22 @@
 # Documentation for `get_descriptive_stats`
 
-```markdown
-### get_descriptive_stats(data: list) -> dict
+### get_descriptive_stats() -> dict
 
-**Description:**  
-The `get_descriptive_stats` function computes and returns a set of descriptive statistics for a given dataset. This includes key metrics such as mean, median, standard deviation, minimum, and maximum values, providing a comprehensive overview of the data's distribution and central tendency.
+**Description:**
+The `get_descriptive_stats` function is designed to retrieve and calculate descriptive statistics for a given dataset. It serves as an endpoint in the API, allowing clients to request statistical summaries such as mean, median, standard deviation, and other relevant metrics. This function leverages a service layer to perform the calculations and returns the results in a structured format.
 
 **Parameters:**
-- `data` (`list`): A list of numerical values for which the descriptive statistics are to be calculated.
+- None
 
-**Expected Input:**  
-- `data` should be a list containing numerical values (integers or floats). The list must not be empty, as descriptive statistics cannot be computed on an empty dataset. If the list contains non-numeric values, an exception will be raised.
+**Expected Input:**
+- The function expects input data to be provided through the API request body. This data should be in a format compatible with the statistical calculations, typically a list or array of numerical values. The specifics of the input format may depend on the implementation of the `stats_svc.calculate_descriptive_stats` function.
 
-**Returns:**  
-`dict`: A dictionary containing the calculated descriptive statistics, including:
-  - `mean`: The average of the data points.
-  - `median`: The middle value when the data points are sorted.
-  - `std_dev`: The standard deviation, indicating the dispersion of the data points.
-  - `min`: The smallest value in the dataset.
-  - `max`: The largest value in the dataset.
+**Returns:**
+`dict`: A dictionary containing the calculated descriptive statistics. The keys of the dictionary may include metrics such as mean, median, mode, standard deviation, and others, depending on the implementation of the underlying service.
 
-**Detailed Logic:**  
-- The function begins by validating the input to ensure that the `data` list is not empty and contains only numeric values.
-- It then calculates the mean by summing all the values and dividing by the count of values.
-- The median is computed by sorting the data and finding the middle value, taking care to handle both even and odd lengths of the list appropriately.
-- The standard deviation is calculated using the formula that measures the amount of variation or dispersion of the dataset.
-- Finally, the function identifies the minimum and maximum values in the dataset.
-- If any errors occur during these calculations, such as invalid input types or empty datasets, the function raises an `APIException` with an appropriate message and status code, ensuring that error handling is consistent with the API's design.
-```
+**Detailed Logic:**
+- Upon invocation, the function is registered as a POST endpoint using the `router.post` decorator, indicating that it will handle HTTP POST requests.
+- It utilizes the `Depends` mechanism to inject dependencies, which may include authentication, validation, or other services required for processing the request.
+- The function calls `stats_svc.calculate_descriptive_stats`, passing the input data received from the API request. This service function is responsible for performing the actual statistical calculations.
+- The results from `calculate_descriptive_stats` are then returned to the client in a structured JSON format, allowing for easy consumption by the client application.
+- If any errors occur during processing, the function may raise an `APIException`, which is designed to handle errors gracefully and provide meaningful feedback to the client.

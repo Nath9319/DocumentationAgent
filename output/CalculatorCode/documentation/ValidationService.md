@@ -1,24 +1,26 @@
 # Documentation for `ValidationService`
 
-```markdown
 ### ValidationService
 
-**Description:**  
-The `ValidationService` class is designed to perform complex validations that extend beyond simple model field checks. It connects various models to the data layer, ensuring that incoming requests are not only well-formed but also logically valid against the actual data stored in the database. This service is essential for maintaining data integrity and preventing errors during data processing.
+**Description:**
+The `ValidationService` class is designed to perform complex, cross-service validations that extend beyond simple model field checks. It connects various models to the data layer, ensuring that incoming requests are not only well-formed but also logically valid in relation to the actual data stored in the system. This service plays a crucial role in maintaining data integrity and consistency across different components of the application.
 
 **Parameters/Attributes:**
-- `data_service` (`DataService`): An instance of the `DataService` class that the `ValidationService` relies on for data operations during validation tasks.
+- `data_svc` (`DataService`): An instance of the `DataService` class, used to interact with the data layer and retrieve data for validation purposes.
+- `regression_input` (`RegressionInput`): An instance of the `RegressionInput` class, representing the input data for Ordinary Least Squares (OLS) regression analysis.
+- `correlation_input` (`CorrelationInput`): An instance of the `CorrelationInput` class, representing the input data for generating a correlation matrix.
 
-**Expected Input:**  
-- The `data_service` parameter must be a properly initialized instance of the `DataService` class. This instance should be capable of executing the necessary data-related operations that the `ValidationService` will utilize for its validation processes.
+**Expected Input:**
+- The `ValidationService` expects instances of `RegressionInput` and `CorrelationInput` to be provided for validation. These instances should contain the necessary data structured appropriately for their respective analyses.
+- The `data_svc` should be a properly initialized instance of `DataService`, capable of loading data from the specified sources.
 
-**Returns:**  
-None: The class does not return a value upon initialization.
+**Returns:**
+`None`: The class does not return a value upon instantiation. Instead, it provides methods that perform validation checks and may raise exceptions if the validation fails.
 
-**Detailed Logic:**  
-- The `__init__` method of the `ValidationService` class accepts a `DataService` instance as a parameter, establishing a dependency that allows the `ValidationService` to perform data validations.
-- This method does not execute any validation or processing; instead, it prepares the `ValidationService` for use by storing the provided `DataService` instance as an attribute for future access.
-- The `ValidationService` includes methods such as `validate_regression_inputs` and `validate_correlation_inputs`, which are responsible for validating input data for regression and correlation analyses, respectively.
-- Each of these validation methods interacts with the `DataService` to check for the existence of specified columns in the database and to ensure that these columns contain numeric data types.
-- If any validation checks fail, the methods raise a `DataError`, providing descriptive messages that indicate the nature of the validation failure. This ensures that only valid data is processed, thereby enhancing the reliability of subsequent analyses.
-```
+**Detailed Logic:**
+- The `ValidationService` class initializes with instances of `DataService`, `RegressionInput`, and `CorrelationInput`, setting up the necessary components for validation.
+- It includes methods that leverage the `data_svc` to retrieve data from the database or files, which is then used to validate the input data against existing records.
+- The class employs validation logic to ensure that the input data adheres to the expected formats and constraints, such as checking for distinct variables in `RegressionInput` and ensuring sufficient columns in `CorrelationInput`.
+- If any validation checks fail, the class raises appropriate exceptions, such as `DataError`, to signal issues with the input data.
+- The service is designed to provide informative error messages, aiding developers in identifying and resolving validation issues efficiently.
+- Overall, the `ValidationService` acts as a gatekeeper, ensuring that only logically valid data is processed further in the application, thus enhancing the robustness and reliability of the system.

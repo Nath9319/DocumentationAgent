@@ -1,22 +1,19 @@
 # Documentation for `SingleInput`
 
-```markdown
 ### SingleInput
 
-**Description:**  
-The `SingleInput` class serves as a model for operations that require a single numerical input. It encapsulates the logic and attributes necessary to handle computations or processes that are based solely on one number.
+**Description:**
+The `SingleInput` class serves as a model for operations that require a single numerical input. It is designed to encapsulate the behavior and properties associated with handling a single number, providing a structured way to manage operations that depend on this input.
 
-**Parameters/Attributes:**  
-- None
+**Parameters/Attributes:**
+- **None**: The `SingleInput` class does not define any parameters or attributes in the provided context.
 
-**Expected Input:**  
-- The class is designed to accept a single numerical value, which can be an integer or a float. This input should represent the data needed for operations that involve only one number. There are no specific constraints mentioned, but typical use cases would involve valid numerical types.
+**Expected Input:**
+- The class is expected to work with a single numerical value. This could be an integer or a float, depending on the specific operations that will be performed using this class. There are no explicit constraints mentioned, but typical usage would imply that the input should be a valid number.
 
-**Returns:**  
-None
+**Returns:**
+- **None**: The class itself does not return any values upon instantiation. However, it is likely designed to provide methods that will return results based on the single input number.
 
-**Detailed Logic:**  
-- The `SingleInput` class is structured to facilitate operations that revolve around a single numeric value. While the specific methods and functionalities are not detailed in the provided information, it is implied that the class may include methods for processing or manipulating the single input value.
-- The class does not have any internal dependencies, indicating that it operates independently within the codebase. This design choice allows for straightforward integration into larger systems where single-number operations are required.
-- The implementation likely includes initialization methods to set the input value and may provide additional methods for performing calculations or validations based on that input.
-```
+**Detailed Logic:**
+- The `SingleInput` class inherits from `BaseModel`, which suggests that it may leverage or extend functionalities provided by the base class. The specific logic and methods of the `SingleInput` class are not detailed in the provided context, but it is implied that it will include operations that manipulate or utilize the single numerical input in various ways.
+- The class is likely to include methods for validating the input, performing calculations, or transforming the input number, although these specifics are not provided in the current documentation. The interaction with `BaseModel` may also introduce additional behaviors or properties that enhance the functionality of `SingleInput`.

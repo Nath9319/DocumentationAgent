@@ -1,12 +1,8 @@
 # File: core/construct_graph.py
 #
-# This script is the heart of the repository analysis engine. It combines AST
-# parsing and tree-sitter queries to build a comprehensive, directed graph
-# of the entire codebase. This version is customized to:
-#   - Be self-contained by integrating the parsing logic.
-#   - Capture docstrings for every class and function, which is critical
-#     for the documentation agent.
-#   - Create a detailed graph representing calls and containment.
+# This script is the heart of the repository analysis engine.
+# This version is enhanced to robustly capture and create nodes for all
+# module-level code (i.e., script code outside of any function or class).
 
 import os
 import sys
@@ -18,55 +14,52 @@ from collections import namedtuple
 import networkx as nx
 from tqdm import tqdm
 
-# tree_sitter is a powerful parser for creating concrete syntax trees.
 warnings.simplefilter("ignore", category=FutureWarning)
 from tree_sitter_languages import get_language, get_parser
 
-# The Tag is the structured representation of a single code element (def or ref).
-# The 'docstring' field is essential for our agent.
 Tag = namedtuple("Tag", "rel_fname fname line name kind category info docstring".split())
 
 class CodeGraph:
     """
-    Analyzes a code repository and constructs a detailed dependency graph.
+    Analyzes a code repository and constructs a detailed dependency graph,
+    including nodes for functions, classes, and module-level code.
     """
 
     def __init__(self, root=None):
         if not root:
             root = os.getcwd()
         self.root = root
-        # The structure cache will hold the AST-parsed info for all files.
         self.structure_cache = self._pre_parse_all_files()
 
     def _parse_python_file(self, file_path):
         """
         Parses a single Python file using the `ast` module to extract
-        functions, classes, methods, and their docstrings. This is the
-        foundation for our node attributes.
-
-        This logic is integrated from your `utils.py`.
+        functions, classes, methods, their docstrings, and any module-level code.
         """
         try:
             with open(file_path, "r", encoding='utf-8', errors='ignore') as file:
                 file_content = file.read()
                 parsed_data = ast.parse(file_content)
-        except Exception as e:
-            # print(f"Warning: AST parsing failed for {file_path}: {e}")
+        except Exception:
             return None
 
         class_info = []
         function_names = []
         class_methods = set()
+        module_level_nodes = []
 
-        for node in ast.walk(parsed_data):
+        # --- A more robust way to capture all module-level code ---
+        # We iterate through the top-level nodes of the file's AST.
+        for i, node in enumerate(parsed_data.body):
             if isinstance(node, ast.ClassDef):
                 methods = []
                 for n in node.body:
                     if isinstance(n, ast.FunctionDef):
+                        # This is a method within the class
                         methods.append({
                             "name": n.name,
                             "start_line": n.lineno,
-                            "end_line": n.end_lineno,
+                            "end_line": getattr(n, 'end_lineno', n.lineno),
                             "text": ast.unparse(n),
                             "docstring": ast.get_docstring(n) or ""
                         })
@@ -74,23 +67,45 @@ class CodeGraph:
                 class_info.append({
                     "name": node.name,
                     "start_line": node.lineno,
-                    "end_line": node.end_lineno,
+                    "end_line": getattr(node, 'end_lineno', node.lineno),
                     "text": ast.unparse(node),
                     "methods": methods,
                     "docstring": ast.get_docstring(node) or ""
                 })
-            elif isinstance(node, ast.FunctionDef) and node.name not in class_methods:
+
+            elif isinstance(node, ast.FunctionDef):
+                # This is a top-level function
                 function_names.append({
                     "name": node.name,
                     "start_line": node.lineno,
-                    "end_line": node.end_lineno,
+                    "end_line": getattr(node, 'end_lineno', node.lineno),
                     "text": ast.unparse(node),
                     "docstring": ast.get_docstring(node) or ""
                 })
-        
+
+            elif isinstance(node, (ast.Import, ast.ImportFrom)):
+                # Ignore imports, as they are not executable code in this context
+                continue
+
+            elif i == 0 and isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
+                # This is likely the module-level docstring, so we skip it.
+                # We only check the very first node for this.
+                continue
+            
+            else:
+                # If it's not a class, function, or import, it's module-level code.
+                # This correctly captures assignments, function calls, etc.
+                module_level_nodes.append(node)
+
+        module_level_code_str = ""
+        if module_level_nodes:
+            # Reconstruct the module-level code from the collected nodes
+            module_level_code_str = "\n".join([ast.unparse(n) for n in module_level_nodes])
+
         return {
             "classes": class_info,
             "functions": function_names,
+            "module_level_code": module_level_code_str
         }
 
     def _pre_parse_all_files(self):
@@ -116,7 +131,6 @@ class CodeGraph:
         all_tags = []
         language = get_language('python')
         parser = get_parser('python')
-        # This query finds class/function definitions and function calls.
         query_scm = """
             (class_definition name: (identifier) @name.definition.class) @definition.class
             (function_definition name: (identifier) @name.definition.function) @definition.function
@@ -149,22 +163,20 @@ class CodeGraph:
 
     def tags_to_graph(self, tags):
         """
-        Constructs the final NetworkX graph from the list of tags.
+        Constructs the final NetworkX graph from the list of tags, including
+        nodes for module-level code.
         """
         G = nx.MultiDiGraph()
         
-        # Create a mapping from names to their definition tags
         definitions = {}
         for file_path, structure in self.structure_cache.items():
             for class_def in structure.get('classes', []):
                 definitions[class_def['name']] = {'type': 'class', 'file': file_path, **class_def}
                 for method_def in class_def.get('methods', []):
-                    # Store method as ClassName.method_name for uniqueness
                     definitions[f"{class_def['name']}.{method_def['name']}"] = {'type': 'method', 'file': file_path, **method_def}
             for func_def in structure.get('functions', []):
                 definitions[func_def['name']] = {'type': 'function', 'file': file_path, **func_def}
 
-        # Add all definitions as nodes to the graph
         for name, attrs in definitions.items():
             G.add_node(
                 name,
@@ -176,7 +188,22 @@ class CodeGraph:
                 kind='def'
             )
 
-        # Add edges based on references and containment
+        # --- Add nodes for module-level code ---
+        for file_path, structure in self.structure_cache.items():
+            module_code = structure.get('module_level_code')
+            if module_code:
+                # Create a unique name for this node
+                node_name = f"{file_path}::module_code"
+                G.add_node(
+                    node_name,
+                    category='module_code',
+                    info=module_code,
+                    docstring='', # No formal docstring for module code
+                    fname=file_path,
+                    line=(0, 0), # Line numbers are for the whole block
+                    kind='def'
+                )
+
         for tag in tqdm(tags, desc="Building Graph Edges"):
             if tag['kind'] == 'ref':
                 caller_scope = self.find_scope(tag['rel_fname'], tag['line'])
@@ -184,7 +211,6 @@ class CodeGraph:
                 if caller_scope and callee_name in G and G.has_node(caller_scope):
                     G.add_edge(caller_scope, callee_name, label='invokes')
         
-        # Add 'contains' edges for class methods
         for class_name, attrs in definitions.items():
             if attrs['type'] == 'class':
                 for method in attrs.get('methods', []):
@@ -196,26 +222,28 @@ class CodeGraph:
     
     def find_scope(self, file_path, line_number):
         """
-        Finds the function or class that contains a given line number in a file.
+        Finds the function, class, or module-level scope that contains a given line number.
         """
         if file_path not in self.structure_cache:
             return None
             
         structure = self.structure_cache[file_path]
         
-        # Check functions first
         for func in structure.get('functions', []):
             if func['start_line'] <= line_number <= func['end_line']:
                 return func['name']
         
-        # Check classes and their methods
         for cls in structure.get('classes', []):
             if cls['start_line'] <= line_number <= cls['end_line']:
-                # It's inside a class, check methods
                 for meth in cls.get('methods', []):
                     if meth['start_line'] <= line_number <= meth['end_line']:
                         return f"{cls['name']}.{meth['name']}"
-                return cls['name'] # It's in the class body but not in a method
+                return cls['name']
+        
+        # --- If not in a function or class, it's in the module-level scope ---
+        if structure.get('module_level_code'):
+            return f"{file_path}::module_code"
+            
         return None
 
     def find_files(self, start_dir):
@@ -259,8 +287,15 @@ if __name__ == "__main__":
     print(f"   - Edges: {len(repo_graph.edges())}")
     print("="*50)
 
-    output_file = 'graph.pkl'
-    with open(output_file, 'wb') as f:
+    # --- THIS IS THE FIX: Save the graph and the structure cache ---
+    # Save the graph as a pickle file
+    graph_output_file = 'graph.pkl'
+    with open(graph_output_file, 'wb') as f:
         pickle.dump(repo_graph, f)
-    
-    print(f"🏅 Saved graph to '{output_file}'")
+    print(f"🏅 Saved graph to '{graph_output_file}'")
+
+    # Save the detailed structure as a JSON file
+    structure_output_file = 'structure.json'
+    with open(structure_output_file, 'w', encoding='utf-8') as f:
+        json.dump(graph_builder.structure_cache, f, indent=2)
+    print(f"🏅 Saved repository structure to '{structure_output_file}'")

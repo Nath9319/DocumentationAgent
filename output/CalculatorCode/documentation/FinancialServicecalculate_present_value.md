@@ -1,28 +1,29 @@
 # Documentation for `FinancialService.calculate_present_value`
 
-```markdown
-### calculate_present_value(future_value: float, discount_rate: float, periods: int) -> float
+### calculate_present_value(rate: float, nper: int, pmt: float, fv: float, when: str) -> float
 
-**Description:**  
-Calculates the present value of an investment based on its future value, the discount rate, and the number of periods until the investment matures. This method is essential for assessing the current worth of an expected future cash flow.
+**Description:**
+Calculates the present value of an investment based on a specified interest rate, number of periods, periodic payment, future value, and the timing of the payment. This method is essential for financial analysis, allowing users to determine the current worth of future cash flows.
 
 **Parameters:**
-- `future_value` (`float`): The amount of money to be received in the future.
-- `discount_rate` (`float`): The interest rate used to discount future cash flows to their present value, expressed as a decimal (e.g., 0.05 for 5%).
-- `periods` (`int`): The number of time periods (e.g., years) until the future value is realized.
+- `rate` (`float`): The interest rate for each period, expressed as a decimal (e.g., 0.05 for 5%).
+- `nper` (`int`): The total number of payment periods in the investment's lifespan.
+- `pmt` (`float`): The amount of money paid or received in each period.
+- `fv` (`float`): The future value of the investment at the end of the last period.
+- `when` (`str`): Indicates when payments are due. Acceptable values are 'end' (default) for payments made at the end of each period or 'begin' for payments made at the beginning.
 
-**Expected Input:**  
-- `future_value` should be a positive float representing the expected amount to be received in the future.
-- `discount_rate` should be a non-negative float, where a value of 0.0 indicates no discounting.
-- `periods` should be a non-negative integer representing the number of periods until the future value is received.
+**Expected Input:**
+- `rate` should be a non-negative float representing the interest rate per period.
+- `nper` should be a positive integer indicating the total number of periods.
+- `pmt` can be any float value, representing the payment amount per period.
+- `fv` should be a float representing the future value of the investment.
+- `when` should be a string that is either 'begin' or 'end', indicating the timing of the payments.
 
-**Returns:**  
-`float`: The present value of the future cash flow, representing how much that future amount is worth in today's terms.
+**Returns:**
+`float`: The present value of the investment, representing the current worth of future cash flows discounted at the specified interest rate.
 
-**Detailed Logic:**  
-- The method applies the present value formula, which is derived from the concept of discounting future cash flows. The formula used is:  
-  \[ \text{Present Value} = \frac{\text{Future Value}}{(1 + \text{Discount Rate})^{\text{Periods}}} \]
-- It first calculates the denominator by raising the sum of one and the discount rate to the power of the number of periods.
-- The future value is then divided by this calculated denominator to yield the present value.
-- This method does not rely on any external modules or dependencies, performing the calculation using basic arithmetic operations.
-```
+**Detailed Logic:**
+- The method utilizes the `npf.pv` function from the NumPy Financial library to perform the present value calculation.
+- It first prepares the input parameters, ensuring they conform to the expected types and values.
+- The `npf.pv` function is called with the provided parameters, which computes the present value based on the formula for discounting future cash flows.
+- The result is then returned as a float, representing the present value of the investment based on the specified criteria. This method effectively abstracts the complexity of the underlying financial calculations, providing a straightforward interface for users.

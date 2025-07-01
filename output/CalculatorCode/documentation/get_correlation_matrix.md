@@ -1,23 +1,20 @@
 # Documentation for `get_correlation_matrix`
 
-```markdown
-### get_correlation_matrix(data: pd.DataFrame) -> pd.DataFrame
+### get_correlation_matrix() -> pd.DataFrame
 
-**Description:**  
-The `get_correlation_matrix` function computes the correlation matrix for a given dataset, represented as a Pandas DataFrame. This matrix quantifies the degree to which different variables in the dataset are related to one another, providing insights into potential relationships and dependencies.
+**Description:**
+The `get_correlation_matrix` function computes and returns the correlation matrix for a given dataset. This matrix provides insights into the relationships between different variables, indicating how closely related they are. The function validates the input data before performing the correlation calculation, ensuring that the data is suitable for analysis.
 
 **Parameters:**
-- `data` (`pd.DataFrame`): A Pandas DataFrame containing the dataset for which the correlation matrix is to be calculated.
+- `data` (`Any`): The dataset for which the correlation matrix is to be calculated. This can be a DataFrame or any structure that can be validated and processed to extract numerical relationships.
 
-**Expected Input:**  
-- `data` should be a Pandas DataFrame with numerical columns. The DataFrame can contain any number of rows and columns, but it is expected that the columns represent different variables for which correlations are to be assessed. Non-numeric columns will be ignored in the correlation calculation.
+**Expected Input:**
+- The `data` parameter should be a structured dataset, typically in the form of a DataFrame. It must contain numerical values for the correlation calculation to be meaningful. The function expects the data to be pre-validated to ensure it meets the necessary criteria for correlation analysis.
 
-**Returns:**  
-`pd.DataFrame`: A DataFrame representing the correlation matrix, where each entry (i, j) indicates the correlation coefficient between the i-th and j-th variables in the input DataFrame.
+**Returns:**
+`pd.DataFrame`: A DataFrame representing the correlation matrix, where each cell indicates the correlation coefficient between pairs of variables in the dataset.
 
-**Detailed Logic:**  
-- The function begins by validating the input to ensure that it is a Pandas DataFrame.
-- It then utilizes the `corr()` method provided by Pandas to compute the correlation coefficients between the numerical columns of the DataFrame.
-- The resulting correlation matrix is returned as a new DataFrame, which can be further analyzed or visualized by the caller.
-- If the input DataFrame is empty or contains no numeric columns, the function may raise an `APIException` to signal an error in processing, ensuring that users receive clear feedback about the nature of the issue.
-```
+**Detailed Logic:**
+- The function begins by validating the input data using the `validator.validate_correlation_inputs` method. This step ensures that the data is appropriate for correlation analysis, checking for issues such as missing values or non-numeric types.
+- Upon successful validation, the function calls `stats_svc.calculate_correlation_matrix`, which performs the actual computation of the correlation matrix using statistical methods.
+- The resulting correlation matrix is then returned as a DataFrame, allowing for easy interpretation and further analysis of the relationships between the variables in the dataset.

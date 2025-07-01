@@ -1,20 +1,21 @@
 # Documentation for `MatrixInput.matrix_must_be_square`
 
-### MatrixInput.matrix_must_be_square()
+### MatrixInput.matrix_must_be_square() -> None
 
-**Description:**  
-This method verifies whether a given matrix is square, meaning that it has the same number of rows and columns. It is a crucial validation step in matrix operations, as many mathematical operations require square matrices.
+**Description:**
+This method validates that a given matrix is square, meaning it has the same number of rows and columns. It is typically used in contexts where square matrices are required for mathematical operations, such as matrix inversion or certain algorithms in linear algebra.
 
 **Parameters:**
-- None
+None
 
-**Expected Input:**  
-- The method expects a matrix-like structure (e.g., a list of lists or a 2D array) to be provided as an attribute of the `MatrixInput` class. The matrix should be a valid representation where each inner list (row) contains the same number of elements (columns).
+**Expected Input:**
+- The method expects a matrix-like structure (e.g., a list of lists or a 2D array) to be passed implicitly through the context in which this method is invoked. The matrix should be a collection of collections, where each inner collection represents a row of the matrix.
 
-**Returns:**  
-`None`: This method does not return a value. Instead, it raises an exception if the matrix is not square.
+**Returns:**
+None
 
-**Detailed Logic:**  
-- The method checks the dimensions of the matrix by comparing the number of rows to the number of columns.
-- If the number of rows does not equal the number of columns, it raises a specific exception indicating that the matrix must be square.
-- This validation ensures that any subsequent operations that require a square matrix can be safely performed without encountering dimension-related errors.
+**Detailed Logic:**
+- The method utilizes a `field_validator` to enforce the validation rule that the matrix must be square.
+- It checks the length of the outer list (representing the number of rows) and compares it to the length of each inner list (representing the number of columns).
+- If the number of rows does not equal the number of columns, a `ValueError` is raised, indicating that the matrix is not square.
+- This validation ensures that any subsequent operations that require a square matrix can proceed without errors related to matrix dimensions.

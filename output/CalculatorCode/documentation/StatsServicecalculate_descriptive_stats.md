@@ -1,29 +1,29 @@
 # Documentation for `StatsService.calculate_descriptive_stats`
 
-### calculate_descriptive_stats(numbers: list) -> dict
+### calculate_descriptive_stats(numbers: List[float]) -> Dict[str, float]
 
-**Description:**  
-Calculates descriptive statistics for a given list of numbers. This method computes key statistical measures including the mean, median, mode, variance, and standard deviation, and returns these values in a structured dictionary format.
+**Description:**
+Calculates descriptive statistics for a given list of numerical values. This method computes key statistical measures including the mean, median, mode, variance, and standard deviation, providing a comprehensive overview of the data's distribution.
 
 **Parameters:**
-- `numbers` (`list`): A list of numerical values (integers or floats) for which the descriptive statistics will be calculated.
+- `numbers` (`List[float]`): A list of numerical values for which the descriptive statistics will be calculated.
 
-**Expected Input:**  
-- `numbers` should be a non-empty list containing numeric values. The list can include integers and/or floating-point numbers. If the list is empty, the function may raise an error or return an empty dictionary, depending on the implementation.
+**Expected Input:**
+- `numbers` should be a non-empty list of floats or integers. The list can contain any real numbers, but it should not be empty, as this would lead to undefined statistical measures.
 
-**Returns:**  
-`dict`: A dictionary containing the calculated descriptive statistics. The keys of the dictionary include:
+**Returns:**
+`Dict[str, float]`: A dictionary containing the following descriptive statistics:
 - `mean`: The average of the numbers.
 - `median`: The middle value when the numbers are sorted.
-- `mode`: The most frequently occurring number(s) in the list.
+- `mode`: The most frequently occurring value in the list.
 - `variance`: A measure of how much the numbers vary from the mean.
-- `standard_deviation`: The square root of the variance, representing the dispersion of the numbers.
+- `standard_deviation`: The square root of the variance, indicating the average distance of each number from the mean.
 
-**Detailed Logic:**  
+**Detailed Logic:**
 - The method begins by validating the input to ensure that the list is not empty.
-- It then computes the mean by summing all the numbers and dividing by the count of numbers.
-- The median is calculated by sorting the list and finding the middle value, taking into account whether the count of numbers is odd or even.
-- The mode is determined by identifying the number(s) that appear most frequently in the list.
-- Variance is calculated by averaging the squared differences from the mean, providing insight into the spread of the numbers.
-- Finally, the standard deviation is derived as the square root of the variance, offering a measure of variability in the same units as the original numbers.
-- The results are compiled into a dictionary and returned, allowing for easy access to the computed statistics.
+- It then utilizes the `np.mean` function from the NumPy library to calculate the mean of the numbers.
+- The median is computed using `np.median`, which sorts the list and finds the middle value.
+- The mode is determined using `stats.mode` from the SciPy library, which identifies the most common value in the list.
+- Variance is calculated using `np.var`, which measures the average of the squared differences from the mean.
+- Finally, the standard deviation is obtained using `np.std`, providing insight into the dispersion of the dataset.
+- The results are compiled into a dictionary and returned, allowing easy access to each statistical measure.

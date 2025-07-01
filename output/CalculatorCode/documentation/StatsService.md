@@ -1,38 +1,30 @@
 # Documentation for `StatsService`
 
-```markdown
 ### StatsService
 
-**Description:**  
-The `StatsService` class provides a suite of statistical methods for data analysis, including loading data from a database, performing regression analysis, calculating correlation matrices, conducting t-tests, and computing various statistical metrics such as standard deviation and confidence intervals. This class serves as a centralized service for statistical computations, leveraging the capabilities of the pandas and NumPy libraries.
+**Description:**
+The `StatsService` class provides statistical analysis and data processing functionalities for datasets stored in a SQLite database. It facilitates operations such as querying data, performing statistical tests, and calculating various statistical metrics, including mean, median, variance, and correlation. The class is designed to streamline the extraction and analysis of data, making it easier for users to derive insights from their datasets.
 
-**Parameters/Attributes:**  
-- **None** (The class does not have any parameters or attributes defined in the provided context.)
+**Parameters/Attributes:**
+- `db_path` (`str`): The file path to the SQLite database that the service will connect to.
+- `connection` (`sqlite3.Connection`): An active connection to the SQLite database.
+- `data` (`pandas.DataFrame`): A DataFrame that holds the data retrieved from the database for analysis.
 
-**Expected Input:**  
-- The methods within the `StatsService` class expect various types of input, including:
-  - Lists or NumPy arrays of numerical values for statistical calculations.
-  - Column names as strings for data retrieval and correlation computations.
-  - DataFrames for loading and manipulating datasets.
-  - Confidence levels as floats between 0 and 1 for confidence interval calculations.
+**Expected Input:**
+- `db_path` should be a valid string representing the path to an existing SQLite database file.
+- The data retrieved from the database is expected to be in a format compatible with pandas DataFrames, allowing for efficient statistical computations.
 
-**Returns:**  
-- The methods return various types of outputs, including:
-  - `pd.DataFrame`: For loaded datasets and correlation matrices.
-  - `dict`: For regression results and descriptive statistics.
-  - `Tuple[float, float]`: For t-test results and confidence intervals.
-  - `List[float]`: For Z-scores.
+**Returns:**
+`None`: The class does not return values directly; instead, it provides methods that return statistical results based on the data processed.
 
-**Detailed Logic:**  
-- The `StatsService` class contains several key methods:
-  - **_load_data**: Establishes a connection to an SQLite database and retrieves data into a pandas DataFrame based on specified column names or loads all columns if none are specified.
-  - **perform_ols_regression**: Conducts Ordinary Least Squares regression analysis by computing coefficients, intercepts, R-squared values, and p-values based on the provided dependent and independent variables.
-  - **calculate_correlation_matrix**: Computes the Pearson correlation coefficients for specified columns in a dataset, returning a correlation matrix as a DataFrame.
-  - **perform_independent_ttest**: Executes an independent two-sample t-test to assess the statistical significance of the difference between the means of two samples, returning the t-statistic and p-value.
-  - **calculate_standard_deviation**: Calculates the standard deviation of a list of numbers, providing insight into the variability of the dataset.
-  - **calculate_descriptive_stats**: Computes key descriptive statistics (mean, median, mode, variance, standard deviation) for a list of numbers and returns them in a structured dictionary.
-  - **calculate_z_scores**: Determines the Z-scores for a list of numbers, indicating how many standard deviations each number is from the mean.
-  - **calculate_confidence_interval**: Calculates the confidence interval for a dataset, providing a range within which the true population parameter is expected to lie based on a specified confidence level.
-
-- Each method follows a structured approach to validate inputs, perform necessary calculations, and return results in a user-friendly format. The class relies on the pandas and NumPy libraries for data manipulation and statistical computations, ensuring efficient and accurate analysis.
-```
+**Detailed Logic:**
+- The class initializes by establishing a connection to the SQLite database using `sqlite3.connect`, ensuring that the connection is properly managed throughout its lifecycle.
+- It provides methods to execute SQL queries via `pd.read_sql_query`, which retrieves data from the database and stores it in a pandas DataFrame for further analysis.
+- Statistical computations are performed using NumPy and SciPy functions, such as:
+  - `np.mean`, `np.median`, `np.std`, `np.var` for calculating basic statistics.
+  - `np.column_stack` and `np.linalg.lstsq` for regression analysis.
+  - `stats.ttest_ind` for conducting t-tests between two independent samples.
+  - `df.corr` for calculating correlation coefficients between different variables in the dataset.
+  - `stats.t.cdf` and `st.t.ppf` for statistical distributions and confidence intervals.
+- The class also includes error handling to manage potential issues with database connections and data retrieval, ensuring robustness in its operations.
+- Overall, `StatsService` serves as a comprehensive tool for statistical analysis, leveraging the power of pandas and NumPy to facilitate data-driven decision-making.

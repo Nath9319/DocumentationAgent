@@ -1,23 +1,23 @@
 # Documentation for `ValidationService.validate_correlation_inputs`
 
-```markdown
-### ValidationService.validate_correlation_inputs(payload: CorrelationInput)
+### validate_correlation_inputs(payload: CorrelationInput)
 
-**Description:**  
-Validates the inputs required for performing a correlation analysis. This method checks whether the specified columns in the provided payload exist and ensures that they contain numeric data types. It is essential for maintaining data integrity before executing correlation computations.
+**Description:**
+The `validate_correlation_inputs` method is responsible for validating the inputs required for performing a correlation analysis. It ensures that the specified columns in the provided payload exist within the data source and that these columns contain numeric data types. This validation is crucial for preventing errors during the correlation computation process.
 
 **Parameters:**
-- `payload` (`CorrelationInput`): An instance of the Pydantic model that encapsulates the input data for correlation analysis. This model defines the structure and constraints for the input data.
+- `payload` (`CorrelationInput`): An instance of the Pydantic model that encapsulates the input data for correlation analysis. This model includes the necessary fields that specify which columns to validate.
 
-**Expected Input:**  
-- The `payload` should be an instance of `CorrelationInput`, which must include fields representing the columns intended for correlation analysis. Each specified column must exist in the dataset and must be of a numeric type (e.g., integer or float). If any of these conditions are not met, validation will fail.
+**Expected Input:**
+- The `payload` should be an instance of `CorrelationInput`, which must define the columns intended for correlation analysis. The columns specified in this model should exist in the underlying data source and must be of a numeric data type (e.g., integers or floats). If any specified column is missing or non-numeric, validation will fail.
 
-**Returns:**  
-None: This method does not return a value. Instead, it raises an exception if the validation fails.
+**Returns:**
+`None`: The method does not return a value. Instead, it raises an exception if validation fails.
 
-**Detailed Logic:**  
-- The method begins by extracting the column names from the `payload` that are intended for correlation analysis.
-- It then checks the existence of these columns in the dataset. If any specified column is missing, a `DataError` is raised with a descriptive message indicating which column(s) are absent.
-- Following the existence check, the method verifies that each of the specified columns contains numeric data. If any column is found to contain non-numeric data, a `DataError` is raised, detailing the specific column that failed the numeric check.
-- This validation process ensures that only valid and appropriate data is used for correlation analysis, thereby preventing runtime errors and ensuring the reliability of the analysis results.
-```
+**Detailed Logic:**
+- The method begins by retrieving the relevant data from a SQLite database using the `self.data_svc.get_dataframe_from_sqlite` method. This function call fetches the data necessary for validation.
+- It then iterates through the columns specified in the `payload`. For each column, it checks if the column exists in the retrieved DataFrame.
+- If a column is found to be missing, the method raises a `DataError`, providing a message that indicates which column is absent.
+- For columns that exist, the method further checks whether the data type of each column is numeric by utilizing the `pd.api.types.is_numeric_dtype` function from the pandas library.
+- If any column is found to be non-numeric, the method raises a `DataError` with a message indicating the specific column that failed the numeric check.
+- The overall flow ensures that only valid and appropriate data is processed for correlation analysis, thereby enhancing the robustness of the application.

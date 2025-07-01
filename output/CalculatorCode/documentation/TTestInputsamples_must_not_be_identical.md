@@ -1,23 +1,20 @@
 # Documentation for `TTestInput.samples_must_not_be_identical`
 
-```markdown
-### TTestInput.samples_must_not_be_identical()
+### TTestInput.samples_must_not_be_identical
 
-**Description:**  
-This method is designed to validate that the samples provided for a statistical test are not identical. It ensures that the input data for the test contains variability, which is crucial for the validity of statistical analyses.
+**Description:**
+This method is designed to validate that the samples provided to a test input are not identical. It ensures that the input data used for testing contains distinct values, which is crucial for the integrity and reliability of the testing process.
 
-**Parameters:**  
-None
+**Parameters:**
+- None
 
-**Expected Input:**  
-- The method operates on the internal state of the `TTestInput` class, which is expected to contain sample data. The samples should be a collection (e.g., list, array) of numerical values. The method checks that there are at least two distinct values among the samples to proceed with the statistical test.
+**Expected Input:**
+- The method operates on the internal state of the `TTestInput` class, which is expected to contain a collection of sample data. The specific structure or type of this data is not detailed in the provided context, but it is implied that the samples should be iterable and comparable.
 
-**Returns:**  
-`None`: This method does not return a value. Instead, it raises an exception if the samples are found to be identical.
+**Returns:**
+- None: The method does not return a value. Instead, it raises an exception if the validation fails.
 
-**Detailed Logic:**  
-- The method first retrieves the samples from the internal state of the `TTestInput` instance.
-- It then checks the uniqueness of the samples by converting them into a set, which inherently removes duplicates.
-- If the length of the set of samples is less than two, indicating that all samples are identical, the method raises an exception to signal that the input is invalid for statistical testing.
-- This validation step is critical to ensure that the subsequent statistical analysis can be performed meaningfully, as identical samples would not provide any information about variability or differences.
-```
+**Detailed Logic:**
+- The method utilizes a `field_validator` to enforce the uniqueness of the samples. This validator checks the samples against a condition that ensures they are not identical.
+- If the samples are found to be identical, the method raises a `ValueError`, indicating that the input is invalid. This exception serves as a mechanism to alert the user or calling function that the provided samples do not meet the required criteria for testing.
+- The method is likely invoked during the initialization or validation phase of the `TTestInput` class, ensuring that any instance of this class is initialized with valid sample data.

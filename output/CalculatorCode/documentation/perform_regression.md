@@ -1,26 +1,23 @@
 # Documentation for `perform_regression`
 
-```markdown
-### perform_regression(data: List[Dict[str, Any]], target: str) -> Dict[str, Any]
+### perform_regression(data: dict, model_type: str) -> dict
 
-**Description:**  
-The `perform_regression` function is designed to execute a regression analysis on a given dataset. It processes the input data to identify relationships between the specified target variable and other features, ultimately returning the results of the regression analysis in a structured format.
+**Description:**
+The `perform_regression` function executes a regression analysis on the provided dataset using a specified regression model type. It validates the input data, performs the regression analysis, and returns the results in a structured format. This function is designed to facilitate statistical analysis within the application, allowing users to derive insights from their data.
 
 **Parameters:**
-- `data` (`List[Dict[str, Any]]`): A list of dictionaries where each dictionary represents a data point with various features and their corresponding values.
-- `target` (`str`): The name of the target variable (the dependent variable) that the regression analysis aims to predict.
+- `data` (`dict`): A dictionary containing the dataset to be analyzed. The expected structure of this dictionary should conform to the requirements of the regression analysis.
+- `model_type` (`str`): A string indicating the type of regression model to be used (e.g., "OLS" for Ordinary Least Squares). This parameter determines the algorithm that will be applied to the data.
 
-**Expected Input:**  
-- `data` should be a non-empty list containing dictionaries. Each dictionary must have keys corresponding to feature names, including the target variable specified by the `target` parameter.
-- `target` should be a string that matches one of the keys in the dictionaries within `data`. If the target variable is not present in the data, the function will raise an exception.
+**Expected Input:**
+- `data` should be a dictionary with keys representing variable names and values as lists of numerical data points. The data should not contain any missing values or non-numeric entries.
+- `model_type` must be a valid string that corresponds to one of the supported regression models. If an unsupported model type is provided, the function should raise an appropriate exception.
 
-**Returns:**  
-`Dict[str, Any]`: A dictionary containing the results of the regression analysis, which may include coefficients, intercepts, statistical significance, and other relevant metrics.
+**Returns:**
+`dict`: A dictionary containing the results of the regression analysis, which may include coefficients, statistical metrics (e.g., R-squared, p-values), and any other relevant output based on the regression model used.
 
-**Detailed Logic:**  
-- The function begins by validating the input data to ensure that it is not empty and that the target variable exists within the provided dataset.
-- It then preprocesses the data, which may involve handling missing values, encoding categorical variables, and normalizing numerical features.
-- Following preprocessing, the function applies a regression algorithm (such as linear regression) to model the relationship between the target variable and the other features.
-- The results of the regression analysis are compiled into a dictionary format, which is then returned to the caller.
-- If any errors occur during processing (e.g., invalid input data or issues with the regression computation), the function raises an `APIException` with an appropriate error message and status code, ensuring consistent error handling throughout the API.
-```
+**Detailed Logic:**
+- The function begins by validating the input parameters using the `validator.validate_regression_inputs` function, which ensures that the data structure and model type are appropriate for regression analysis.
+- Upon successful validation, the function calls `stats_svc.perform_ols_regression` (or another relevant regression function based on the `model_type`) to execute the regression analysis on the provided dataset.
+- The results from the regression analysis are then formatted into a dictionary, which is returned to the caller.
+- If any errors occur during validation or regression execution, the function raises an `APIException`, allowing for structured error handling and reporting within the API framework.

@@ -1,23 +1,21 @@
 # Documentation for `StatsService.calculate_standard_deviation`
 
-```markdown
-### calculate_standard_deviation(numbers: list[float]) -> float
+### calculate_standard_deviation(numbers: list) -> float
 
-**Description:**  
-Calculates the standard deviation of a list of numbers, which is a measure of the amount of variation or dispersion in a set of values. A low standard deviation indicates that the values tend to be close to the mean, while a high standard deviation indicates that the values are spread out over a wider range.
+**Description:**
+Calculates the standard deviation of a list of numerical values. The standard deviation is a measure of the amount of variation or dispersion in a set of values, providing insight into the distribution of the data points relative to the mean.
 
 **Parameters:**
-- `numbers` (`list[float]`): A list of numerical values for which the standard deviation is to be calculated.
+- `numbers` (`list`): A list containing numerical values (integers or floats) for which the standard deviation is to be calculated.
 
-**Expected Input:**  
-- `numbers` should be a non-empty list containing numerical values (floats or integers). The list must contain at least two elements to compute a meaningful standard deviation, as a single value does not provide any variability.
+**Expected Input:**
+- `numbers` should be a non-empty list of numerical values. The list can contain integers and/or floats. If the list is empty, the function may raise an error or return a specific value (this should be confirmed in the implementation).
 
-**Returns:**  
-`float`: The calculated standard deviation of the input list of numbers.
+**Returns:**
+`float`: The standard deviation of the provided list of numbers, representing the dispersion of the data points from the mean.
 
-**Detailed Logic:**  
-- The function first computes the mean (average) of the provided list of numbers.
-- It then calculates the variance by determining the average of the squared differences between each number and the mean.
-- Finally, the standard deviation is obtained by taking the square root of the variance.
-- This method does not rely on any external libraries or modules, and it performs calculations using basic arithmetic operations.
-```
+**Detailed Logic:**
+- The function utilizes the `np.std` method from the NumPy library to compute the standard deviation. 
+- It first checks the input list to ensure it contains valid numerical data.
+- The `np.std` function calculates the standard deviation by determining the mean of the list, then computing the square root of the average of the squared differences from the mean.
+- The result is returned as a floating-point number, which indicates how spread out the numbers in the list are around the mean value.

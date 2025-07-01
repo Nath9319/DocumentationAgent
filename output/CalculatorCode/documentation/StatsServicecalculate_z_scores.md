@@ -1,24 +1,23 @@
 # Documentation for `StatsService.calculate_z_scores`
 
-```markdown
-### calculate_z_scores(numbers: List[float]) -> List[float]
+### calculate_z_scores(numbers: list) -> list
 
-**Description:**  
+**Description:**
 Calculates the Z-Scores for a given list of numbers. Z-Scores indicate how many standard deviations an element is from the mean of the dataset, providing a way to understand the relative position of each number within the distribution.
 
 **Parameters:**
-- `numbers` (`List[float]`): A list of numerical values for which the Z-Scores are to be calculated.
+- `numbers` (`list`): A list of numerical values for which Z-Scores will be calculated.
 
-**Expected Input:**  
-- `numbers` should be a non-empty list of floats or integers. The list must contain at least one number to compute the mean and standard deviation. If the list is empty, the function may raise an error or return an empty list.
+**Expected Input:**
+- `numbers` should be a list containing numerical values (integers or floats). The list must not be empty, as Z-Scores cannot be computed without a mean and standard deviation.
 
-**Returns:**  
-`List[float]`: A list of Z-Scores corresponding to the input numbers. Each Z-Score represents the number of standard deviations a number is from the mean of the input list.
+**Returns:**
+`list`: A list of Z-Scores corresponding to each number in the input list. Each Z-Score is a float representing the number of standard deviations away from the mean.
 
-**Detailed Logic:**  
-- The function first computes the mean of the input list of numbers.
-- It then calculates the standard deviation of the same list.
-- For each number in the list, the Z-Score is computed using the formula: \( Z = \frac{(X - \text{mean})}{\text{std\_dev}} \), where \( X \) is the number being evaluated.
-- The resulting Z-Scores are collected into a new list and returned.
-- This function does not rely on any external modules and performs calculations using basic arithmetic operations.
-```
+**Detailed Logic:**
+- The function first converts the input list of numbers into a NumPy array to facilitate mathematical operations.
+- It then calculates the mean and standard deviation of the array using `np.mean` and `np.std`, respectively.
+- Each Z-Score is computed by subtracting the mean from each number and then dividing by the standard deviation.
+- The resulting Z-Scores are rounded to a reasonable number of decimal places for clarity before being returned as a list. 
+
+This method leverages NumPy's efficient array operations to perform the calculations, ensuring that the function is both concise and performant.

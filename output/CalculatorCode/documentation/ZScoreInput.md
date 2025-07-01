@@ -1,23 +1,22 @@
 # Documentation for `ZScoreInput`
 
-```markdown
 ### ZScoreInput
 
-**Description:**  
-The `ZScoreInput` class is designed to represent and manage the input data required for calculating the Z-score in statistical analysis. It encapsulates the necessary attributes and methods to facilitate the handling of data points that will be used in Z-score calculations.
+**Description:**
+`ZScoreInput` is a class designed to facilitate the calculation of Z-scores, which are statistical measures that describe a value's relation to the mean of a group of values. This class likely extends the functionality of a base model, providing a structured way to handle input data necessary for Z-score calculations.
 
 **Parameters/Attributes:**
-- `data` (`list`): A list of numerical values representing the dataset for which the Z-score will be calculated.
+- **Attributes:**
+  - `data` (`List[float]`): A list of numerical values for which the Z-scores will be calculated. This attribute is essential for the class's functionality.
+  
+**Expected Input:**
+- The `data` attribute should be a list of floats, where each float represents a numerical value. The list should not be empty, as Z-scores require a mean and standard deviation to be calculated.
 
-**Expected Input:**  
-- The `data` attribute should be a list containing numerical values (integers or floats). The list must not be empty, as a Z-score calculation requires at least one data point.
+**Returns:**
+`None`: The class does not return a value directly. Instead, it is expected to provide methods for calculating and retrieving Z-scores based on the input data.
 
-**Returns:**  
-`None`: The class does not return any value upon instantiation.
-
-**Detailed Logic:**  
-- The `ZScoreInput` class initializes with a list of numerical values, which are stored as an attribute for further processing.
-- It does not perform any calculations upon initialization but serves as a structured way to hold the input data for subsequent statistical operations.
-- The class is designed to be used in conjunction with other functions or classes that will perform the actual Z-score calculations, leveraging the data stored within `ZScoreInput`.
-- There are no internal dependencies, making it a standalone component within the codebase.
-```
+**Detailed Logic:**
+- The `ZScoreInput` class inherits from `BaseModel`, which suggests that it may utilize or override methods and properties defined in the base class.
+- The class is likely designed to process the input data, calculating the mean and standard deviation as part of the Z-score computation.
+- It may include methods for validating the input data, ensuring that it meets the necessary criteria for statistical analysis.
+- The class does not directly interact with external libraries or modules, but it relies on built-in Python types and functionalities to manage and manipulate the input data.

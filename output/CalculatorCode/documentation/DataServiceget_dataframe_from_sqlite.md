@@ -1,24 +1,24 @@
 # Documentation for `DataService.get_dataframe_from_sqlite`
 
-```markdown
-### DataService.get_dataframe_from_sqlite() -> pandas.DataFrame
+### DataService.get_dataframe_from_sqlite() -> pd.DataFrame
 
-**Description:**  
-This method connects to a SQLite database and retrieves an entire table, returning the data as a pandas DataFrame. It serves as a foundational utility for other services, specifically `ValidationService` and `StatsService`, enabling them to access and manipulate data stored in SQLite.
+**Description:**
+This method connects to a specified SQLite database and retrieves an entire table, returning it as a pandas DataFrame. It serves as a utility function for other services, specifically `ValidationService` and `StatsService`, to facilitate data access and manipulation.
 
 **Parameters:**
-- None
+- `db_path` (`str`): The file path to the SQLite database from which the data will be retrieved.
+- `table_name` (`str`): The name of the table within the SQLite database that is to be fetched.
 
-**Expected Input:**  
-- The method expects a valid SQLite database connection to be established prior to its invocation. The specific table to be retrieved is typically defined within the method's implementation, and the database must contain this table for the method to function correctly.
+**Expected Input:**
+- `db_path` should be a valid string representing the path to an existing SQLite database file. The method checks for the existence of this file before attempting to connect.
+- `table_name` should be a valid string representing the name of the table to be queried. The table must exist within the specified database.
 
-**Returns:**  
-`pandas.DataFrame`: A DataFrame containing all rows and columns from the specified table in the SQLite database. If the table does not exist or an error occurs during retrieval, a `DataError` may be raised.
+**Returns:**
+`pd.DataFrame`: A pandas DataFrame containing all rows and columns from the specified table in the SQLite database.
 
-**Detailed Logic:**  
-- Upon invocation, the method initiates a connection to the SQLite database.
-- It executes a SQL query to select all records from a predefined table.
-- The results of the query are then converted into a pandas DataFrame, which allows for easy data manipulation and analysis.
-- If any issues arise during the database connection or data retrieval process, the method raises a `DataError`, providing a clear indication of the problem encountered. This custom exception enhances error handling by allowing developers to catch and manage data-related issues effectively.
-- The method does not take any parameters, relying instead on the internal configuration for the database connection and the target table.
-```
+**Detailed Logic:**
+- The method begins by verifying the existence of the SQLite database file at the provided `db_path` using `os.path.exists`. If the file does not exist, it raises a `DataError` to indicate the issue.
+- Upon confirming the file's existence, the method establishes a connection to the SQLite database using `sqlite3.connect`.
+- It then constructs a SQL query to select all data from the specified `table_name`.
+- The SQL query is executed using `pd.read_sql_query`, which retrieves the data and automatically converts it into a pandas DataFrame.
+- Finally, the method ensures that the database connection is properly closed using `conn.close`, regardless of whether the data retrieval was successful or not, to prevent any potential resource leaks.

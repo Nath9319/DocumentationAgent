@@ -1,25 +1,22 @@
 # Documentation for `ValidationService.validate_regression_inputs`
 
-```markdown
 ### ValidationService.validate_regression_inputs(payload: RegressionInput) -> None
 
-**Description:**  
-The `validate_regression_inputs` method is responsible for validating the input data required for regression analysis. It connects to the database to ensure that the specified columns exist and that they contain numeric values, thereby ensuring the integrity of the data before proceeding with further analysis.
+**Description:**
+The `validate_regression_inputs` method is responsible for validating the input data required for regression analysis. It connects to the database to ensure that the specified columns exist and are of a numeric type. This method serves as a critical validation step before proceeding with regression computations, ensuring data integrity and correctness.
 
 **Parameters:**
-- `payload` (`RegressionInput`): An instance of the Pydantic model that encapsulates the request data for regression analysis. This model includes the necessary fields that must be validated against the database.
+- `payload` (`RegressionInput`): A Pydantic model that encapsulates the request data for regression analysis. This model includes the necessary attributes that define the regression input.
 
-**Expected Input:**  
-- The `payload` should be a valid instance of `RegressionInput`, which must contain all required fields for regression analysis. The fields specified in this model should correspond to the columns expected in the database, and they must be numeric in nature. Any deviation from these requirements will trigger validation errors.
+**Expected Input:**
+- The `payload` must be an instance of the `RegressionInput` model, which should contain attributes corresponding to the columns expected in the regression analysis. The attributes must adhere to the expected data types and formats, specifically requiring that the columns referenced in the payload exist in the database and are numeric.
 
-**Returns:**  
-None: This method does not return a value. Instead, it performs validation checks and raises exceptions if any issues are found.
+**Returns:**
+`None`: This method does not return a value. Instead, it raises exceptions if validation checks fail.
 
-**Detailed Logic:**  
-- The method begins by extracting the necessary column names from the `payload` provided.
-- It then establishes a connection to the database to check for the existence of these columns.
-- For each column, the method verifies that it is present in the database schema and that its data type is numeric.
-- If any of the validation checks fail, the method raises a `DataError`, providing a descriptive message that indicates the nature of the validation failure.
-- This process ensures that only valid and appropriate data is used for regression analysis, thereby preventing potential errors during computation and analysis stages.
-- The method exemplifies the integration of the `RegressionInput` model with the `DataService`, showcasing a robust validation mechanism that enhances data integrity within the application.
-```
+**Detailed Logic:**
+- The method begins by retrieving a DataFrame from the database using the `self.data_svc.get_dataframe_from_sqlite` function, which queries the relevant data based on the input provided in the `payload`.
+- It then checks the existence of each specified column in the DataFrame. If any column is missing, a `DataError` is raised, indicating the specific column that is absent.
+- For each column that exists, the method verifies whether the data type is numeric by utilizing `pd.api.types.is_numeric_dtype`. If a column is found to be non-numeric, a `DataError` is raised, specifying the column that failed the numeric check.
+- Additionally, the method checks for null values in each column using `df[var].isnull()`. If any null values are detected, a `DataError` is raised, indicating that the column contains invalid data.
+- Overall, the method ensures that all necessary validations are performed, providing a robust mechanism for data integrity before regression analysis is conducted.

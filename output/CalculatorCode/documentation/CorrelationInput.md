@@ -1,25 +1,20 @@
 # Documentation for `CorrelationInput`
 
-```markdown
 ### CorrelationInput
 
-**Description:**  
-The `CorrelationInput` class serves as a model for managing and validating input data for correlation matrix calculations. It ensures that the input data structure contains at least the minimum required number of columns, which is essential for performing correlation analysis.
+**Description:**
+`CorrelationInput` is a model class designed to represent and validate the input data for generating a correlation matrix. It ensures that the input consists of at least two columns when specified, thereby enforcing the necessary conditions for correlation analysis.
 
 **Parameters/Attributes:**
-- `min_columns` (`int`): The minimum number of columns required for the correlation analysis. This attribute defines the threshold that the input data must meet.
-- `data` (various types, e.g., DataFrame): The internal data structure that holds the input data for correlation analysis. This could be a DataFrame or a similar structure containing the relevant columns.
+- **None**: The class does not take any parameters upon instantiation. It relies on internal validation mechanisms to ensure the integrity of the data it processes.
 
-**Expected Input:**  
-- The `CorrelationInput` class expects an internal data structure (such as a DataFrame) that contains the columns to be evaluated for correlation. The specific minimum number of columns required is defined by the `min_columns` attribute. If the data structure does not meet this requirement, the class will raise an error during validation.
+**Expected Input:**
+- The class expects input data structured in a way that can be interpreted as a matrix (e.g., a DataFrame or similar structure). Specifically, it requires at least two columns to perform correlation calculations. If the input does not meet this criterion, a validation error will be raised.
 
-**Returns:**  
-None
+**Returns:**
+- **None**: The class does not return a value upon instantiation. Instead, it validates the input data and may raise exceptions if the validation fails.
 
-**Detailed Logic:**  
-- The class includes a method `check_min_columns`, which is responsible for validating the number of columns in the input data.
-- This method assesses the internal data structure to count the number of columns present.
-- It then compares this count against the `min_columns` threshold defined in the class.
-- If the number of columns is below the required minimum, the method raises an exception or triggers an error handling mechanism, indicating that the input data is insufficient for correlation analysis.
-- This validation step is crucial to ensure that subsequent operations can be performed without encountering errors due to inadequate data.
-```
+**Detailed Logic:**
+- Upon initialization, `CorrelationInput` leverages the `BaseModel` class, which likely provides foundational functionality for data modeling and validation.
+- The class utilizes the `field_validator` to enforce the requirement that at least two columns must be present in the input data. This validation is crucial for ensuring that correlation calculations can be performed meaningfully.
+- If the input data does not meet the specified conditions, a `ValueError` is raised, indicating that the input is invalid. This mechanism helps maintain data integrity and prevents errors during subsequent analysis steps.

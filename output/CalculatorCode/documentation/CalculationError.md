@@ -1,23 +1,19 @@
 # Documentation for `CalculationError`
 
-```markdown
 ### CalculationError
 
-**Description:**  
-The `CalculationError` class is a custom exception designed to handle errors that arise specifically during calculation processes within the application. It provides a mechanism to raise exceptions with meaningful messages that can help identify and troubleshoot issues related to calculations.
+**Description:**
+`CalculationError` is a custom exception class designed to handle errors that occur during mathematical calculations within the application. This class extends the base exception class, allowing it to be raised and caught specifically for calculation-related issues, providing clearer error handling in the codebase.
 
 **Parameters/Attributes:**
-- `message` (`str`): A descriptive message that explains the reason for the exception being raised.
+None.
 
-**Expected Input:**  
-- The `message` parameter should be a non-empty string that clearly articulates the nature of the calculation error. It is important that the message provides sufficient detail to assist users or developers in understanding the issue at hand.
+**Expected Input:**
+- This class does not require any specific input parameters upon instantiation. However, it can accept a message string that describes the error when raised.
 
-**Returns:**  
-`None`: The class does not return any value, as it is used to create an instance of the exception.
+**Returns:**
+None.
 
-**Detailed Logic:**  
-- The `CalculationError` class inherits from the base exception class, and its `__init__` method is invoked when an instance of the exception is created. This method accepts a single argument, `message`, which is stored as part of the exception instance.
-- The `__init__` method typically calls the parent class's `__init__` method to ensure that the base exception is initialized correctly with the provided message.
-- By using this custom exception, developers can raise `CalculationError` instances in their code whenever a calculation-related issue occurs, allowing for more informative error handling and debugging.
-- This class operates independently without dependencies on other modules or functions, making it a self-contained component for managing calculation errors.
-```
+**Detailed Logic:**
+- The `CalculationError` class inherits from Python's built-in `Exception` class, utilizing the `super().__init__` method to initialize the base class. This allows it to leverage the standard exception handling mechanisms while providing a specific context for calculation errors.
+- When an instance of `CalculationError` is raised, it can include a custom error message that describes the nature of the calculation failure, aiding developers in debugging and error resolution.

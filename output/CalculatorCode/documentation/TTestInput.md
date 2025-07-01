@@ -1,24 +1,24 @@
 # Documentation for `TTestInput`
 
-```markdown
 ### TTestInput
 
-**Description:**  
-The `TTestInput` class serves as a model for conducting an independent t-test. It is responsible for validating that the samples provided for the statistical test are not identical, ensuring that there is sufficient variability in the data for meaningful analysis.
+**Description:**
+`TTestInput` is a model class designed to represent the input data for an independent t-test. It ensures that the samples provided for the test are not identical, which is a prerequisite for conducting a valid t-test. The class leverages validation mechanisms to enforce this constraint.
 
 **Parameters/Attributes:**
-- `samples` (`list` or `array` of numerical values): A collection of numerical data points that will be used in the t-test. This attribute is essential for the class's functionality, as it holds the input data for statistical analysis.
+- `sample1` (`List[float]`): The first sample of data for the t-test.
+- `sample2` (`List[float]`): The second sample of data for the t-test.
 
-**Expected Input:**  
-- The `samples` attribute should contain at least two distinct numerical values. The class checks for the presence of variability among the samples, which is a prerequisite for performing a valid t-test. If the samples are identical, the class will raise an exception during validation.
+**Expected Input:**
+- `sample1` and `sample2` should be lists of floats representing numerical data points. 
+- Both samples must contain at least one element.
+- The two samples must not be identical; if they are, a validation error will be raised.
 
-**Returns:**  
-`None`: The class does not return a value upon instantiation or during its validation process. Instead, it raises exceptions if the input data does not meet the required conditions.
+**Returns:**
+`None`: The class does not return a value upon instantiation but raises exceptions if validation fails.
 
-**Detailed Logic:**  
-- Upon initialization, the `TTestInput` class stores the provided sample data in its internal state.
-- The class includes a validation method, `samples_must_not_be_identical`, which is invoked to check the uniqueness of the samples.
-- This method retrieves the samples and converts them into a set to eliminate duplicates. It then assesses the length of the set.
-- If the length of the set is less than two, indicating that all samples are identical, an exception is raised to signal that the input is invalid for statistical testing.
-- This validation step is crucial, as it ensures that the subsequent statistical analysis can be performed meaningfully, given that identical samples would not provide any information about variability or differences.
-```
+**Detailed Logic:**
+- The class inherits from `BaseModel`, which likely provides foundational functionality for data validation and model behavior.
+- It utilizes `Field` to define the attributes `sample1` and `sample2`, which are expected to hold the data for the t-test.
+- The `field_validator` is employed to implement custom validation logic that checks if the two samples are identical. If they are, a `ValueError` is raised, indicating that the samples must differ for a valid t-test.
+- This validation ensures that any instance of `TTestInput` is guaranteed to have valid data before any statistical analysis is performed.

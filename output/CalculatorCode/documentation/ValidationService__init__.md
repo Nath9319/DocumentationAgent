@@ -1,22 +1,20 @@
 # Documentation for `ValidationService.__init__`
 
-```markdown
-### ValidationService.__init__(data_service: DataService)
+### ValidationService.__init__()
 
-**Description:**  
-Initializes the `ValidationService` class, establishing a dependency on the `DataService`. This service is responsible for validating data inputs and ensuring they meet specified criteria before further processing.
+**Description:**
+The `__init__` method initializes an instance of the `ValidationService` class, establishing a dependency on the `DataService`. This setup allows the `ValidationService` to utilize the data loading functionalities provided by the `DataService`, which is essential for performing validation tasks on data.
 
-**Parameters:**
-- `data_service` (`DataService`): An instance of the `DataService` class, which provides the necessary data operations that the `ValidationService` will utilize for validation tasks.
+**Parameters/Attributes:**
+- `data_service` (`DataService`): An instance of the `DataService` class, which provides methods for loading data from various sources, such as files and databases.
 
-**Expected Input:**  
-- The `data_service` parameter must be an instance of the `DataService` class. This instance should be properly initialized and ready to perform data-related operations required by the `ValidationService`.
+**Expected Input:**
+- The `data_service` parameter must be an instance of the `DataService` class. This instance should be properly configured to connect to the relevant data sources (e.g., databases or files) that the `ValidationService` will validate.
 
-**Returns:**  
-None
+**Returns:**
+None: This method does not return any value. It merely sets up the instance of `ValidationService` for use.
 
-**Detailed Logic:**  
-- The `__init__` method sets up the `ValidationService` by accepting a `DataService` instance as a parameter. This establishes a direct relationship between the two services, allowing the `ValidationService` to leverage the data handling capabilities of the `DataService`.
-- The method does not perform any validation or processing itself; it merely prepares the `ValidationService` for use by storing the provided `DataService` instance as an attribute for later access.
-- This initialization is crucial for the operation of the `ValidationService`, as it relies on the `DataService` to retrieve and manipulate data during validation processes.
-```
+**Detailed Logic:**
+- The `__init__` method takes an instance of `DataService` as an argument and assigns it to an instance variable within `ValidationService`.
+- This establishes a link between the two services, allowing `ValidationService` to call upon the data loading methods of `DataService` for retrieving data that needs to be validated.
+- The initialization process ensures that the `ValidationService` is ready to perform its intended operations, leveraging the capabilities of the `DataService` for data handling.

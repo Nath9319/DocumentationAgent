@@ -1,27 +1,27 @@
 # Documentation for `perform_ttest`
 
-```markdown
-### perform_ttest(data1: list, data2: list) -> float
+### perform_ttest(data: List[float], alpha: float = 0.05) -> Dict[str, Any]
 
-**Description:**  
-The `perform_ttest` function conducts a two-sample t-test to determine if there is a statistically significant difference between the means of two independent samples. It evaluates the null hypothesis that the two samples have identical average values.
+**Description:**
+The `perform_ttest` function conducts an independent two-sample t-test on the provided dataset. It evaluates whether the means of two independent groups are statistically different from each other. This function is typically used in statistical analysis to determine if there is enough evidence to reject the null hypothesis, which states that there is no difference between the group means.
 
 **Parameters:**
-- `data1` (`list`): The first sample of numerical data.
-- `data2` (`list`): The second sample of numerical data.
+- `data` (`List[float]`): A list of numerical values representing the two independent samples to be compared.
+- `alpha` (`float`, optional): The significance level for the t-test, defaulting to 0.05. This value determines the threshold for rejecting the null hypothesis.
 
-**Expected Input:**  
-- Both `data1` and `data2` should be lists containing numerical values (integers or floats). 
-- The lists should not be empty, as a t-test requires at least one data point in each sample.
-- The data should ideally be normally distributed, and the variances of the two samples should be similar for the t-test assumptions to hold.
+**Expected Input:**
+- `data` should be a list containing two sets of numerical values (e.g., [group1_values, group2_values]). Each group should have at least two observations for the t-test to be valid.
+- `alpha` should be a float between 0 and 1, representing the probability of rejecting the null hypothesis when it is true.
 
-**Returns:**  
-`float`: The p-value resulting from the t-test, which indicates the probability of observing the data assuming the null hypothesis is true. A lower p-value suggests stronger evidence against the null hypothesis.
+**Returns:**
+`Dict[str, Any]`: A dictionary containing the results of the t-test, including:
+- `t_statistic`: The calculated t-statistic value.
+- `p_value`: The p-value associated with the t-test.
+- `reject_null`: A boolean indicating whether to reject the null hypothesis based on the p-value and the significance level.
 
-**Detailed Logic:**  
-- The function begins by validating the input data to ensure that both samples are non-empty and contain valid numerical values.
-- It then calculates the means and standard deviations of both samples.
-- Using these statistics, the function computes the t-statistic and the degrees of freedom for the t-test.
-- Finally, it calculates the p-value based on the t-statistic and the degrees of freedom, which is returned as the output.
-- If any errors occur during the computation (e.g., invalid data types or empty lists), the function raises an `APIException` with an appropriate error message and status code, ensuring that error handling is consistent with the API's structure.
-```
+**Detailed Logic:**
+- The function begins by validating the input data to ensure it contains two independent samples.
+- It then calls the `service.perform_independent_ttest` function, passing the validated data and the significance level.
+- The results from the t-test are processed, and the t-statistic and p-value are extracted.
+- Finally, the function evaluates whether the p-value is less than the specified alpha level to determine if the null hypothesis should be rejected, and it constructs a result dictionary to return these findings.
+- The function is designed to handle exceptions gracefully, potentially raising an `APIException` if any errors occur during the execution of the t-test, ensuring robust error handling within the API framework.
