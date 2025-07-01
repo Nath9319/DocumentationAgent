@@ -4,7 +4,7 @@
 # The conceptual graph prompt is updated to generate richer, more structured metadata.
 
 DOCUMENTATION_PROMPT_TEMPLATE = """
-You are an expert technical writer, tasked with creating clear and concise documentation for a function or class within a larger codebase.
+You are an expert technical writer, tasked with creating clear, comprehensive, and precise documentation for a function or class within a larger codebase.
 
 **Your Goal:** Document the following code node: `{node_name}`
 
@@ -17,23 +17,51 @@ You are an expert technical writer, tasked with creating clear and concise docum
 **Context from Dependencies (what `{node_name}` uses):**
 {dependencies_context}
 
-**Source Code:**
-```python
-{source_code}
-```
-
 ---
 **Instructions:**
 
 Based on all the information provided (source code, existing docstring, and the documentation of its dependencies), generate a comprehensive Markdown-formatted documentation block.
 
-If the existing docstring is good, refine and format it. If it's missing or poor, create a new one from scratch.
+IMPORTANT: Do NOT include the actual code or code blocks from the source in your documentation output. Only summarize and explain the code's behavior, logic, and usage.
+Do NOT include the actual code or code blocks from the source in your documentation output. Only summarize and explain.
 
 Your documentation MUST include the following sections:
-1.  **Description:** A clear, high-level summary of what the function/class does.
-2.  **Parameters/Attributes:** A list of all parameters (for functions) or key attributes (for classes), their types, and a description of each. If there are none, state "None".
-3.  **Returns:** A description of the value returned by the function. If it returns nothing, state "None".
-4.  **Example Usage:** (Optional but Recommended) A short, clear code snippet showing how to use the function or class.
+1.  **Function/Class Name and Signature:** Clearly state the function or class name, its arguments, and their types.
+2.  **Description:** A high-level summary of what the function/class does, including the overall task and logic.
+3.  **Parameters/Attributes:** List all parameters (for functions) or key attributes (for classes), their types, and a description of each. If there are none, state "None".
+4.  **Expected Input:** Describe what kind of data or objects are expected as input, including any constraints or special cases.
+5.  **Returns:** Describe the return value, its type, and what it represents. If it returns nothing, state "None".
+6.  **Detailed Logic:** Explain the main steps, algorithms, or logic used. Mention what functions or objects are called, and how they interact within this code.
+
+---
+
+**Example Documentation:**
+
+
+### calculate_payment(principal: float, annual_rate: float, num_payments: int) -> float
+
+**Description:**  
+Calculates the fixed periodic payment required to fully amortize a loan over a specified number of payments, using the net present value formula.
+
+**Parameters:**
+- `principal` (`float`): The initial amount of the loan.
+- `annual_rate` (`float`): The annual interest rate as a decimal (e.g., 0.05 for 5%).
+- `num_payments` (`int`): The total number of periodic payments to be made.
+
+**Expected Input:**  
+- `principal` should be a positive float representing the loan amount.
+- `annual_rate` should be a non-negative float (0.0 means no interest).
+- `num_payments` should be a positive integer.
+
+**Returns:**  
+`float`: The fixed payment amount to be made in each period.
+
+**Detailed Logic:**  
+- The function first checks if the interest rate is zero. If so, it divides the principal evenly across all payments.
+- If the interest rate is non-zero, it calculates the periodic interest rate by dividing the annual rate by 12.
+- It then applies the standard amortization formula to compute the payment.
+- This function does not interact with external modules, but relies on basic arithmetic and the `pow` function.
+
 
 Begin the documentation now.
 """

@@ -1,7 +1,7 @@
 # File: agent/agent_graph.py
 #
 # This file wires together all the agent nodes into a stateful graph
-# using the LangGraph library. It defines the control flow of the agent.
+# using the LangGraph library. This version has a more robust control flow.
 
 from langgraph.graph import StateGraph, END
 from .agent_state import AgentState
@@ -32,19 +32,18 @@ def create_agent_graph() -> StateGraph:
     # Define the Edges (Control Flow)
     graph.set_entry_point("initialize_queue")
     
-    graph.add_conditional_edges(
-        "initialize_queue",
-        should_continue,
-        {"continue": "select_node", "end": END}
-    )
+    # After initialization, always try to select a node.
+    graph.add_edge("initialize_queue", "select_node")
     
+    # --- THIS IS THE FIX: The main control router ---
+    # After selecting a node, decide if the process is finished or needs to continue.
     graph.add_conditional_edges(
         "select_node",
-        # A simple router based on whether a node was selected
-        lambda x: "gather_context" if not x.get("is_finished") else "end",
+        # A simple router based on whether the 'is_finished' flag was set.
+        lambda x: "end" if x.get("is_finished") else "continue",
         {
-            "gather_context": "gather_context",
-            "end": END,
+            "continue": "gather_context", # If not finished, proceed with documentation.
+            "end": END,                   # If finished, terminate the graph.
         }
     )
     
@@ -52,11 +51,8 @@ def create_agent_graph() -> StateGraph:
     graph.add_edge("generate_doc", "generate_conceptual_data")
     graph.add_edge("generate_conceptual_data", "update_queue")
     
-    graph.add_conditional_edges(
-        "update_queue",
-        should_continue,
-        {"continue": "select_node", "end": END}
-    )
+    # After updating the queue, always loop back to select the next node.
+    graph.add_edge("update_queue", "select_node")
 
     agent_app = graph.compile()
     return agent_app
