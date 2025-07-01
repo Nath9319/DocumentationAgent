@@ -1,7 +1,27 @@
 # File: prompts/templates.py
 #
-# This file contains the prompt templates used by the AI Documentation Agent.
-# The conceptual graph prompt is updated to generate richer, more structured metadata.
+# This file centralizes all the prompt templates used by the agent nodes.
+# Keeping them in one place makes them easier to manage, version, and share.
+
+CODE_ANALYSIS_PROMPT_TEMPLATE = """
+You are an expert Python code analyzer. Your task is to identify all function calls, method calls, and class instantiations within the provided code snippet.
+
+**Code Snippet:**
+```python
+{source_code}
+```
+
+**Instructions:**
+1.  Analyze the code and identify every unique function, method, or class that is called or instantiated.
+2.  Do NOT include the name of the function or class being defined in the snippet itself.
+3.  List the names of these dependencies as a JSON array of strings.
+4.  If no dependencies are found, return an empty array.
+
+**JSON Output Example:**
+["os.path.join", "MyHelperClass", "another_function", "self.helper_method"]
+
+**Your JSON Output:**
+"""
 
 DOCUMENTATION_PROMPT_TEMPLATE = """
 You are an expert technical writer, tasked with creating clear, comprehensive, and precise documentation for a function or class within a larger codebase.
@@ -40,7 +60,7 @@ Your documentation MUST include the following sections:
 
 ### calculate_payment(principal: float, annual_rate: float, num_payments: int) -> float
 
-**Description:**  
+**Description:**
 Calculates the fixed periodic payment required to fully amortize a loan over a specified number of payments, using the net present value formula.
 
 **Parameters:**
@@ -48,15 +68,15 @@ Calculates the fixed periodic payment required to fully amortize a loan over a s
 - `annual_rate` (`float`): The annual interest rate as a decimal (e.g., 0.05 for 5%).
 - `num_payments` (`int`): The total number of periodic payments to be made.
 
-**Expected Input:**  
+**Expected Input:**
 - `principal` should be a positive float representing the loan amount.
 - `annual_rate` should be a non-negative float (0.0 means no interest).
 - `num_payments` should be a positive integer.
 
-**Returns:**  
+**Returns:**
 `float`: The fixed payment amount to be made in each period.
 
-**Detailed Logic:**  
+**Detailed Logic:**
 - The function first checks if the interest rate is zero. If so, it divides the principal evenly across all payments.
 - If the interest rate is non-zero, it calculates the periodic interest rate by dividing the annual rate by 12.
 - It then applies the standard amortization formula to compute the payment.
@@ -66,7 +86,6 @@ Calculates the fixed periodic payment required to fully amortize a loan over a s
 Begin the documentation now.
 """
 
-# --- MODIFIED PROMPT FOR RICH CONCEPTUAL GRAPH METADATA ---
 CONCEPTUAL_GRAPH_PROMPT_TEMPLATE = """
 You are a senior software architect. Your task is to deeply analyze the provided code node and generate a high-level conceptual graph that captures its semantic meaning and relationships within the codebase.
 
@@ -105,7 +124,6 @@ You are a senior software architect. Your task is to deeply analyze the provided
       "target": "The name of a dependency node.",
       "label": "The relationship, like 'USES', 'MODIFIES', 'CONFIGURES', 'INHERITS_FROM', 'CREATES'."
     }}
-    // ...repeat for each relevant dependency...
   ]
 }}
 

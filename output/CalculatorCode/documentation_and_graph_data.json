@@ -1,0 +1,1554 @@
+{
+  "create_sample_database": {
+    "documentation": "### create_sample_database() -> None\n\n**Description:**\nThe `create_sample_database` function generates a sample SQLite database populated with housing data derived from a CSV file. It first creates a CSV file containing sample data, then establishes a connection to a SQLite database, creates a table, and populates it with the data from the CSV file.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nThe function does not take any input parameters. It operates with predefined sample data that is generated within the function itself.\n\n**Returns:**\nNone: The function does not return any value. It performs operations that result in the creation of a database and a CSV file.\n\n**Detailed Logic:**\n1. **CSV File Generation:** The function begins by creating a DataFrame using the `pd.DataFrame` method, which contains sample housing data. This DataFrame is then saved to a CSV file using the `df.to_csv` method.\n   \n2. **Directory Creation:** It checks if the directory for storing the CSV file exists using `os.path.exists`. If it does not exist, it creates the necessary directories using `os.makedirs`.\n\n3. **Database Connection:** The function establishes a connection to a SQLite database using `sqlite3.connect`. If the database file already exists, it is removed using `os.remove` to ensure a fresh start.\n\n4. **Table Creation:** A cursor object is created using `conn.cursor`, which is used to execute SQL commands. The function executes a SQL command to create a new table for storing the housing data.\n\n5. **Data Insertion:** The function populates the newly created table with data from the CSV file using the `df.to_sql` method, which facilitates the insertion of DataFrame data into the SQL table.\n\n6. **Error Handling:** Throughout the process, the function is designed to handle potential SQLite errors by catching `sqlite3.Error` exceptions.\n\n7. **Connection Closure:** Finally, the database connection is closed using `conn.close`, ensuring that all resources are properly released.\n\nThis function encapsulates the entire workflow of creating a sample database, from data generation to database population, making it a useful utility for testing and development purposes.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Sample Database Creator",
+        "type": "Utility",
+        "summary": "Generates a sample SQLite database populated with housing data from a CSV file."
+      },
+      "semantic_edges": [
+        {
+          "target": "os.makedirs",
+          "label": "USES"
+        },
+        {
+          "target": "print",
+          "label": "USES"
+        },
+        {
+          "target": "pd.DataFrame",
+          "label": "USES"
+        },
+        {
+          "target": "df.to_csv",
+          "label": "USES"
+        },
+        {
+          "target": "os.path.exists",
+          "label": "USES"
+        },
+        {
+          "target": "os.remove",
+          "label": "USES"
+        },
+        {
+          "target": "sqlite3.connect",
+          "label": "USES"
+        },
+        {
+          "target": "df.to_sql",
+          "label": "USES"
+        },
+        {
+          "target": "conn.cursor",
+          "label": "USES"
+        },
+        {
+          "target": "cursor.execute",
+          "label": "USES"
+        },
+        {
+          "target": "sqlite3.Error",
+          "label": "USES"
+        },
+        {
+          "target": "conn.close",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "Settings": {
+    "documentation": "### Settings\n\n**Description:**\nThe `Settings` class is designed to manage application configuration settings that are loaded from environment variables. It provides a structured way to access and utilize these settings throughout the application, ensuring that configuration values are consistently retrieved and validated.\n\n**Parameters/Attributes:**\n- **None**: The `Settings` class does not take any parameters upon initialization. Instead, it relies on environment variables to populate its attributes.\n\n**Expected Input:**\n- The `Settings` class expects environment variables to be defined prior to its instantiation. These variables should contain configuration values relevant to the application, such as database connection strings, API keys, and other settings necessary for the application's operation.\n\n**Returns:**\n- **None**: The `Settings` class does not return any value upon instantiation. Instead, it initializes its attributes based on the environment variables.\n\n**Detailed Logic:**\n- Upon creation, the `Settings` class inherits from `BaseSettings`, which is likely part of an external library designed to facilitate the loading and validation of configuration settings from various sources, including environment variables.\n- The class may utilize the `Config` dependency to define the structure and validation rules for the settings it manages. This ensures that any required settings are present and correctly formatted.\n- The logic within the class may include mechanisms to handle missing or invalid environment variables, potentially raising exceptions or providing default values as necessary.\n- Overall, the `Settings` class serves as a centralized point for accessing application configuration, promoting better organization and maintainability of the codebase.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Application Configuration Manager",
+        "type": "Configuration",
+        "summary": "Manages application settings loaded from environment variables to ensure consistent access and validation throughout the application."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseSettings",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "Config",
+          "label": "CONFIGURES"
+        }
+      ]
+    }
+  },
+  "APIException.__init__": {
+    "documentation": "### APIException.__init__(self, message: str, status_code: int)\n\n**Description:**\nThe `APIException` class is designed to handle exceptions that occur within the API layer of the application. The `__init__` method initializes an instance of the `APIException` class, allowing for the specification of an error message and an associated HTTP status code.\n\n**Parameters:**\n- `message` (`str`): A descriptive message that provides details about the exception. This message is intended to inform the user or developer about the nature of the error.\n- `status_code` (`int`): An integer representing the HTTP status code associated with the exception. This code helps to categorize the error (e.g., 404 for Not Found, 500 for Internal Server Error).\n\n**Expected Input:**\n- `message` should be a non-empty string that clearly describes the error encountered.\n- `status_code` should be a valid HTTP status code, typically an integer between 100 and 599.\n\n**Returns:**\n`None`: The method does not return a value; it initializes the instance of the `APIException`.\n\n**Detailed Logic:**\n- The `__init__` method begins by calling the `__init__` method of its parent class using `super()`, ensuring that any initialization logic defined in the parent class is executed. This is crucial for maintaining the integrity of the exception hierarchy.\n- The `message` and `status_code` parameters are then assigned to instance attributes, allowing them to be accessed later when the exception is raised or logged.\n- This method does not perform any validation on the inputs; it assumes that the caller will provide appropriate values. The handling of the exception is typically managed elsewhere in the application, where the `APIException` is raised.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "API Exception Handler",
+        "type": "Business Logic",
+        "summary": "Handles exceptions in the API layer by encapsulating error messages and HTTP status codes."
+      },
+      "semantic_edges": [
+        {
+          "target": "super",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "CalculationError.__init__": {
+    "documentation": "### CalculationError.__init__()\n\n**Description:**\nThe `CalculationError` class is a custom exception designed to handle errors that occur during calculation processes within the application. This constructor initializes the exception with a specific message that can provide context about the error encountered.\n\n**Parameters:**\n- `self`: Represents the instance of the class being created.\n- `message` (`str`): A string that describes the error in detail. This message is intended to provide insight into what went wrong during the calculation.\n\n**Expected Input:**\n- The `message` parameter should be a string that conveys the nature of the calculation error. It is expected to be informative enough to assist in debugging or understanding the issue.\n\n**Returns:**\n`None`: The constructor does not return a value; it initializes the exception instance.\n\n**Detailed Logic:**\n- The `__init__` method first calls the `__init__` method of its superclass (likely `Exception` or a similar base class) using `super().__init__(message)`. This ensures that the base class is properly initialized with the provided error message.\n- By doing so, it leverages the built-in exception handling mechanisms of Python, allowing the `CalculationError` to behave like a standard exception while still providing additional context specific to calculation errors.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Calculation Error Exception",
+        "type": "Utility",
+        "summary": "Represents a custom exception for handling errors that occur during calculation processes."
+      },
+      "semantic_edges": [
+        {
+          "target": "Exception",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "DataError.__init__": {
+    "documentation": "### DataError.__init__()\n\n**Description:**\nThe `DataError.__init__` method is a constructor for the `DataError` class, which is likely a custom exception used to signal issues related to data processing or validation within the application. This method initializes the exception object, allowing for the inclusion of a specific error message or additional context when the exception is raised.\n\n**Parameters:**\n- `self` (`DataError`): The instance of the class being created.\n- `message` (`str`, optional): A string that provides a description of the error. This parameter is typically used to convey specific details about the nature of the data error.\n\n**Expected Input:**\n- The `message` parameter should be a string that describes the error encountered. If no message is provided, it defaults to a generic error message. The input string can be empty but should ideally contain relevant information to aid in debugging.\n\n**Returns:**\n`None`: This method does not return a value. Instead, it initializes the instance of the `DataError` class.\n\n**Detailed Logic:**\n- The method begins by calling the `__init__` method of its superclass using `super().__init__()`. This ensures that any initialization logic defined in the parent class is executed, which is crucial for maintaining the integrity of the exception hierarchy.\n- The `message` parameter is then passed to the superclass's `__init__` method, allowing the base exception class to store the error message. This message can later be retrieved when the exception is caught, providing context about the error that occurred.\n- Overall, this constructor sets up the necessary attributes for the `DataError` instance, enabling it to function as a meaningful exception within the application.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Data Processing Error Handler",
+        "type": "Business Logic",
+        "summary": "Handles data processing errors by providing a custom exception with relevant error messages."
+      },
+      "semantic_edges": [
+        {
+          "target": "super().__init__",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "SingleInput": {
+    "documentation": "### SingleInput\n\n**Description:**\nThe `SingleInput` class serves as a model for operations that require a single numerical input. It is designed to encapsulate the behavior and properties associated with handling a single number, providing a structured way to manage operations that depend on this input.\n\n**Parameters/Attributes:**\n- **None**: The `SingleInput` class does not define any parameters or attributes in the provided context.\n\n**Expected Input:**\n- The class is expected to work with a single numerical value. This could be an integer or a float, depending on the specific operations that will be performed using this class. There are no explicit constraints mentioned, but typical usage would imply that the input should be a valid number.\n\n**Returns:**\n- **None**: The class itself does not return any values upon instantiation. However, it is likely designed to provide methods that will return results based on the single input number.\n\n**Detailed Logic:**\n- The `SingleInput` class inherits from `BaseModel`, which suggests that it may leverage or extend functionalities provided by the base class. The specific logic and methods of the `SingleInput` class are not detailed in the provided context, but it is implied that it will include operations that manipulate or utilize the single numerical input in various ways.\n- The class is likely to include methods for validating the input, performing calculations, or transforming the input number, although these specifics are not provided in the current documentation. The interaction with `BaseModel` may also introduce additional behaviors or properties that enhance the functionality of `SingleInput`.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Single Numerical Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates the behavior and properties associated with handling a single numerical input for various operations."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "DualInput": {
+    "documentation": "### DualInput\n\n**Description:**\nThe `DualInput` class serves as a model for operations that require two numerical inputs. It is designed to facilitate calculations or operations that depend on two distinct values, providing a structured way to manage and manipulate these inputs.\n\n**Parameters/Attributes:**\n- None\n\n**Expected Input:**\n- The class is expected to handle two numerical values, typically provided through its methods or during instantiation. These values can be integers or floats, and they should be valid numbers to ensure proper operation.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The `DualInput` class likely extends from a base model, `BaseModel`, which may provide foundational functionality or attributes common to all models in the application.\n- While the specific methods and operations of `DualInput` are not detailed in the provided information, it can be inferred that the class will include methods to set, retrieve, and possibly perform calculations using the two input values.\n- The class may implement validation checks to ensure that the inputs are indeed numerical and handle any exceptions that arise from invalid inputs.\n- The design of this class suggests a focus on encapsulating the behavior and properties of two-number operations, making it easier to manage and extend functionality in the future.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Dual Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates two numerical inputs for operations requiring dual values."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "ListInput": {
+    "documentation": "### ListInput\n\n**Description:**\n`ListInput` is a model class designed for performing operations on a list of numerical values. It serves as a structured way to manage and manipulate collections of numbers, providing a foundation for further calculations or analyses.\n\n**Parameters/Attributes:**\n- **None**: The `ListInput` class does not define any parameters or attributes in its constructor.\n\n**Expected Input:**\n- The class is expected to handle a list of numbers, which can include integers and floats. The input list should be well-formed and contain only numerical values to ensure proper functionality during operations.\n\n**Returns:**\n- **None**: The class does not return any value upon instantiation. However, it is expected to provide methods for performing operations on the list of numbers, which may return various results based on the implemented functionality.\n\n**Detailed Logic:**\n- The `ListInput` class inherits from `BaseModel`, which likely provides foundational features and behaviors common to all models in the application. This inheritance suggests that `ListInput` may leverage methods or properties defined in `BaseModel` for data validation, serialization, or other model-related tasks.\n- The class utilizes the `List` type from Python's typing module, indicating that it is designed to work specifically with lists, ensuring type safety and clarity in the expected data structure.\n- Additionally, the class may utilize the `Field` function to define attributes or constraints on the list of numbers, although specific fields are not detailed in the provided information. This could involve validation rules, default values, or metadata associated with the list.\n- Overall, `ListInput` serves as a specialized model for encapsulating a list of numbers, potentially enabling further operations such as aggregation, transformation, or statistical analysis, depending on the methods implemented in the class.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "List of Numerical Values Manager",
+        "type": "Data Model",
+        "summary": "Encapsulates a list of numerical values for operations and analyses."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "List",
+          "label": "USES"
+        },
+        {
+          "target": "Field",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "TTestInput.samples_must_not_be_identical": {
+    "documentation": "### TTestInput.samples_must_not_be_identical\n\n**Description:**\nThis method is designed to validate that the samples provided to a test input are not identical. It ensures that the input data used for testing contains distinct values, which is crucial for the integrity and reliability of the testing process.\n\n**Parameters:**\n- None\n\n**Expected Input:**\n- The method operates on the internal state of the `TTestInput` class, which is expected to contain a collection of sample data. The specific structure or type of this data is not detailed in the provided context, but it is implied that the samples should be iterable and comparable.\n\n**Returns:**\n- None: The method does not return a value. Instead, it raises an exception if the validation fails.\n\n**Detailed Logic:**\n- The method utilizes a `field_validator` to enforce the uniqueness of the samples. This validator checks the samples against a condition that ensures they are not identical.\n- If the samples are found to be identical, the method raises a `ValueError`, indicating that the input is invalid. This exception serves as a mechanism to alert the user or calling function that the provided samples do not meet the required criteria for testing.\n- The method is likely invoked during the initialization or validation phase of the `TTestInput` class, ensuring that any instance of this class is initialized with valid sample data.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Sample Uniqueness Validator",
+        "type": "Business Logic",
+        "summary": "Validates that the samples provided to a t-test input are distinct to ensure the integrity of the testing process."
+      },
+      "semantic_edges": [
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "RegressionInput.dependent_var_not_in_independent": {
+    "documentation": "### RegressionInput.dependent_var_not_in_independent() -> None\n\n**Description:**\nThis method is designed to validate that the dependent variable specified in a regression analysis is not included among the independent variables. It ensures that the model is correctly specified, which is crucial for accurate statistical analysis and interpretation.\n\n**Parameters:**\nNone\n\n**Expected Input:**\n- The method operates on the attributes of the `RegressionInput` class, which should include a list of independent variables and a dependent variable. The dependent variable must be a single entity that is not part of the independent variable list.\n\n**Returns:**\n`None`: This method does not return a value. Instead, it raises an exception if the validation fails.\n\n**Detailed Logic:**\n- The method utilizes a field validator to check if the dependent variable is present in the list of independent variables.\n- If the dependent variable is found within the independent variables, a `ValueError` is raised, indicating that the dependent variable should not be included in the independent variables.\n- This validation is essential to prevent model mis-specification, which can lead to incorrect conclusions from the regression analysis. The method ensures that the integrity of the regression model is maintained by enforcing this rule.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Regression Input Validator",
+        "type": "Business Logic",
+        "summary": "Validates that the dependent variable in a regression analysis is not included among the independent variables to ensure model integrity."
+      },
+      "semantic_edges": [
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "CorrelationInput.check_min_columns": {
+    "documentation": "### CorrelationInput.check_min_columns() -> None\n\n**Description:**\nThe `check_min_columns` method is responsible for validating that a given input meets the minimum column requirements necessary for further processing within the `CorrelationInput` class. This method ensures that the data structure being evaluated contains an adequate number of columns to perform correlation calculations, thereby preventing runtime errors that could arise from insufficient data.\n\n**Parameters:**\nNone\n\n**Expected Input:**\n- The method operates on an internal data structure (likely a DataFrame or similar object) that is expected to be passed to the `CorrelationInput` class. The specific structure and content of this data are not defined within the method itself, but it is implied that the data should be organized in a tabular format with multiple columns.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The method begins by checking the number of columns in the input data structure.\n- It compares this count against a predefined minimum threshold, which is likely set as a class attribute or constant.\n- If the number of columns is below this threshold, the method raises a `ValueError`, indicating that the input does not meet the necessary requirements for processing.\n- This validation step is crucial for ensuring that subsequent operations that depend on the presence of sufficient data can proceed without encountering errors related to inadequate input. The method does not return any value; its primary function is to enforce data integrity through validation.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Correlation Input Validator",
+        "type": "Business Logic",
+        "summary": "Validates that the input data structure contains a minimum number of columns required for correlation calculations."
+      },
+      "semantic_edges": [
+        {
+          "target": "ValueError",
+          "label": "USES"
+        },
+        {
+          "target": "field_validator",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "MatrixInput.matrix_must_be_square": {
+    "documentation": "### MatrixInput.matrix_must_be_square() -> None\n\n**Description:**\nThis method validates that a given matrix is square, meaning it has the same number of rows and columns. It is typically used in contexts where square matrices are required for mathematical operations, such as matrix inversion or certain algorithms in linear algebra.\n\n**Parameters:**\nNone\n\n**Expected Input:**\n- The method expects a matrix-like structure (e.g., a list of lists or a 2D array) to be passed implicitly through the context in which this method is invoked. The matrix should be a collection of collections, where each inner collection represents a row of the matrix.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The method utilizes a `field_validator` to enforce the validation rule that the matrix must be square.\n- It checks the length of the outer list (representing the number of rows) and compares it to the length of each inner list (representing the number of columns).\n- If the number of rows does not equal the number of columns, a `ValueError` is raised, indicating that the matrix is not square.\n- This validation ensures that any subsequent operations that require a square matrix can proceed without errors related to matrix dimensions.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Square Matrix Validator",
+        "type": "Business Logic",
+        "summary": "Validates that a given matrix is square, ensuring compatibility for mathematical operations."
+      },
+      "semantic_edges": [
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "MODIFIES"
+        },
+        {
+          "target": "len",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "MatrixInput.to_numpy_array": {
+    "documentation": "### MatrixInput.to_numpy_array() -> np.ndarray\n\n**Description:**\nThe `to_numpy_array` method converts the internal representation of a `MatrixInput` object into a NumPy array. This transformation allows for efficient numerical computations and manipulations using the powerful features of the NumPy library.\n\n**Parameters:**\nNone\n\n**Expected Input:**\n- The method operates on an instance of the `MatrixInput` class, which is expected to contain data structured in a way that can be converted into a NumPy array. The specific structure of this data is determined by the implementation of the `MatrixInput` class.\n\n**Returns:**\n`np.ndarray`: A NumPy array representation of the data contained within the `MatrixInput` instance.\n\n**Detailed Logic:**\n- The method utilizes the `np.array` function from the NumPy library to perform the conversion.\n- It retrieves the internal data from the `MatrixInput` instance, which is then passed to `np.array` to create a new NumPy array.\n- This process ensures that the resulting array is compatible with NumPy's array operations, enabling further mathematical and statistical analysis.\n- The method does not handle any exceptions or errors related to the conversion process, so it is assumed that the internal data is always in a valid format for conversion.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Matrix Input to NumPy Array Converter",
+        "type": "Utility",
+        "summary": "Converts the internal representation of a MatrixInput object into a NumPy array for efficient numerical computations."
+      },
+      "semantic_edges": [
+        {
+          "target": "np.array",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "FutureValueInput.cash_outflow_must_be_negative": {
+    "documentation": "### FutureValueInput.cash_outflow_must_be_negative\n\n**Description:**\nThis method serves as a validation check to ensure that cash outflow values are represented as negative numbers. It is a crucial part of the input validation process within the `FutureValueInput` class, ensuring that any cash outflow entered adheres to the expected financial conventions.\n\n**Parameters/Attributes:**\nNone\n\n**Expected Input:**\n- The method is expected to validate a cash outflow value, which should be a numeric type (e.g., integer or float).\n- The method enforces that this value must be negative, reflecting the standard practice in financial calculations where outflows are represented as negative figures.\n\n**Returns:**\n- None: The method does not return a value. Instead, it raises an exception if the validation fails.\n\n**Detailed Logic:**\n- The method utilizes the `field_validator` to perform the validation check. This is likely part of a data validation framework that ensures input values meet specific criteria.\n- If the cash outflow value is not negative, the method raises a `ValueError`, indicating that the input is invalid. This exception handling is crucial for maintaining data integrity and preventing erroneous calculations in subsequent financial operations.\n- The method is designed to be invoked during the input processing phase, ensuring that any cash outflow values are validated before further computations are performed.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Cash Outflow Validation Method",
+        "type": "Business Logic",
+        "summary": "Validates that cash outflow values are negative to ensure compliance with financial conventions."
+      },
+      "semantic_edges": [
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "LoanPaymentInput": {
+    "documentation": "### LoanPaymentInput\n\n**Description:**\nThe `LoanPaymentInput` class serves as a model for calculating loan payments. It encapsulates the necessary attributes and methods required to represent and manipulate the input data for loan payment calculations, ensuring that the data adheres to specific validation rules.\n\n**Parameters/Attributes:**\n- `principal` (`float`): The total amount of the loan that is being borrowed.\n- `annual_rate` (`float`): The annual interest rate applied to the loan, expressed as a decimal (e.g., 0.05 for 5%).\n- `num_payments` (`int`): The total number of payments to be made over the life of the loan.\n\n**Expected Input:**\n- `principal` must be a positive float, representing the loan amount.\n- `annual_rate` should be a non-negative float, where 0.0 indicates no interest.\n- `num_payments` must be a positive integer, indicating the number of payment periods.\n\n**Returns:**\nNone (the class does not return a value but provides a structure for loan payment input).\n\n**Detailed Logic:**\n- The `LoanPaymentInput` class inherits from `BaseModel`, which likely provides foundational functionality for data validation and management.\n- It utilizes the `Field` function to define its attributes, which may include validation rules such as type checking and constraints on the values (e.g., ensuring that `principal` is positive).\n- The class is designed to encapsulate the input data for loan payment calculations, making it easier to manage and validate the data before performing any calculations related to loan payments.\n- The interaction with `BaseModel` and `Field` suggests that this class is part of a larger framework that may include features like serialization, deserialization, and integration with databases or APIs.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Loan Payment Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates and validates input data for loan payment calculations."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "Field",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StdDevInput": {
+    "documentation": "### StdDevInput\n\n**Description:**\n`StdDevInput` is a model class designed to facilitate the calculation of the standard deviation of a dataset. It serves as a structured input mechanism, likely encapsulating the necessary data and methods to perform standard deviation calculations efficiently.\n\n**Parameters/Attributes:**\nNone (The class does not explicitly define any parameters or attributes in the provided context).\n\n**Expected Input:**\n- The class is expected to handle a list of numerical values, which will be used to compute the standard deviation. The input data should be in a format compatible with the calculations, typically a list of floats or integers.\n\n**Returns:**\nNone (The class itself does not return a value; it is intended to be used as part of a larger calculation process).\n\n**Detailed Logic:**\n- `StdDevInput` inherits from `BaseModel`, suggesting that it may leverage or extend the functionality provided by this base class, which could include data validation, serialization, or other model-related behaviors.\n- The class likely includes methods to process the input data, compute the mean, and subsequently calculate the standard deviation based on the statistical formula.\n- The interaction with the `List` type indicates that the class is designed to work with collections of numerical data, ensuring that operations can be performed on these lists to derive the standard deviation.\n- The implementation may involve iterating over the list to compute necessary statistics, such as the mean, before applying the standard deviation formula. \n\nThis class is a foundational component in the broader context of statistical calculations, providing a clear interface for inputting data and performing standard deviation calculations.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Standard Deviation Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates a list of numerical values for the purpose of calculating standard deviation."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "List",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "DescriptiveStatsInput": {
+    "documentation": "### DescriptiveStatsInput\n\n**Description:**\n`DescriptiveStatsInput` is a model class designed to facilitate the calculation of descriptive statistics. It serves as a structured input container for the necessary data required to perform statistical analysis, ensuring that the data is organized and accessible for further processing.\n\n**Parameters/Attributes:**\n- `data` (`List[float]`): A list of numerical values for which descriptive statistics will be calculated. This attribute is essential for the operations performed by the class.\n\n**Expected Input:**\n- The `data` attribute should be a list of floating-point numbers. It is expected that the list contains valid numerical values, and it should not be empty, as descriptive statistics require at least one data point to compute meaningful results.\n\n**Returns:**\n`None`: The class does not return a value upon instantiation. Instead, it prepares the input data for subsequent statistical calculations.\n\n**Detailed Logic:**\n- The `DescriptiveStatsInput` class inherits from `BaseModel`, which likely provides foundational functionality and structure for the model.\n- The class is designed to encapsulate the input data necessary for calculating descriptive statistics, such as mean, median, mode, variance, and standard deviation.\n- Upon initialization, the class takes a list of numerical values and stores it in the `data` attribute, making it available for any methods that may be defined within the class or inherited from `BaseModel`.\n- The class does not perform any calculations itself; rather, it serves as a data structure that can be utilized by other components of the application to compute descriptive statistics based on the provided input.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Descriptive Statistics Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates input data for calculating descriptive statistics, ensuring organized and accessible numerical values."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "List",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "ZScoreInput": {
+    "documentation": "### ZScoreInput\n\n**Description:**\n`ZScoreInput` is a class designed to facilitate the calculation of Z-scores, which are statistical measures that describe a value's relation to the mean of a group of values. This class likely extends the functionality of a base model, providing a structured way to handle input data necessary for Z-score calculations.\n\n**Parameters/Attributes:**\n- **Attributes:**\n  - `data` (`List[float]`): A list of numerical values for which the Z-scores will be calculated. This attribute is essential for the class's functionality.\n  \n**Expected Input:**\n- The `data` attribute should be a list of floats, where each float represents a numerical value. The list should not be empty, as Z-scores require a mean and standard deviation to be calculated.\n\n**Returns:**\n`None`: The class does not return a value directly. Instead, it is expected to provide methods for calculating and retrieving Z-scores based on the input data.\n\n**Detailed Logic:**\n- The `ZScoreInput` class inherits from `BaseModel`, which suggests that it may utilize or override methods and properties defined in the base class.\n- The class is likely designed to process the input data, calculating the mean and standard deviation as part of the Z-score computation.\n- It may include methods for validating the input data, ensuring that it meets the necessary criteria for statistical analysis.\n- The class does not directly interact with external libraries or modules, but it relies on built-in Python types and functionalities to manage and manipulate the input data.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Z-Score Calculator Input Model",
+        "type": "Data Model",
+        "summary": "Facilitates the input and processing of numerical data for Z-score calculations."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "List",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "ConfidenceIntervalInput": {
+    "documentation": "### ConfidenceIntervalInput\n\n**Description:**\nThe `ConfidenceIntervalInput` class serves as a model for calculating confidence intervals in statistical analysis. It encapsulates the necessary attributes and methods required to define the parameters for confidence interval calculations, ensuring that the input data is structured and validated appropriately.\n\n**Parameters/Attributes:**\n- `confidence_level` (`float`): Represents the confidence level for the interval, typically expressed as a decimal (e.g., 0.95 for a 95% confidence level).\n- `sample_mean` (`float`): The mean value of the sample data used in the confidence interval calculation.\n- `sample_size` (`int`): The number of observations in the sample, which is crucial for determining the margin of error.\n- `standard_deviation` (`float`): The standard deviation of the sample data, which is used to calculate the variability of the sample mean.\n\n**Expected Input:**\n- `confidence_level` should be a float between 0 and 1, representing the desired confidence level.\n- `sample_mean` should be a float that indicates the average of the sample data.\n- `sample_size` should be a positive integer, representing the number of data points in the sample.\n- `standard_deviation` should be a non-negative float, indicating the dispersion of the sample data.\n\n**Returns:**\n`None`: The class does not return a value directly but provides a structured way to hold and validate the input data for confidence interval calculations.\n\n**Detailed Logic:**\n- The `ConfidenceIntervalInput` class inherits from `BaseModel`, which likely provides foundational functionality for data validation and model behavior.\n- Upon instantiation, the class attributes are set based on the provided input parameters, ensuring that they conform to the expected types and constraints.\n- The class may include methods for further processing or validation of the input data, although specific methods are not detailed in the provided context.\n- The design of this class facilitates the encapsulation of all necessary parameters for confidence interval calculations, promoting clean and maintainable code within the larger application.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Confidence Interval Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates the parameters required for calculating confidence intervals in statistical analysis."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "FinancialService.calculate_future_value": {
+    "documentation": "### calculate_future_value(principal: float, annual_rate: float, periods: int) -> float\n\n**Description:**\nCalculates the future value of an investment based on the principal amount, the annual interest rate, and the number of periods the investment is held. This method utilizes the future value formula, which accounts for compound interest over the specified periods.\n\n**Parameters:**\n- `principal` (`float`): The initial amount of money invested or loaned.\n- `annual_rate` (`float`): The annual interest rate expressed as a decimal (e.g., 0.05 for 5%).\n- `periods` (`int`): The total number of compounding periods (e.g., years) the money is invested or borrowed.\n\n**Expected Input:**\n- `principal` should be a positive float representing the initial investment amount.\n- `annual_rate` should be a non-negative float (0.0 indicates no interest).\n- `periods` should be a non-negative integer representing the number of periods for compounding.\n\n**Returns:**\n`float`: The future value of the investment after the specified number of periods, including interest.\n\n**Detailed Logic:**\n- The method first validates the input parameters to ensure they meet the expected criteria (e.g., non-negative values for `annual_rate` and `periods`, and a positive value for `principal`).\n- It then calls the `npf.fv` function from the NumPy Financial library, which computes the future value based on the provided principal, annual interest rate, and number of periods.\n- The `npf.fv` function applies the formula for compound interest, effectively calculating how much the initial investment will grow over time given the specified interest rate and compounding periods.\n- The result is returned as a float, representing the total amount accumulated after interest has been applied.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Future Value Calculator",
+        "type": "Business Logic",
+        "summary": "Calculates the future value of an investment based on principal, interest rate, and compounding periods."
+      },
+      "semantic_edges": [
+        {
+          "target": "npf.fv",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "FinancialService.calculate_present_value": {
+    "documentation": "### calculate_present_value(rate: float, nper: int, pmt: float, fv: float, when: str) -> float\n\n**Description:**\nCalculates the present value of an investment based on a specified interest rate, number of periods, periodic payment, future value, and the timing of the payment. This method is essential for financial analysis, allowing users to determine the current worth of future cash flows.\n\n**Parameters:**\n- `rate` (`float`): The interest rate for each period, expressed as a decimal (e.g., 0.05 for 5%).\n- `nper` (`int`): The total number of payment periods in the investment's lifespan.\n- `pmt` (`float`): The amount of money paid or received in each period.\n- `fv` (`float`): The future value of the investment at the end of the last period.\n- `when` (`str`): Indicates when payments are due. Acceptable values are 'end' (default) for payments made at the end of each period or 'begin' for payments made at the beginning.\n\n**Expected Input:**\n- `rate` should be a non-negative float representing the interest rate per period.\n- `nper` should be a positive integer indicating the total number of periods.\n- `pmt` can be any float value, representing the payment amount per period.\n- `fv` should be a float representing the future value of the investment.\n- `when` should be a string that is either 'begin' or 'end', indicating the timing of the payments.\n\n**Returns:**\n`float`: The present value of the investment, representing the current worth of future cash flows discounted at the specified interest rate.\n\n**Detailed Logic:**\n- The method utilizes the `npf.pv` function from the NumPy Financial library to perform the present value calculation.\n- It first prepares the input parameters, ensuring they conform to the expected types and values.\n- The `npf.pv` function is called with the provided parameters, which computes the present value based on the formula for discounting future cash flows.\n- The result is then returned as a float, representing the present value of the investment based on the specified criteria. This method effectively abstracts the complexity of the underlying financial calculations, providing a straightforward interface for users.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Present Value Calculator",
+        "type": "Business Logic",
+        "summary": "Calculates the present value of an investment based on specified financial parameters."
+      },
+      "semantic_edges": [
+        {
+          "target": "npf.pv",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "FinancialService.calculate_payment": {
+    "documentation": "### FinancialService.calculate_payment(principal: float, annual_rate: float, num_payments: int) -> float\n\n**Description:**\nThe `calculate_payment` method computes the fixed periodic payment required to fully amortize a loan over a specified number of payments. It utilizes the net present value formula to determine the payment amount based on the principal, annual interest rate, and total number of payments.\n\n**Parameters:**\n- `principal` (`float`): The total amount of the loan that needs to be repaid.\n- `annual_rate` (`float`): The annual interest rate expressed as a decimal (e.g., 0.05 for 5%).\n- `num_payments` (`int`): The total number of payments to be made over the life of the loan.\n\n**Expected Input:**\n- `principal` should be a positive float, representing the loan amount.\n- `annual_rate` should be a non-negative float; a value of 0.0 indicates no interest.\n- `num_payments` should be a positive integer, representing the number of payment periods.\n\n**Returns:**\n`float`: The fixed payment amount to be made in each period, calculated to ensure the loan is fully paid off by the end of the payment term.\n\n**Detailed Logic:**\n- The method begins by checking if the annual interest rate is zero. In this case, it calculates the payment by dividing the principal evenly across all payment periods.\n- If the annual interest rate is greater than zero, it calculates the periodic interest rate by dividing the annual rate by the number of payment periods per year (typically 12 for monthly payments).\n- The method then applies the amortization formula using the `npf.pmt` function, which is likely sourced from an external financial library. This function computes the payment amount based on the principal, periodic interest rate, and total number of payments.\n- The result is a fixed payment amount that ensures the loan is fully amortized by the end of the specified payment term.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Loan Payment Calculator",
+        "type": "Business Logic",
+        "summary": "Calculates the fixed periodic payment required to fully amortize a loan based on principal, interest rate, and number of payments."
+      },
+      "semantic_edges": [
+        {
+          "target": "npf.pmt",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService._load_data": {
+    "documentation": "### StatsService._load_data(columns: Optional[List[str]] = None) -> pd.DataFrame\n\n**Description:**\nThe `_load_data` method is responsible for retrieving data from an SQLite database and loading it into a pandas DataFrame. It provides flexibility in selecting specific columns to load; if no columns are specified, the method will load all available columns from the database.\n\n**Parameters:**\n- `columns` (`Optional[List[str]]`): A list of column names to be retrieved from the database. If set to `None`, all columns will be loaded.\n\n**Expected Input:**\n- `columns` should be a list of strings representing the names of the columns to be fetched from the database. If no specific columns are required, this parameter can be omitted or set to `None`.\n\n**Returns:**\n`pd.DataFrame`: A pandas DataFrame containing the data retrieved from the SQLite database. The structure of the DataFrame will depend on the specified columns or the entire dataset if no columns are specified.\n\n**Detailed Logic:**\n- The method initiates a connection to the SQLite database using `sqlite3.connect`, establishing a link to the database file.\n- It constructs a SQL query to select data from the database. If the `columns` parameter is provided, the query will specify these columns; otherwise, it will use a wildcard to select all columns.\n- The constructed SQL query is executed using `pd.read_sql_query`, which fetches the data and loads it directly into a pandas DataFrame.\n- Finally, the method returns the populated DataFrame, allowing further data manipulation and analysis using pandas functionalities.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "SQLite Data Loader",
+        "type": "Utility",
+        "summary": "Retrieves data from an SQLite database and loads it into a pandas DataFrame, allowing for flexible column selection."
+      },
+      "semantic_edges": [
+        {
+          "target": "sqlite3.connect",
+          "label": "USES"
+        },
+        {
+          "target": "pd.read_sql_query",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.perform_ols_regression": {
+    "documentation": "### StatsService.perform_ols_regression() -> dict\n\n**Description:**\nThis method performs Ordinary Least Squares (OLS) regression using NumPy's least squares functionality, bypassing the need for external libraries like statsmodels. It computes the regression coefficients, intercept, R-squared value, and p-values, returning these metrics in a summary dictionary.\n\n**Parameters:**\n- None\n\n**Expected Input:**\n- The method relies on data loaded through the `self._load_data` method, which is expected to return a dataset suitable for regression analysis. The dataset should include both independent variables (features) and a dependent variable (target) in a format compatible with NumPy operations.\n\n**Returns:**\n`dict`: A dictionary containing the following keys and their corresponding values:\n- `coefficients`: A NumPy array of the regression coefficients for each independent variable.\n- `intercept`: A float representing the intercept of the regression line.\n- `r_squared`: A float indicating the proportion of variance in the dependent variable that is predictable from the independent variables.\n- `p_values`: A NumPy array of p-values corresponding to each coefficient, indicating the statistical significance of each predictor.\n\n**Detailed Logic:**\n1. **Data Loading**: The method begins by loading the dataset using `self._load_data`, which is expected to return a structured dataset containing both independent and dependent variables.\n   \n2. **Matrix Preparation**: It constructs the design matrix `X` by stacking the independent variables and adding a column of ones to account for the intercept. This is achieved using `np.column_stack`.\n\n3. **OLS Calculation**: The method computes the regression coefficients using NumPy's `np.linalg.lstsq`, which solves the least squares problem. This function returns the coefficients that minimize the sum of the squares of the residuals.\n\n4. **Predictions and Residuals**: It calculates the predicted values by multiplying the design matrix `X` with the computed coefficients. The residuals (differences between actual and predicted values) are then determined.\n\n5. **R-squared Calculation**: The method computes the R-squared value, which measures the goodness of fit of the model. This is done by comparing the sum of squares of the residuals to the total sum of squares of the dependent variable.\n\n6. **P-value Calculation**: To assess the statistical significance of the coefficients, the method calculates p-values using the t-distribution. This involves computing the standard errors of the coefficients and then determining the p-values based on the t-statistics.\n\n7. **Summary Dictionary**: Finally, the method compiles the coefficients, intercept, R-squared value, and p-values into a dictionary and returns it, providing a comprehensive summary of the regression analysis results.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Ordinary Least Squares Regression Service",
+        "type": "Business Logic",
+        "summary": "Performs Ordinary Least Squares regression analysis and returns a summary of regression metrics."
+      },
+      "semantic_edges": [
+        {
+          "target": "self._load_data",
+          "label": "USES"
+        },
+        {
+          "target": "np.column_stack",
+          "label": "USES"
+        },
+        {
+          "target": "np.linalg.lstsq",
+          "label": "USES"
+        },
+        {
+          "target": "X @ coef",
+          "label": "USES"
+        },
+        {
+          "target": "np.sum",
+          "label": "USES"
+        },
+        {
+          "target": "np.linalg.inv",
+          "label": "USES"
+        },
+        {
+          "target": "stats.t.cdf",
+          "label": "USES"
+        },
+        {
+          "target": "np.mean",
+          "label": "USES"
+        },
+        {
+          "target": "dict",
+          "label": "CREATES"
+        },
+        {
+          "target": "zip",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.calculate_correlation_matrix": {
+    "documentation": "### StatsService.calculate_correlation_matrix(columns: List[str]) -> Dict[str, Dict[str, float]]\n\n**Description:**\nCalculates the Pearson correlation matrix for the specified columns in the dataset. This method analyzes the linear relationship between pairs of variables, providing insights into how changes in one variable may be associated with changes in another.\n\n**Parameters:**\n- `columns` (`List[str]`): A list of strings representing the names of the columns for which the correlation matrix will be calculated.\n\n**Expected Input:**\n- `columns` should be a list of valid column names present in the dataset loaded by the service. The dataset must contain numerical data in these columns to compute the correlation accurately. If any column names are invalid or not present in the dataset, the method may raise an error.\n\n**Returns:**\n`Dict[str, Dict[str, float]]`: A nested dictionary representing the Pearson correlation coefficients between the specified columns. The outer dictionary's keys are the column names, and each value is another dictionary where the keys are the column names and the values are the correlation coefficients.\n\n**Detailed Logic:**\n- The method begins by invoking `self._load_data`, which loads the dataset into a DataFrame. This step is crucial as it ensures that the data is available for analysis.\n- It then utilizes the `df.corr()` function from the pandas library to compute the correlation matrix for the specified columns. This function calculates the Pearson correlation coefficients, which measure the linear correlation between pairs of columns.\n- Finally, the resulting correlation matrix is converted to a dictionary format using the `to_dict()` method, making it easier to access and interpret the correlation values. The output structure allows for quick lookups of correlation coefficients between any two specified columns.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Correlation Matrix Calculator",
+        "type": "Business Logic",
+        "summary": "Calculates the Pearson correlation matrix for specified columns in a dataset to analyze linear relationships between variables."
+      },
+      "semantic_edges": [
+        {
+          "target": "_load_data",
+          "label": "USES"
+        },
+        {
+          "target": "df.corr",
+          "label": "USES"
+        },
+        {
+          "target": "to_dict",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.perform_independent_ttest": {
+    "documentation": "### StatsService.perform_independent_ttest(sample1: Union[List[float], np.ndarray], sample2: Union[List[float], np.ndarray]) -> Tuple[float, float]\n\n**Description:**\nThe `perform_independent_ttest` method conducts an independent two-sample t-test to determine if there is a statistically significant difference between the means of two independent samples. This method is particularly useful in hypothesis testing where the goal is to compare the means of two groups.\n\n**Parameters:**\n- `sample1` (`Union[List[float], np.ndarray]`): The first sample of data, which can be provided as a list of floats or a NumPy array.\n- `sample2` (`Union[List[float], np.ndarray]`): The second sample of data, which can also be provided as a list of floats or a NumPy array.\n\n**Expected Input:**\n- Both `sample1` and `sample2` should contain numerical data (floats) and can be either lists or NumPy arrays. \n- The samples should not be empty; each sample should contain at least one data point to perform the t-test.\n- The data in both samples should ideally be normally distributed for the t-test assumptions to hold true.\n\n**Returns:**\n`Tuple[float, float]`: A tuple containing two values:\n- The first value is the t-statistic, which indicates the size of the difference relative to the variation in the sample data.\n- The second value is the p-value, which helps determine the statistical significance of the observed difference.\n\n**Detailed Logic:**\n- The method utilizes the `ttest_ind` function from the `scipy.stats` module to perform the t-test.\n- It first validates the input samples to ensure they are of the correct type and contain sufficient data points.\n- The `ttest_ind` function is called with the two samples as arguments, which computes the t-statistic and p-value.\n- The results are returned as a tuple, allowing the caller to interpret the statistical significance of the difference between the two samples.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Independent T-Test Calculator",
+        "type": "Business Logic",
+        "summary": "Conducts an independent two-sample t-test to assess the statistical significance of the difference between two independent samples."
+      },
+      "semantic_edges": [
+        {
+          "target": "stats.ttest_ind",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.calculate_standard_deviation": {
+    "documentation": "### calculate_standard_deviation(numbers: list) -> float\n\n**Description:**\nCalculates the standard deviation of a list of numerical values. The standard deviation is a measure of the amount of variation or dispersion in a set of values, providing insight into the distribution of the data points relative to the mean.\n\n**Parameters:**\n- `numbers` (`list`): A list containing numerical values (integers or floats) for which the standard deviation is to be calculated.\n\n**Expected Input:**\n- `numbers` should be a non-empty list of numerical values. The list can contain integers and/or floats. If the list is empty, the function may raise an error or return a specific value (this should be confirmed in the implementation).\n\n**Returns:**\n`float`: The standard deviation of the provided list of numbers, representing the dispersion of the data points from the mean.\n\n**Detailed Logic:**\n- The function utilizes the `np.std` method from the NumPy library to compute the standard deviation. \n- It first checks the input list to ensure it contains valid numerical data.\n- The `np.std` function calculates the standard deviation by determining the mean of the list, then computing the square root of the average of the squared differences from the mean.\n- The result is returned as a floating-point number, which indicates how spread out the numbers in the list are around the mean value.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Standard Deviation Calculator",
+        "type": "Utility",
+        "summary": "Calculates the standard deviation of a list of numerical values to assess data dispersion."
+      },
+      "semantic_edges": [
+        {
+          "target": "np.std",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.calculate_descriptive_stats": {
+    "documentation": "### calculate_descriptive_stats(numbers: List[float]) -> Dict[str, float]\n\n**Description:**\nCalculates descriptive statistics for a given list of numerical values. This method computes key statistical measures including the mean, median, mode, variance, and standard deviation, providing a comprehensive overview of the data's distribution.\n\n**Parameters:**\n- `numbers` (`List[float]`): A list of numerical values for which the descriptive statistics will be calculated.\n\n**Expected Input:**\n- `numbers` should be a non-empty list of floats or integers. The list can contain any real numbers, but it should not be empty, as this would lead to undefined statistical measures.\n\n**Returns:**\n`Dict[str, float]`: A dictionary containing the following descriptive statistics:\n- `mean`: The average of the numbers.\n- `median`: The middle value when the numbers are sorted.\n- `mode`: The most frequently occurring value in the list.\n- `variance`: A measure of how much the numbers vary from the mean.\n- `standard_deviation`: The square root of the variance, indicating the average distance of each number from the mean.\n\n**Detailed Logic:**\n- The method begins by validating the input to ensure that the list is not empty.\n- It then utilizes the `np.mean` function from the NumPy library to calculate the mean of the numbers.\n- The median is computed using `np.median`, which sorts the list and finds the middle value.\n- The mode is determined using `stats.mode` from the SciPy library, which identifies the most common value in the list.\n- Variance is calculated using `np.var`, which measures the average of the squared differences from the mean.\n- Finally, the standard deviation is obtained using `np.std`, providing insight into the dispersion of the dataset.\n- The results are compiled into a dictionary and returned, allowing easy access to each statistical measure.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Descriptive Statistics Calculator",
+        "type": "Utility",
+        "summary": "Calculates and returns key descriptive statistics for a list of numerical values."
+      },
+      "semantic_edges": [
+        {
+          "target": "np.mean",
+          "label": "USES"
+        },
+        {
+          "target": "np.median",
+          "label": "USES"
+        },
+        {
+          "target": "stats.mode",
+          "label": "USES"
+        },
+        {
+          "target": "np.var",
+          "label": "USES"
+        },
+        {
+          "target": "np.std",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.calculate_z_scores": {
+    "documentation": "### calculate_z_scores(numbers: list) -> list\n\n**Description:**\nCalculates the Z-Scores for a given list of numbers. Z-Scores indicate how many standard deviations an element is from the mean of the dataset, providing a way to understand the relative position of each number within the distribution.\n\n**Parameters:**\n- `numbers` (`list`): A list of numerical values for which Z-Scores will be calculated.\n\n**Expected Input:**\n- `numbers` should be a list containing numerical values (integers or floats). The list must not be empty, as Z-Scores cannot be computed without a mean and standard deviation.\n\n**Returns:**\n`list`: A list of Z-Scores corresponding to each number in the input list. Each Z-Score is a float representing the number of standard deviations away from the mean.\n\n**Detailed Logic:**\n- The function first converts the input list of numbers into a NumPy array to facilitate mathematical operations.\n- It then calculates the mean and standard deviation of the array using `np.mean` and `np.std`, respectively.\n- Each Z-Score is computed by subtracting the mean from each number and then dividing by the standard deviation.\n- The resulting Z-Scores are rounded to a reasonable number of decimal places for clarity before being returned as a list. \n\nThis method leverages NumPy's efficient array operations to perform the calculations, ensuring that the function is both concise and performant.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Z-Score Calculator",
+        "type": "Utility",
+        "summary": "Calculates the Z-Scores for a list of numerical values to assess their relative position within a dataset."
+      },
+      "semantic_edges": [
+        {
+          "target": "np.array",
+          "label": "USES"
+        },
+        {
+          "target": "np.mean",
+          "label": "USES"
+        },
+        {
+          "target": "np.std",
+          "label": "USES"
+        },
+        {
+          "target": "list",
+          "label": "USES"
+        },
+        {
+          "target": "round",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService.calculate_confidence_interval": {
+    "documentation": "### calculate_confidence_interval(data: List[float], confidence_level: float) -> Tuple[float, float]\n\n**Description:**\nCalculates the confidence interval for a given list of numerical data points. The confidence interval provides a range within which the true population parameter (e.g., mean) is expected to lie, with a specified level of confidence.\n\n**Parameters:**\n- `data` (`List[float]`): A list of numerical values for which the confidence interval is to be calculated.\n- `confidence_level` (`float`): The desired confidence level for the interval, expressed as a decimal (e.g., 0.95 for a 95% confidence interval).\n\n**Expected Input:**\n- `data` should be a non-empty list of floats or integers. The list must contain at least two elements to compute a meaningful confidence interval.\n- `confidence_level` should be a float between 0 and 1, representing the desired confidence level. Values outside this range will result in an error.\n\n**Returns:**\n`Tuple[float, float]`: A tuple containing two float values that represent the lower and upper bounds of the confidence interval.\n\n**Detailed Logic:**\n- The function first calculates the sample mean of the provided data using the `np.mean` function from the NumPy library.\n- It then determines the standard error of the mean using the `st.sem` function from the SciPy library, which computes the standard deviation of the sample divided by the square root of the sample size.\n- Next, the function uses the `st.t.ppf` function from SciPy to find the critical t-value based on the specified confidence level and the degrees of freedom (which is the sample size minus one).\n- Finally, it computes the margin of error by multiplying the standard error by the critical t-value, and constructs the confidence interval by adding and subtracting this margin from the sample mean.\n- The resulting lower and upper bounds of the confidence interval are returned as a tuple.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Confidence Interval Calculator",
+        "type": "Business Logic",
+        "summary": "Calculates the confidence interval for a list of numerical data points based on a specified confidence level."
+      },
+      "semantic_edges": [
+        {
+          "target": "np.mean",
+          "label": "USES"
+        },
+        {
+          "target": "st.sem",
+          "label": "USES"
+        },
+        {
+          "target": "st.t.ppf",
+          "label": "USES"
+        },
+        {
+          "target": "len",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "ValidationService.__init__": {
+    "documentation": "### ValidationService.__init__()\n\n**Description:**\nThe `__init__` method initializes an instance of the `ValidationService` class, establishing a dependency on the `DataService`. This setup allows the `ValidationService` to utilize the data loading functionalities provided by the `DataService`, which is essential for performing validation tasks on data.\n\n**Parameters/Attributes:**\n- `data_service` (`DataService`): An instance of the `DataService` class, which provides methods for loading data from various sources, such as files and databases.\n\n**Expected Input:**\n- The `data_service` parameter must be an instance of the `DataService` class. This instance should be properly configured to connect to the relevant data sources (e.g., databases or files) that the `ValidationService` will validate.\n\n**Returns:**\nNone: This method does not return any value. It merely sets up the instance of `ValidationService` for use.\n\n**Detailed Logic:**\n- The `__init__` method takes an instance of `DataService` as an argument and assigns it to an instance variable within `ValidationService`.\n- This establishes a link between the two services, allowing `ValidationService` to call upon the data loading methods of `DataService` for retrieving data that needs to be validated.\n- The initialization process ensures that the `ValidationService` is ready to perform its intended operations, leveraging the capabilities of the `DataService` for data handling.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Validation Service Initializer",
+        "type": "Business Logic",
+        "summary": "Initializes the ValidationService with a dependency on DataService for data validation tasks."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataService",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "main.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` is a component of a FastAPI application that serves as the main entry point for defining routes and handling HTTP requests. It integrates various functionalities such as serving static files, rendering templates, and managing error responses. This module is essential for setting up the web server and defining the behavior of the application.\n\n**Parameters/Attributes:**\nNone\n\n**Expected Input:**\n- The module is expected to handle incoming HTTP requests, which may include query parameters, path parameters, and request bodies depending on the defined routes.\n- It may also serve static files and render HTML templates based on the requests received.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The module initializes a FastAPI application instance, which is the core of the web service.\n- It utilizes `StaticFiles` to serve static assets such as CSS, JavaScript, and images, allowing the application to deliver a complete web experience.\n- The `Jinja2Templates` dependency is used to render HTML templates dynamically, enabling the application to generate web pages based on user input or data from the server.\n- Error handling is managed through `app.exception_handler`, which allows the application to respond gracefully to exceptions and provide meaningful error messages to the client.\n- The `JSONResponse` class is employed to return JSON data in response to API requests, ensuring that the application can communicate effectively with clients expecting JSON-formatted data.\n- The `app.include_router` method is used to modularize the application by including different routers, which can define specific sets of routes and their corresponding handlers.\n- The `app.get` decorator is utilized to define GET endpoints, allowing the application to respond to HTTP GET requests with the appropriate data or rendered templates.\n- Finally, `templates.TemplateResponse` is used to send rendered HTML templates back to the client, providing a seamless user experience.\n\nThis module serves as the backbone of the FastAPI application, coordinating various components and ensuring that the application can handle web requests efficiently.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "FastAPI Application Entry Point",
+        "type": "API Endpoint",
+        "summary": "Defines the main routes and handles HTTP requests for a FastAPI application, integrating static file serving, template rendering, and error handling."
+      },
+      "semantic_edges": [
+        {
+          "target": "FastAPI",
+          "label": "CREATES"
+        },
+        {
+          "target": "StaticFiles",
+          "label": "USES"
+        },
+        {
+          "target": "Jinja2Templates",
+          "label": "USES"
+        },
+        {
+          "target": "app.exception_handler",
+          "label": "CONFIGURES"
+        },
+        {
+          "target": "JSONResponse",
+          "label": "USES"
+        },
+        {
+          "target": "app.include_router",
+          "label": "CONFIGURES"
+        },
+        {
+          "target": "app.get",
+          "label": "CONFIGURES"
+        },
+        {
+          "target": "templates.TemplateResponse",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "app\\api\\v1\\api.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a central component for defining and organizing API routes within the application. It utilizes the `APIRouter` to create a structured routing mechanism that allows for the inclusion of various endpoints, facilitating the management of API requests and responses.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nNone\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The `module_code` initializes an instance of `APIRouter`, which is a part of the FastAPI framework. This instance is responsible for handling the routing of HTTP requests to the appropriate endpoints defined within the application.\n- It leverages the `include_router` function to incorporate additional routers or modules, allowing for a modular approach to API design. This enables the application to scale by organizing routes into separate files or modules, which can be included as needed.\n- The overall logic focuses on setting up the routing infrastructure, ensuring that incoming requests are directed to the correct handlers based on the defined routes. This modularity enhances maintainability and readability of the codebase, making it easier to manage and extend the API functionality over time.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "API Router Configuration",
+        "type": "Configuration",
+        "summary": "Sets up and organizes API routes for handling HTTP requests in a modular fashion."
+      },
+      "semantic_edges": [
+        {
+          "target": "APIRouter",
+          "label": "CREATES"
+        },
+        {
+          "target": "include_router",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "app\\api\\v1\\endpoints\\statistics.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a central point for defining API endpoints related to statistical data within the application. It utilizes the `APIRouter` to facilitate the creation and management of routes that handle requests for statistical information, enabling structured access to various statistical functionalities.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nNone\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The `module_code` initializes an instance of `APIRouter`, which is a component of the FastAPI framework designed to manage API routes efficiently.\n- This module likely defines various endpoints that respond to HTTP requests, such as GET or POST, specifically tailored for statistical operations.\n- It organizes the routing logic, allowing for easy integration of additional statistical features or modifications in the future.\n- The endpoints defined within this module will interact with other components of the application, such as data processing functions or database queries, to retrieve and return statistical data to the client. \n\nOverall, `module_code` plays a crucial role in structuring the API for statistical endpoints, ensuring that the application can handle requests in a modular and maintainable manner.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Statistical API Router",
+        "type": "API Endpoint",
+        "summary": "Defines and manages API endpoints for accessing statistical data within the application."
+      },
+      "semantic_edges": [
+        {
+          "target": "APIRouter",
+          "label": "CREATES"
+        }
+      ]
+    }
+  },
+  "create_db.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a utility module within the `create_db.py` file, primarily responsible for orchestrating the creation of a sample SQLite database. This module leverages the `create_sample_database` function to generate a database populated with housing data, facilitating testing and development scenarios.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nNone: The module does not require any input parameters. It operates independently to create a sample database.\n\n**Returns:**\nNone: The module does not return any value. Its purpose is to execute the `create_sample_database` function, which performs operations that result in the creation of a database.\n\n**Detailed Logic:**\n- The module begins by importing necessary libraries, including `os.path.join`, which is used to construct file paths in a platform-independent manner.\n- It then calls the `create_sample_database` function, which encapsulates the entire workflow for generating a sample SQLite database. This function handles the creation of a CSV file with sample data, establishes a database connection, creates a table, and populates it with the generated data.\n- The module ensures that all operations are executed in a controlled manner, allowing for the seamless creation of a database that can be utilized for testing purposes. \n\nThis module is designed to be straightforward and efficient, providing a clear pathway for developers to generate a sample database without the need for complex configurations or inputs.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Sample Database Creator",
+        "type": "Utility",
+        "summary": "Facilitates the creation of a sample SQLite database populated with housing data for testing and development."
+      },
+      "semantic_edges": [
+        {
+          "target": "create_sample_database",
+          "label": "USES"
+        },
+        {
+          "target": "os.path.join",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "app\\core\\config.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a central configuration module within the application, leveraging the `Settings` class to manage and access application settings derived from environment variables. This module is responsible for ensuring that the application can retrieve necessary configuration values consistently and reliably.\n\n**Parameters/Attributes:**\n- **None**: The `module_code` does not define any parameters or attributes directly. It primarily utilizes the `Settings` class to handle configuration settings.\n\n**Expected Input:**\n- The `module_code` expects that relevant environment variables are defined prior to its usage. These variables should contain necessary configuration values such as database connection strings, API keys, and other settings essential for the application's functionality.\n\n**Returns:**\n- **None**: The `module_code` does not return any value. Its purpose is to facilitate the retrieval and management of configuration settings rather than to produce a direct output.\n\n**Detailed Logic:**\n- The `module_code` interacts with the `Settings` class, which is designed to load and validate configuration settings from environment variables. \n- Upon its execution, it initializes the `Settings` class, which in turn reads the environment variables and populates its attributes accordingly.\n- The logic ensures that any required settings are present and correctly formatted, potentially raising exceptions or providing default values for missing or invalid configurations.\n- By centralizing configuration management, the `module_code` promotes better organization and maintainability within the codebase, allowing for easier updates and modifications to application settings as needed.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Application Configuration Manager",
+        "type": "Configuration",
+        "summary": "Manages and retrieves application settings from environment variables to ensure consistent configuration access."
+      },
+      "semantic_edges": [
+        {
+          "target": "Settings",
+          "label": "CREATES"
+        }
+      ]
+    }
+  },
+  "APIException": {
+    "documentation": "### APIException\n\n**Description:**\n`APIException` is a custom base exception class designed specifically for handling errors within the API framework of the application. It serves as a foundation for creating more specific exception types that can be raised during API operations. This class facilitates the implementation of a structured exception handling mechanism, allowing the application to return well-defined JSON error messages to clients, thereby improving error reporting and debugging.\n\n**Parameters/Attributes:**\nNone. The `APIException` class does not define any additional parameters or attributes beyond those inherited from the base `Exception` class.\n\n**Expected Input:**\n- The `APIException` class can be instantiated with any arguments that are valid for the built-in `Exception` class. This typically includes a message string that describes the error.\n\n**Returns:**\nNone. The `APIException` class does not return a value; it raises an exception when instantiated.\n\n**Detailed Logic:**\n- The `APIException` class inherits from Python's built-in `Exception` class, which provides the basic functionality for exception handling.\n- When an instance of `APIException` is created, it calls the constructor of the base `Exception` class using `super().__init__()`. This ensures that any initialization logic defined in the `Exception` class is executed, allowing for standard exception behavior.\n- The primary purpose of this class is to enable the creation of custom exceptions that can be caught and handled in a structured manner within the API's main application logic, particularly in the `main.py` file where the custom exception handler is implemented. This enhances the ability to return structured JSON responses for error scenarios, improving the overall user experience and API usability.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "API Exception Handler",
+        "type": "Business Logic",
+        "summary": "Facilitates structured error handling in the API by providing a custom exception class for raising and managing API-related errors."
+      },
+      "semantic_edges": [
+        {
+          "target": "Exception",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "__init__",
+          "label": "USES"
+        },
+        {
+          "target": "super().__init__",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "CalculationError": {
+    "documentation": "### CalculationError\n\n**Description:**\n`CalculationError` is a custom exception class designed to handle errors that occur during mathematical calculations within the application. This class extends the base exception class, allowing it to be raised and caught specifically for calculation-related issues, providing clearer error handling in the codebase.\n\n**Parameters/Attributes:**\nNone.\n\n**Expected Input:**\n- This class does not require any specific input parameters upon instantiation. However, it can accept a message string that describes the error when raised.\n\n**Returns:**\nNone.\n\n**Detailed Logic:**\n- The `CalculationError` class inherits from Python's built-in `Exception` class, utilizing the `super().__init__` method to initialize the base class. This allows it to leverage the standard exception handling mechanisms while providing a specific context for calculation errors.\n- When an instance of `CalculationError` is raised, it can include a custom error message that describes the nature of the calculation failure, aiding developers in debugging and error resolution.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Calculation Error Handler",
+        "type": "Business Logic",
+        "summary": "Handles errors that occur during mathematical calculations, providing specific context for debugging."
+      },
+      "semantic_edges": [
+        {
+          "target": "APIException",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "DataError": {
+    "documentation": "### DataError\n\n**Description:**\n`DataError` is a custom exception class designed to handle errors related to data processing within the application. It extends the base exception class, allowing for more specific error handling when data-related issues arise, such as invalid data formats or unexpected data types.\n\n**Parameters/Attributes:**\n- None (The class does not define any additional parameters or attributes beyond those inherited from the base exception class.)\n\n**Expected Input:**\n- The class is intended to be instantiated with a message string that describes the specific data error encountered. This message should provide context for the error to aid in debugging.\n\n**Returns:**\n- None (The class does not return a value; it raises an exception when instantiated.)\n\n**Detailed Logic:**\n- When an instance of `DataError` is created, it calls the constructor of its superclass using `super().__init__()`. This ensures that the base exception class is properly initialized, allowing the `DataError` instance to function as a standard exception while also carrying a specific message related to data errors.\n- The primary purpose of this class is to provide a clear and distinct way to signal data-related issues, which can be caught and handled separately from other types of exceptions in the application. This enhances error handling and debugging capabilities by allowing developers to identify and respond to data errors specifically.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Data Processing Error Handler",
+        "type": "Utility",
+        "summary": "Handles exceptions related to data processing by providing a specific error type for better error management."
+      },
+      "semantic_edges": [
+        {
+          "target": "APIException",
+          "label": "INHERITS_FROM"
+        }
+      ]
+    }
+  },
+  "TTestInput": {
+    "documentation": "### TTestInput\n\n**Description:**\n`TTestInput` is a model class designed to represent the input data for an independent t-test. It ensures that the samples provided for the test are not identical, which is a prerequisite for conducting a valid t-test. The class leverages validation mechanisms to enforce this constraint.\n\n**Parameters/Attributes:**\n- `sample1` (`List[float]`): The first sample of data for the t-test.\n- `sample2` (`List[float]`): The second sample of data for the t-test.\n\n**Expected Input:**\n- `sample1` and `sample2` should be lists of floats representing numerical data points. \n- Both samples must contain at least one element.\n- The two samples must not be identical; if they are, a validation error will be raised.\n\n**Returns:**\n`None`: The class does not return a value upon instantiation but raises exceptions if validation fails.\n\n**Detailed Logic:**\n- The class inherits from `BaseModel`, which likely provides foundational functionality for data validation and model behavior.\n- It utilizes `Field` to define the attributes `sample1` and `sample2`, which are expected to hold the data for the t-test.\n- The `field_validator` is employed to implement custom validation logic that checks if the two samples are identical. If they are, a `ValueError` is raised, indicating that the samples must differ for a valid t-test.\n- This validation ensures that any instance of `TTestInput` is guaranteed to have valid data before any statistical analysis is performed.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Independent T-Test Input Model",
+        "type": "Data Model",
+        "summary": "Represents and validates input data for an independent t-test, ensuring that the samples are not identical."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "Field",
+          "label": "USES"
+        },
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "RegressionInput": {
+    "documentation": "### RegressionInput\n\n**Description:**\nThe `RegressionInput` class serves as a model for Ordinary Least Squares (OLS) regression analysis. It is designed to ensure that the input variables used in the regression are distinct, thereby preventing issues that may arise from multicollinearity or redundancy among the variables.\n\n**Parameters/Attributes:**\n- **None**: The class does not define any parameters or attributes explicitly in the provided context.\n\n**Expected Input:**\n- The `RegressionInput` class is expected to handle input data that consists of distinct variables suitable for OLS regression. This typically includes numerical or categorical data that can be transformed into a numerical format. The class may enforce constraints to ensure that no two variables are identical.\n\n**Returns:**\n- **None**: The class does not return a value upon instantiation. Instead, it is used to create an object that encapsulates the input data for regression analysis.\n\n**Detailed Logic:**\n- The `RegressionInput` class likely inherits from a base model class (`BaseModel`), which may provide foundational functionality for data validation and manipulation.\n- It utilizes the `Field` and `field_validator` components to define and validate the input fields, ensuring that the variables are distinct.\n- If any input validation fails (e.g., if duplicate variables are detected), the class may raise a `ValueError`, signaling that the input does not meet the required criteria for OLS regression.\n- The class is structured to facilitate the preparation of data for regression analysis, ensuring that the integrity of the input variables is maintained throughout the process.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "OLS Regression Input Model",
+        "type": "Data Model",
+        "summary": "Encapsulates and validates input data for Ordinary Least Squares regression analysis, ensuring distinct variables."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "Field",
+          "label": "USES"
+        },
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "CorrelationInput": {
+    "documentation": "### CorrelationInput\n\n**Description:**\n`CorrelationInput` is a model class designed to represent and validate the input data for generating a correlation matrix. It ensures that the input consists of at least two columns when specified, thereby enforcing the necessary conditions for correlation analysis.\n\n**Parameters/Attributes:**\n- **None**: The class does not take any parameters upon instantiation. It relies on internal validation mechanisms to ensure the integrity of the data it processes.\n\n**Expected Input:**\n- The class expects input data structured in a way that can be interpreted as a matrix (e.g., a DataFrame or similar structure). Specifically, it requires at least two columns to perform correlation calculations. If the input does not meet this criterion, a validation error will be raised.\n\n**Returns:**\n- **None**: The class does not return a value upon instantiation. Instead, it validates the input data and may raise exceptions if the validation fails.\n\n**Detailed Logic:**\n- Upon initialization, `CorrelationInput` leverages the `BaseModel` class, which likely provides foundational functionality for data modeling and validation.\n- The class utilizes the `field_validator` to enforce the requirement that at least two columns must be present in the input data. This validation is crucial for ensuring that correlation calculations can be performed meaningfully.\n- If the input data does not meet the specified conditions, a `ValueError` is raised, indicating that the input is invalid. This mechanism helps maintain data integrity and prevents errors during subsequent analysis steps.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Correlation Input Validator",
+        "type": "Data Model",
+        "summary": "Validates input data for correlation analysis by ensuring at least two columns are specified."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "MatrixInput": {
+    "documentation": "### MatrixInput\n\n**Description:**\nThe `MatrixInput` class serves as a model for performing various matrix operations. It incorporates validation mechanisms to ensure that the input matrices conform to specified requirements, and it includes a helper function to facilitate matrix-related tasks.\n\n**Parameters/Attributes:**\n- `matrix` (`np.array`): A NumPy array representing the matrix input. This attribute is subject to validation to ensure it meets the necessary criteria for matrix operations.\n- `rows` (`int`): An integer representing the number of rows in the matrix. This is derived from the shape of the input matrix.\n- `columns` (`int`): An integer representing the number of columns in the matrix. This is also derived from the shape of the input matrix.\n\n**Expected Input:**\n- The `matrix` attribute must be a valid NumPy array. It should be two-dimensional, meaning it must have at least one row and one column.\n- The input matrix should not contain any invalid values (e.g., NaN or infinite values) as these would violate the validation rules.\n\n**Returns:**\n`None`: The class does not return a value upon instantiation. Instead, it initializes the matrix and its attributes based on the provided input.\n\n**Detailed Logic:**\n- Upon instantiation, the `MatrixInput` class validates the input matrix using the `field_validator` decorator, which checks for conditions such as dimensionality and value integrity.\n- The `rows` and `columns` attributes are automatically set based on the shape of the input matrix, allowing for easy access to the matrix's dimensions.\n- The class may include additional methods for performing operations on the matrix, leveraging the capabilities of NumPy for efficient computation.\n- The `BaseModel` is likely extended to provide foundational functionality, while the `Field` and `field_validator` are used to manage and validate the attributes effectively.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Matrix Input Validator and Converter",
+        "type": "Data Model",
+        "summary": "Validates and represents a square matrix input for performing matrix operations."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "Field",
+          "label": "USES"
+        },
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "np.array",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "FutureValueInput": {
+    "documentation": "### FutureValueInput\n\n**Description:**\nThe `FutureValueInput` class serves as a model for calculating the future value of an investment based on specified cash flow conventions. It is designed to validate input parameters related to cash flows, ensuring that they conform to expected financial standards.\n\n**Parameters/Attributes:**\n- **Attributes:**\n  - `cash_flows` (`List[float]`): A list of cash flow amounts, which can be positive (inflows) or negative (outflows).\n  - `interest_rate` (`float`): The annual interest rate expressed as a decimal (e.g., 0.05 for 5%).\n  - `periods` (`int`): The number of periods (e.g., years) over which the investment will grow.\n\n**Expected Input:**\n- The `cash_flows` attribute should be a list of floats, where each float represents a cash flow amount. The list can contain both positive and negative values.\n- The `interest_rate` should be a non-negative float, representing the annual interest rate. A value of 0.0 indicates no growth.\n- The `periods` should be a positive integer, indicating the total number of periods for the future value calculation.\n\n**Returns:**\n`None`: The class does not return a value directly; instead, it validates input data and prepares it for further calculations related to future value.\n\n**Detailed Logic:**\n- The `FutureValueInput` class inherits from `BaseModel`, which likely provides foundational functionality for data validation and management.\n- It utilizes the `Field` function to define its attributes, ensuring that they are properly initialized and validated.\n- The class employs `field_validator` to enforce constraints on the input data, such as ensuring that cash flows are in a valid format and that the interest rate and periods are within acceptable ranges.\n- If any validation checks fail, a `ValueError` is raised, providing feedback on the nature of the input error.\n- Overall, the class is structured to facilitate the future value calculation process by ensuring that all necessary parameters are correctly defined and validated before any calculations are performed.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Future Value Input Model",
+        "type": "Data Model",
+        "summary": "Validates and structures input parameters for calculating the future value of an investment."
+      },
+      "semantic_edges": [
+        {
+          "target": "BaseModel",
+          "label": "INHERITS_FROM"
+        },
+        {
+          "target": "Field",
+          "label": "USES"
+        },
+        {
+          "target": "field_validator",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "FinancialService": {
+    "documentation": "### FinancialService\n\n**Description:**\nThe `FinancialService` class is designed to facilitate common financial calculations, leveraging the capabilities of the `numpy_financial` library. It provides methods to compute future values, present values, and periodic payments, which are essential for various financial analyses and decision-making processes.\n\n**Parameters/Attributes:**\nNone.\n\n**Expected Input:**\nThe methods within the `FinancialService` class expect numerical inputs such as floats or integers representing financial values (e.g., principal amounts, interest rates, number of periods). The specific requirements for each method will depend on the financial calculation being performed.\n\n**Returns:**\nThe methods of the `FinancialService` class return numerical values (floats) that represent the results of the financial calculations, such as future value, present value, or payment amount.\n\n**Detailed Logic:**\n- The class utilizes the `numpy_financial` library, which provides functions for financial calculations:\n  - `npf.fv`: Computes the future value of an investment based on periodic, constant payments and a constant interest rate.\n  - `npf.pv`: Calculates the present value of a cash flow or series of cash flows, given a specific interest rate.\n  - `npf.pmt`: Determines the fixed periodic payment required to fully amortize a loan over a specified number of payments.\n- Each method within the class encapsulates the logic for these calculations, allowing users to easily perform complex financial computations without needing to understand the underlying formulas.\n- The class is structured to ensure that inputs are validated and appropriate exceptions are raised for invalid data, enhancing robustness and usability.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Financial Calculation Service",
+        "type": "Business Logic",
+        "summary": "Facilitates common financial calculations such as future value, present value, and periodic payments using the numpy_financial library."
+      },
+      "semantic_edges": [
+        {
+          "target": "npf.fv",
+          "label": "USES"
+        },
+        {
+          "target": "npf.pv",
+          "label": "USES"
+        },
+        {
+          "target": "npf.pmt",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "StatsService": {
+    "documentation": "### StatsService\n\n**Description:**\nThe `StatsService` class provides statistical analysis and data processing functionalities for datasets stored in a SQLite database. It facilitates operations such as querying data, performing statistical tests, and calculating various statistical metrics, including mean, median, variance, and correlation. The class is designed to streamline the extraction and analysis of data, making it easier for users to derive insights from their datasets.\n\n**Parameters/Attributes:**\n- `db_path` (`str`): The file path to the SQLite database that the service will connect to.\n- `connection` (`sqlite3.Connection`): An active connection to the SQLite database.\n- `data` (`pandas.DataFrame`): A DataFrame that holds the data retrieved from the database for analysis.\n\n**Expected Input:**\n- `db_path` should be a valid string representing the path to an existing SQLite database file.\n- The data retrieved from the database is expected to be in a format compatible with pandas DataFrames, allowing for efficient statistical computations.\n\n**Returns:**\n`None`: The class does not return values directly; instead, it provides methods that return statistical results based on the data processed.\n\n**Detailed Logic:**\n- The class initializes by establishing a connection to the SQLite database using `sqlite3.connect`, ensuring that the connection is properly managed throughout its lifecycle.\n- It provides methods to execute SQL queries via `pd.read_sql_query`, which retrieves data from the database and stores it in a pandas DataFrame for further analysis.\n- Statistical computations are performed using NumPy and SciPy functions, such as:\n  - `np.mean`, `np.median`, `np.std`, `np.var` for calculating basic statistics.\n  - `np.column_stack` and `np.linalg.lstsq` for regression analysis.\n  - `stats.ttest_ind` for conducting t-tests between two independent samples.\n  - `df.corr` for calculating correlation coefficients between different variables in the dataset.\n  - `stats.t.cdf` and `st.t.ppf` for statistical distributions and confidence intervals.\n- The class also includes error handling to manage potential issues with database connections and data retrieval, ensuring robustness in its operations.\n- Overall, `StatsService` serves as a comprehensive tool for statistical analysis, leveraging the power of pandas and NumPy to facilitate data-driven decision-making.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Statistical Analysis Service",
+        "type": "Business Logic",
+        "summary": "Facilitates statistical analysis and data processing for datasets stored in a SQLite database."
+      },
+      "semantic_edges": [
+        {
+          "target": "sqlite3.connect",
+          "label": "USES"
+        },
+        {
+          "target": "pd.read_sql_query",
+          "label": "USES"
+        },
+        {
+          "target": "np.column_stack",
+          "label": "USES"
+        },
+        {
+          "target": "np.linalg.lstsq",
+          "label": "USES"
+        },
+        {
+          "target": "np.linalg.inv",
+          "label": "USES"
+        },
+        {
+          "target": "stats.t.cdf",
+          "label": "USES"
+        },
+        {
+          "target": "df.corr",
+          "label": "USES"
+        },
+        {
+          "target": "stats.ttest_ind",
+          "label": "USES"
+        },
+        {
+          "target": "np.std",
+          "label": "USES"
+        },
+        {
+          "target": "np.mean",
+          "label": "USES"
+        },
+        {
+          "target": "np.median",
+          "label": "USES"
+        },
+        {
+          "target": "stats.mode",
+          "label": "USES"
+        },
+        {
+          "target": "np.var",
+          "label": "USES"
+        },
+        {
+          "target": "st.sem",
+          "label": "USES"
+        },
+        {
+          "target": "st.t.ppf",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "perform_regression": {
+    "documentation": "### perform_regression(data: dict, model_type: str) -> dict\n\n**Description:**\nThe `perform_regression` function executes a regression analysis on the provided dataset using a specified regression model type. It validates the input data, performs the regression analysis, and returns the results in a structured format. This function is designed to facilitate statistical analysis within the application, allowing users to derive insights from their data.\n\n**Parameters:**\n- `data` (`dict`): A dictionary containing the dataset to be analyzed. The expected structure of this dictionary should conform to the requirements of the regression analysis.\n- `model_type` (`str`): A string indicating the type of regression model to be used (e.g., \"OLS\" for Ordinary Least Squares). This parameter determines the algorithm that will be applied to the data.\n\n**Expected Input:**\n- `data` should be a dictionary with keys representing variable names and values as lists of numerical data points. The data should not contain any missing values or non-numeric entries.\n- `model_type` must be a valid string that corresponds to one of the supported regression models. If an unsupported model type is provided, the function should raise an appropriate exception.\n\n**Returns:**\n`dict`: A dictionary containing the results of the regression analysis, which may include coefficients, statistical metrics (e.g., R-squared, p-values), and any other relevant output based on the regression model used.\n\n**Detailed Logic:**\n- The function begins by validating the input parameters using the `validator.validate_regression_inputs` function, which ensures that the data structure and model type are appropriate for regression analysis.\n- Upon successful validation, the function calls `stats_svc.perform_ols_regression` (or another relevant regression function based on the `model_type`) to execute the regression analysis on the provided dataset.\n- The results from the regression analysis are then formatted into a dictionary, which is returned to the caller.\n- If any errors occur during validation or regression execution, the function raises an `APIException`, allowing for structured error handling and reporting within the API framework.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "OLS Regression Executor",
+        "type": "API Endpoint",
+        "summary": "Executes Ordinary Least Squares regression analysis on a provided dataset and returns the results."
+      },
+      "semantic_edges": [
+        {
+          "target": "validator.validate_regression_inputs",
+          "label": "USES"
+        },
+        {
+          "target": "stats_svc.perform_ols_regression",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "get_correlation_matrix": {
+    "documentation": "### get_correlation_matrix() -> pd.DataFrame\n\n**Description:**\nThe `get_correlation_matrix` function computes and returns the correlation matrix for a given dataset. This matrix provides insights into the relationships between different variables, indicating how closely related they are. The function validates the input data before performing the correlation calculation, ensuring that the data is suitable for analysis.\n\n**Parameters:**\n- `data` (`Any`): The dataset for which the correlation matrix is to be calculated. This can be a DataFrame or any structure that can be validated and processed to extract numerical relationships.\n\n**Expected Input:**\n- The `data` parameter should be a structured dataset, typically in the form of a DataFrame. It must contain numerical values for the correlation calculation to be meaningful. The function expects the data to be pre-validated to ensure it meets the necessary criteria for correlation analysis.\n\n**Returns:**\n`pd.DataFrame`: A DataFrame representing the correlation matrix, where each cell indicates the correlation coefficient between pairs of variables in the dataset.\n\n**Detailed Logic:**\n- The function begins by validating the input data using the `validator.validate_correlation_inputs` method. This step ensures that the data is appropriate for correlation analysis, checking for issues such as missing values or non-numeric types.\n- Upon successful validation, the function calls `stats_svc.calculate_correlation_matrix`, which performs the actual computation of the correlation matrix using statistical methods.\n- The resulting correlation matrix is then returned as a DataFrame, allowing for easy interpretation and further analysis of the relationships between the variables in the dataset.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Correlation Matrix Calculator",
+        "type": "API Endpoint",
+        "summary": "Calculates and returns a correlation matrix for a given dataset, ensuring input validation and proper error handling."
+      },
+      "semantic_edges": [
+        {
+          "target": "validator.validate_correlation_inputs",
+          "label": "USES"
+        },
+        {
+          "target": "stats_svc.calculate_correlation_matrix",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "CREATES"
+        }
+      ]
+    }
+  },
+  "perform_ttest": {
+    "documentation": "### perform_ttest(data: List[float], alpha: float = 0.05) -> Dict[str, Any]\n\n**Description:**\nThe `perform_ttest` function conducts an independent two-sample t-test on the provided dataset. It evaluates whether the means of two independent groups are statistically different from each other. This function is typically used in statistical analysis to determine if there is enough evidence to reject the null hypothesis, which states that there is no difference between the group means.\n\n**Parameters:**\n- `data` (`List[float]`): A list of numerical values representing the two independent samples to be compared.\n- `alpha` (`float`, optional): The significance level for the t-test, defaulting to 0.05. This value determines the threshold for rejecting the null hypothesis.\n\n**Expected Input:**\n- `data` should be a list containing two sets of numerical values (e.g., [group1_values, group2_values]). Each group should have at least two observations for the t-test to be valid.\n- `alpha` should be a float between 0 and 1, representing the probability of rejecting the null hypothesis when it is true.\n\n**Returns:**\n`Dict[str, Any]`: A dictionary containing the results of the t-test, including:\n- `t_statistic`: The calculated t-statistic value.\n- `p_value`: The p-value associated with the t-test.\n- `reject_null`: A boolean indicating whether to reject the null hypothesis based on the p-value and the significance level.\n\n**Detailed Logic:**\n- The function begins by validating the input data to ensure it contains two independent samples.\n- It then calls the `service.perform_independent_ttest` function, passing the validated data and the significance level.\n- The results from the t-test are processed, and the t-statistic and p-value are extracted.\n- Finally, the function evaluates whether the p-value is less than the specified alpha level to determine if the null hypothesis should be rejected, and it constructs a result dictionary to return these findings.\n- The function is designed to handle exceptions gracefully, potentially raising an `APIException` if any errors occur during the execution of the t-test, ensuring robust error handling within the API framework.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Independent T-Test Executor",
+        "type": "API Endpoint",
+        "summary": "Executes an independent two-sample t-test on provided datasets and returns the statistical results."
+      },
+      "semantic_edges": [
+        {
+          "target": "service.perform_independent_ttest",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "RAISES"
+        },
+        {
+          "target": "Depends",
+          "label": "USES"
+        },
+        {
+          "target": "router.post",
+          "label": "CONFIGURES"
+        }
+      ]
+    }
+  },
+  "calculate_std_deviation": {
+    "documentation": "### calculate_std_deviation(data: List[float]) -> float\n\n**Description:**\nCalculates the standard deviation of a given list of numerical data points. Standard deviation is a measure of the amount of variation or dispersion in a set of values. This function is designed to provide insights into the spread of the data, which can be useful in statistical analysis and decision-making processes.\n\n**Parameters:**\n- `data` (`List[float]`): A list of floating-point numbers representing the dataset for which the standard deviation is to be calculated.\n\n**Expected Input:**\n- `data` should be a non-empty list of numerical values (floats). The function expects at least one data point to compute the standard deviation. If the list is empty, it may raise an exception.\n\n**Returns:**\n`float`: The calculated standard deviation of the input data, representing the dispersion of the data points from the mean.\n\n**Detailed Logic:**\n- The function begins by validating the input to ensure that the `data` list is not empty.\n- It then computes the mean (average) of the data points.\n- Following this, it calculates the variance by determining the average of the squared differences between each data point and the mean.\n- Finally, the standard deviation is obtained by taking the square root of the variance.\n- The function may utilize the `stats_svc.calculate_standard_deviation` service to perform the actual calculation, ensuring that the logic is encapsulated and reusable.\n- If any errors occur during the calculation process, such as invalid input types or empty datasets, the function may raise an `APIException` to handle these scenarios gracefully.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Standard Deviation Calculator",
+        "type": "API Endpoint",
+        "summary": "Calculates the standard deviation of a dataset provided through an API request."
+      },
+      "semantic_edges": [
+        {
+          "target": "StatsService",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "get_descriptive_stats": {
+    "documentation": "### get_descriptive_stats() -> dict\n\n**Description:**\nThe `get_descriptive_stats` function is designed to retrieve and calculate descriptive statistics for a given dataset. It serves as an endpoint in the API, allowing clients to request statistical summaries such as mean, median, standard deviation, and other relevant metrics. This function leverages a service layer to perform the calculations and returns the results in a structured format.\n\n**Parameters:**\n- None\n\n**Expected Input:**\n- The function expects input data to be provided through the API request body. This data should be in a format compatible with the statistical calculations, typically a list or array of numerical values. The specifics of the input format may depend on the implementation of the `stats_svc.calculate_descriptive_stats` function.\n\n**Returns:**\n`dict`: A dictionary containing the calculated descriptive statistics. The keys of the dictionary may include metrics such as mean, median, mode, standard deviation, and others, depending on the implementation of the underlying service.\n\n**Detailed Logic:**\n- Upon invocation, the function is registered as a POST endpoint using the `router.post` decorator, indicating that it will handle HTTP POST requests.\n- It utilizes the `Depends` mechanism to inject dependencies, which may include authentication, validation, or other services required for processing the request.\n- The function calls `stats_svc.calculate_descriptive_stats`, passing the input data received from the API request. This service function is responsible for performing the actual statistical calculations.\n- The results from `calculate_descriptive_stats` are then returned to the client in a structured JSON format, allowing for easy consumption by the client application.\n- If any errors occur during processing, the function may raise an `APIException`, which is designed to handle errors gracefully and provide meaningful feedback to the client.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Descriptive Statistics API Endpoint",
+        "type": "API Endpoint",
+        "summary": "Retrieves and calculates descriptive statistics for a dataset provided via an API request."
+      },
+      "semantic_edges": [
+        {
+          "target": "router.post",
+          "label": "USES"
+        },
+        {
+          "target": "Depends",
+          "label": "USES"
+        },
+        {
+          "target": "stats_svc.calculate_descriptive_stats",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "CREATES"
+        }
+      ]
+    }
+  },
+  "get_confidence_interval": {
+    "documentation": "### get_confidence_interval() -> dict\n\n**Description:**\nThe `get_confidence_interval` function is designed to calculate and return the confidence interval for a given statistical dataset. It serves as an endpoint in the API, allowing clients to request statistical analysis based on input data. The function utilizes a service layer to perform the actual calculation of the confidence interval, ensuring a separation of concerns within the codebase.\n\n**Parameters:**\n- `Depends`: This function utilizes dependency injection to retrieve necessary parameters and services. The specific parameters are not explicitly listed, as they are managed by the dependency injection framework.\n\n**Expected Input:**\n- The function expects input data to be provided through an API request. This data typically includes statistical values or datasets required for calculating the confidence interval. The exact format and constraints of the input data depend on the implementation of the dependency injection and the underlying service that processes the request.\n\n**Returns:**\n`dict`: The function returns a dictionary containing the calculated confidence interval, which includes lower and upper bounds, along with any other relevant statistical information.\n\n**Detailed Logic:**\n- Upon invocation, the `get_confidence_interval` function is triggered by a POST request routed through the API.\n- It leverages the `Depends` mechanism to inject necessary dependencies, which may include request data and services required for processing.\n- The function calls `stats_svc.calculate_confidence_interval`, a service method responsible for performing the actual computation of the confidence interval based on the provided input data.\n- The results from the service method are then formatted into a dictionary structure before being returned to the client, ensuring that the response is structured and easily interpretable.\n- Error handling is managed through the use of the `APIException` class, which allows for consistent and informative error responses in case of issues during the calculation process.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Confidence Interval Calculator",
+        "type": "API Endpoint",
+        "summary": "Calculates and returns the confidence interval for a given statistical dataset through an API request."
+      },
+      "semantic_edges": [
+        {
+          "target": "stats_svc.calculate_confidence_interval",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "CREATES"
+        },
+        {
+          "target": "Depends",
+          "label": "USES"
+        },
+        {
+          "target": "router.post",
+          "label": "CONFIGURES"
+        }
+      ]
+    }
+  },
+  "get_z_scores": {
+    "documentation": "### get_z_scores() -> List[float]\n\n**Description:**\nThe `get_z_scores` function is designed to calculate the z-scores for a given dataset. Z-scores are statistical measurements that describe a value's relationship to the mean of a group of values. This function processes input data, computes the z-scores using a dedicated service, and returns the results in a structured format.\n\n**Parameters:**\n- `data` (`List[float]`): A list of numerical values for which the z-scores are to be calculated. This input is expected to be a list of floats representing the dataset.\n\n**Expected Input:**\n- The `data` parameter should be a list containing numerical values (floats or integers). The list must not be empty, as z-scores cannot be computed without a mean and standard deviation. If the input data is invalid (e.g., non-numeric values or an empty list), the function may raise an `APIException`.\n\n**Returns:**\n`List[float]`: A list of calculated z-scores corresponding to the input data. Each z-score represents the number of standard deviations a data point is from the mean of the dataset.\n\n**Detailed Logic:**\n- The function begins by validating the input data to ensure it is a non-empty list of numerical values.\n- It then calls the `calculate_z_scores` method from the `stats_svc` service, passing the validated data for processing.\n- The `calculate_z_scores` method computes the z-scores based on the statistical properties of the dataset (mean and standard deviation).\n- Finally, the function returns the list of z-scores to the caller, allowing for further analysis or reporting.\n\nThis function is part of an API endpoint and is typically invoked in response to a POST request, leveraging the `router.post` decorator to handle incoming requests and dependencies.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Z-Score Calculator API Endpoint",
+        "type": "API Endpoint",
+        "summary": "Calculates z-scores for a given dataset and returns the results in a structured format."
+      },
+      "semantic_edges": [
+        {
+          "target": "stats_svc.calculate_z_scores",
+          "label": "USES"
+        },
+        {
+          "target": "APIException",
+          "label": "RAISES"
+        },
+        {
+          "target": "router.post",
+          "label": "CONFIGURES"
+        },
+        {
+          "target": "Depends",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "DataService.get_dataframe_from_sqlite": {
+    "documentation": "### DataService.get_dataframe_from_sqlite() -> pd.DataFrame\n\n**Description:**\nThis method connects to a specified SQLite database and retrieves an entire table, returning it as a pandas DataFrame. It serves as a utility function for other services, specifically `ValidationService` and `StatsService`, to facilitate data access and manipulation.\n\n**Parameters:**\n- `db_path` (`str`): The file path to the SQLite database from which the data will be retrieved.\n- `table_name` (`str`): The name of the table within the SQLite database that is to be fetched.\n\n**Expected Input:**\n- `db_path` should be a valid string representing the path to an existing SQLite database file. The method checks for the existence of this file before attempting to connect.\n- `table_name` should be a valid string representing the name of the table to be queried. The table must exist within the specified database.\n\n**Returns:**\n`pd.DataFrame`: A pandas DataFrame containing all rows and columns from the specified table in the SQLite database.\n\n**Detailed Logic:**\n- The method begins by verifying the existence of the SQLite database file at the provided `db_path` using `os.path.exists`. If the file does not exist, it raises a `DataError` to indicate the issue.\n- Upon confirming the file's existence, the method establishes a connection to the SQLite database using `sqlite3.connect`.\n- It then constructs a SQL query to select all data from the specified `table_name`.\n- The SQL query is executed using `pd.read_sql_query`, which retrieves the data and automatically converts it into a pandas DataFrame.\n- Finally, the method ensures that the database connection is properly closed using `conn.close`, regardless of whether the data retrieval was successful or not, to prevent any potential resource leaks.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "SQLite DataFrame Retriever",
+        "type": "Utility",
+        "summary": "Connects to a SQLite database to retrieve a specified table as a pandas DataFrame for data access and manipulation."
+      },
+      "semantic_edges": [
+        {
+          "target": "os.path.exists",
+          "label": "USES"
+        },
+        {
+          "target": "sqlite3.connect",
+          "label": "USES"
+        },
+        {
+          "target": "pd.read_sql_query",
+          "label": "USES"
+        },
+        {
+          "target": "conn.close",
+          "label": "USES"
+        },
+        {
+          "target": "DataError",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "DataService.get_series_from_file": {
+    "documentation": "### DataService.get_series_from_file(file: Any, column_name: str) -> pd.Series\n\n**Description:**\nThe `get_series_from_file` method reads a CSV file, extracts a specified column, and returns it as a pandas Series. This method is useful for data processing tasks where specific data columns need to be isolated for analysis or manipulation.\n\n**Parameters:**\n- `file` (`Any`): The file object representing the CSV file to be read. This object should support methods for reading its content.\n- `column_name` (`str`): The name of the column to extract from the CSV file. This should match one of the column headers in the CSV.\n\n**Expected Input:**\n- The `file` parameter should be a valid file-like object that can be read, such as one obtained from an open file operation or a file upload in a web application.\n- The `column_name` should be a string that corresponds to a valid column header in the CSV file. If the column does not exist, an error will be raised.\n\n**Returns:**\n`pd.Series`: A pandas Series containing the data from the specified column of the CSV file. If the column is not found, a `DataError` will be raised.\n\n**Detailed Logic:**\n- The method first checks if the provided file has a valid CSV format by verifying its filename extension.\n- It then reads the content of the file using the `read` method, decoding it as necessary to handle text data.\n- The content is processed using `pd.read_csv` to create a DataFrame, which allows for easy manipulation of tabular data.\n- The method checks if the specified `column_name` exists in the DataFrame's columns. If it does, the corresponding data is extracted and returned as a pandas Series.\n- If the column is not found, a `DataError` is raised, providing a clear indication of the issue for debugging purposes. This custom exception enhances error handling by allowing the caller to specifically catch data-related errors.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "CSV Column Extractor",
+        "type": "Business Logic",
+        "summary": "Extracts a specified column from a CSV file and returns it as a pandas Series for data processing."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataError",
+          "label": "USES"
+        },
+        {
+          "target": "pd.read_csv",
+          "label": "USES"
+        },
+        {
+          "target": "StringIO",
+          "label": "USES"
+        },
+        {
+          "target": "file.file.read",
+          "label": "USES"
+        },
+        {
+          "target": "decode",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "DataService.get_series_from_sqlite": {
+    "documentation": "### DataService.get_series_from_sqlite(column_name: str) -> pd.Series\n\n**Description:**\nThe `get_series_from_sqlite` method retrieves data from a specified column of a SQLite database table and returns it as a pandas Series. This method is part of the `DataService` class, which is responsible for data operations related to SQLite databases.\n\n**Parameters:**\n- `column_name` (`str`): The name of the column from which to read data in the SQLite table. This parameter is essential for identifying the specific data to be extracted.\n\n**Expected Input:**\n- `column_name` should be a valid string representing the name of an existing column in the SQLite table. If the column does not exist or if the input is invalid, the method may raise a `DataError`.\n\n**Returns:**\n`pd.Series`: A pandas Series containing the values from the specified column in the SQLite table. The Series will have an index corresponding to the row identifiers in the original table.\n\n**Detailed Logic:**\n- The method begins by calling `self.get_dataframe_from_sqlite`, which retrieves the entire table as a pandas DataFrame. This function is expected to handle the connection to the SQLite database and the execution of the SQL query necessary to fetch the data.\n- Once the DataFrame is obtained, the method accesses the specified column using the provided `column_name`.\n- If the column exists, its values are returned as a pandas Series. If the column does not exist or if any other data-related issue arises, a `DataError` may be raised to signal the problem, allowing for appropriate error handling in the calling code.\n- This method effectively abstracts the complexity of database interactions, providing a straightforward interface for users to access specific data columns directly as pandas Series.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "SQLite Column Data Retriever",
+        "type": "Business Logic",
+        "summary": "Retrieves data from a specified column in a SQLite database table and returns it as a pandas Series."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataService.get_dataframe_from_sqlite",
+          "label": "USES"
+        },
+        {
+          "target": "DataError",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "ValidationService.validate_regression_inputs": {
+    "documentation": "### ValidationService.validate_regression_inputs(payload: RegressionInput) -> None\n\n**Description:**\nThe `validate_regression_inputs` method is responsible for validating the input data required for regression analysis. It connects to the database to ensure that the specified columns exist and are of a numeric type. This method serves as a critical validation step before proceeding with regression computations, ensuring data integrity and correctness.\n\n**Parameters:**\n- `payload` (`RegressionInput`): A Pydantic model that encapsulates the request data for regression analysis. This model includes the necessary attributes that define the regression input.\n\n**Expected Input:**\n- The `payload` must be an instance of the `RegressionInput` model, which should contain attributes corresponding to the columns expected in the regression analysis. The attributes must adhere to the expected data types and formats, specifically requiring that the columns referenced in the payload exist in the database and are numeric.\n\n**Returns:**\n`None`: This method does not return a value. Instead, it raises exceptions if validation checks fail.\n\n**Detailed Logic:**\n- The method begins by retrieving a DataFrame from the database using the `self.data_svc.get_dataframe_from_sqlite` function, which queries the relevant data based on the input provided in the `payload`.\n- It then checks the existence of each specified column in the DataFrame. If any column is missing, a `DataError` is raised, indicating the specific column that is absent.\n- For each column that exists, the method verifies whether the data type is numeric by utilizing `pd.api.types.is_numeric_dtype`. If a column is found to be non-numeric, a `DataError` is raised, specifying the column that failed the numeric check.\n- Additionally, the method checks for null values in each column using `df[var].isnull()`. If any null values are detected, a `DataError` is raised, indicating that the column contains invalid data.\n- Overall, the method ensures that all necessary validations are performed, providing a robust mechanism for data integrity before regression analysis is conducted.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Regression Input Validator",
+        "type": "Business Logic",
+        "summary": "Validates the input data for regression analysis to ensure data integrity and correctness before computations."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataError",
+          "label": "CREATES"
+        },
+        {
+          "target": "self.data_svc.get_dataframe_from_sqlite",
+          "label": "USES"
+        },
+        {
+          "target": "pd.api.types.is_numeric_dtype",
+          "label": "USES"
+        },
+        {
+          "target": "df.columns",
+          "label": "USES"
+        },
+        {
+          "target": "df[var].isnull",
+          "label": "USES"
+        },
+        {
+          "target": "df[var]",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "ValidationService.validate_correlation_inputs": {
+    "documentation": "### validate_correlation_inputs(payload: CorrelationInput)\n\n**Description:**\nThe `validate_correlation_inputs` method is responsible for validating the inputs required for performing a correlation analysis. It ensures that the specified columns in the provided payload exist within the data source and that these columns contain numeric data types. This validation is crucial for preventing errors during the correlation computation process.\n\n**Parameters:**\n- `payload` (`CorrelationInput`): An instance of the Pydantic model that encapsulates the input data for correlation analysis. This model includes the necessary fields that specify which columns to validate.\n\n**Expected Input:**\n- The `payload` should be an instance of `CorrelationInput`, which must define the columns intended for correlation analysis. The columns specified in this model should exist in the underlying data source and must be of a numeric data type (e.g., integers or floats). If any specified column is missing or non-numeric, validation will fail.\n\n**Returns:**\n`None`: The method does not return a value. Instead, it raises an exception if validation fails.\n\n**Detailed Logic:**\n- The method begins by retrieving the relevant data from a SQLite database using the `self.data_svc.get_dataframe_from_sqlite` method. This function call fetches the data necessary for validation.\n- It then iterates through the columns specified in the `payload`. For each column, it checks if the column exists in the retrieved DataFrame.\n- If a column is found to be missing, the method raises a `DataError`, providing a message that indicates which column is absent.\n- For columns that exist, the method further checks whether the data type of each column is numeric by utilizing the `pd.api.types.is_numeric_dtype` function from the pandas library.\n- If any column is found to be non-numeric, the method raises a `DataError` with a message indicating the specific column that failed the numeric check.\n- The overall flow ensures that only valid and appropriate data is processed for correlation analysis, thereby enhancing the robustness of the application.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Correlation Input Validator",
+        "type": "Business Logic",
+        "summary": "Validates the input columns for correlation analysis to ensure they exist and are numeric."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataError",
+          "label": "USES"
+        },
+        {
+          "target": "self.data_svc.get_dataframe_from_sqlite",
+          "label": "USES"
+        },
+        {
+          "target": "pd.api.types.is_numeric_dtype",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "app\\services\\financial_service.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a foundational component within the `financial_service.py` module, which is part of the financial services application. It is responsible for encapsulating the logic and functionalities related to financial calculations, specifically leveraging the capabilities of the `FinancialService` class. This module acts as an interface for users to access various financial computation methods, streamlining the process of performing complex financial analyses.\n\n**Parameters/Attributes:**\nNone.\n\n**Expected Input:**\nNone.\n\n**Returns:**\nNone.\n\n**Detailed Logic:**\n- The `module_code` is designed to facilitate the use of the `FinancialService` class, which provides methods for calculating future values, present values, and periodic payments.\n- It ensures that the necessary dependencies, such as the `numpy_financial` library, are properly integrated to support financial calculations.\n- The module is structured to allow users to easily access the financial computation methods provided by the `FinancialService` class, ensuring a seamless experience when performing financial analyses.\n- While the `module_code` itself does not contain any specific logic or computations, it serves as an essential entry point for users to interact with the financial functionalities encapsulated in the `FinancialService` class.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Financial Service Interface",
+        "type": "Utility",
+        "summary": "Acts as an entry point for users to access financial computation methods provided by the FinancialService class."
+      },
+      "semantic_edges": [
+        {
+          "target": "FinancialService",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "app\\services\\stats_service.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a foundational component within the `stats_service.py` file, which is part of the `app.services` package. This module is designed to encapsulate the functionalities related to statistical analysis and data processing, specifically leveraging the capabilities of the `StatsService` class. It provides the necessary infrastructure for statistical computations on datasets stored in a SQLite database, enabling users to perform various analyses efficiently.\n\n**Parameters/Attributes:**\nNone\n\n**Expected Input:**\n- None: This module does not directly accept input parameters, as it primarily serves as a container for the `StatsService` class and its associated functionalities.\n\n**Returns:**\nNone: The module does not return any values directly. Instead, it provides access to the `StatsService` class, which contains methods that return statistical results based on the data processed.\n\n**Detailed Logic:**\n- The `module_code` initializes the `StatsService` class, which is responsible for connecting to a SQLite database and performing statistical analyses on the data retrieved.\n- It establishes a connection to the SQLite database using the provided `db_path`, ensuring that the connection is managed properly throughout the lifecycle of the `StatsService` instance.\n- The module facilitates the execution of SQL queries to retrieve data, which is then processed using pandas DataFrames for statistical computations.\n- It leverages various statistical functions from NumPy and SciPy to perform calculations such as mean, median, variance, correlation, and regression analysis.\n- The module also includes error handling mechanisms to address potential issues related to database connections and data retrieval, ensuring robustness and reliability in its operations.\n- Overall, `module_code` acts as a crucial part of the `stats_service.py` file, enabling users to conduct comprehensive statistical analyses with ease.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Statistical Analysis Service",
+        "type": "Business Logic",
+        "summary": "Facilitates statistical computations and data processing for datasets stored in a SQLite database."
+      },
+      "semantic_edges": [
+        {
+          "target": "StatsService",
+          "label": "CREATES"
+        }
+      ]
+    }
+  },
+  "DataService": {
+    "documentation": "### DataService\n\n**Description:**\nThe `DataService` class is designed to facilitate the loading of data into pandas DataFrame objects from various sources, including files and databases. It provides methods to handle different data formats, ensuring that users can easily access and manipulate their data within a pandas environment.\n\n**Parameters/Attributes:**\n- `db_connection` (`sqlite3.Connection`): A connection object to a SQLite database, used for executing SQL queries.\n- `file_path` (`str`): The path to the file from which data will be loaded, applicable for CSV files.\n- `data_source` (`str`): A string indicating the source of the data, which could be a file path or a database identifier.\n\n**Expected Input:**\n- The `db_connection` should be a valid SQLite connection object, established using `sqlite3.connect()`.\n- The `file_path` must be a string representing the path to a CSV file, which should exist on the filesystem.\n- The `data_source` should be a string that specifies whether the data is coming from a file or a database.\n\n**Returns:**\n`DataFrame`: The class methods return a pandas DataFrame containing the loaded data, allowing for further data manipulation and analysis.\n\n**Detailed Logic:**\n- The class initializes with parameters for database connection, file path, and data source.\n- It includes methods to check the existence of files using `os.path.exists`, ensuring that the specified file is available before attempting to load it.\n- For loading data from a SQLite database, the class utilizes `pd.read_sql_query` to execute SQL commands and retrieve data as a DataFrame.\n- When loading data from a CSV file, it employs `pd.read_csv` to read the contents of the file into a DataFrame.\n- The class also incorporates functionality to handle in-memory data using `StringIO`, allowing for flexible data loading scenarios.\n- The methods are designed to provide clear error handling and informative messages if the data loading process encounters issues, ensuring a robust user experience.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Data Loading Service",
+        "type": "Business Logic",
+        "summary": "Facilitates the loading of data into pandas DataFrame objects from various sources, including files and databases."
+      },
+      "semantic_edges": [
+        {
+          "target": "os.path.exists",
+          "label": "USES"
+        },
+        {
+          "target": "sqlite3.connect",
+          "label": "USES"
+        },
+        {
+          "target": "pd.read_sql_query",
+          "label": "USES"
+        },
+        {
+          "target": "pd.read_csv",
+          "label": "USES"
+        },
+        {
+          "target": "StringIO",
+          "label": "USES"
+        },
+        {
+          "target": "self.get_dataframe_from_sqlite",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "ValidationService": {
+    "documentation": "### ValidationService\n\n**Description:**\nThe `ValidationService` class is designed to perform complex, cross-service validations that extend beyond simple model field checks. It connects various models to the data layer, ensuring that incoming requests are not only well-formed but also logically valid in relation to the actual data stored in the system. This service plays a crucial role in maintaining data integrity and consistency across different components of the application.\n\n**Parameters/Attributes:**\n- `data_svc` (`DataService`): An instance of the `DataService` class, used to interact with the data layer and retrieve data for validation purposes.\n- `regression_input` (`RegressionInput`): An instance of the `RegressionInput` class, representing the input data for Ordinary Least Squares (OLS) regression analysis.\n- `correlation_input` (`CorrelationInput`): An instance of the `CorrelationInput` class, representing the input data for generating a correlation matrix.\n\n**Expected Input:**\n- The `ValidationService` expects instances of `RegressionInput` and `CorrelationInput` to be provided for validation. These instances should contain the necessary data structured appropriately for their respective analyses.\n- The `data_svc` should be a properly initialized instance of `DataService`, capable of loading data from the specified sources.\n\n**Returns:**\n`None`: The class does not return a value upon instantiation. Instead, it provides methods that perform validation checks and may raise exceptions if the validation fails.\n\n**Detailed Logic:**\n- The `ValidationService` class initializes with instances of `DataService`, `RegressionInput`, and `CorrelationInput`, setting up the necessary components for validation.\n- It includes methods that leverage the `data_svc` to retrieve data from the database or files, which is then used to validate the input data against existing records.\n- The class employs validation logic to ensure that the input data adheres to the expected formats and constraints, such as checking for distinct variables in `RegressionInput` and ensuring sufficient columns in `CorrelationInput`.\n- If any validation checks fail, the class raises appropriate exceptions, such as `DataError`, to signal issues with the input data.\n- The service is designed to provide informative error messages, aiding developers in identifying and resolving validation issues efficiently.\n- Overall, the `ValidationService` acts as a gatekeeper, ensuring that only logically valid data is processed further in the application, thus enhancing the robustness and reliability of the system.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Validation Service for Data Integrity",
+        "type": "Business Logic",
+        "summary": "Performs complex validations on input data for regression and correlation analyses to ensure data integrity and consistency."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataService",
+          "label": "USES"
+        },
+        {
+          "target": "RegressionInput",
+          "label": "VALIDATES"
+        },
+        {
+          "target": "CorrelationInput",
+          "label": "VALIDATES"
+        },
+        {
+          "target": "DataError",
+          "label": "RAISES"
+        }
+      ]
+    }
+  },
+  "app\\services\\data_service.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a central point for managing data-related operations within the application. It is designed to interact with the `DataService` class, facilitating the loading and manipulation of data from various sources, such as files and databases. This module encapsulates the logic required to streamline data access and ensure that users can efficiently work with their datasets.\n\n**Parameters/Attributes:**\nNone\n\n**Expected Input:**\n- The module does not directly accept input parameters, as it primarily serves as a utility for the `DataService` class. However, it is expected that any functions or methods within this module will utilize valid inputs as defined by the `DataService` class, such as a valid SQLite connection, file paths, and data source identifiers.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The `module_code` is designed to provide a cohesive interface for data operations, leveraging the functionality of the `DataService` class.\n- It may include functions that facilitate the initialization of data loading processes, error handling, and data validation.\n- The module ensures that any interactions with data sources are performed in a manner that adheres to the expected input and output formats defined by the `DataService`.\n- It may also implement additional utility functions to support data manipulation tasks, ensuring a seamless integration with the broader application architecture.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Data Management Utility",
+        "type": "Utility",
+        "summary": "Facilitates data-related operations by providing an interface for the DataService class to manage data loading and manipulation."
+      },
+      "semantic_edges": [
+        {
+          "target": "DataService",
+          "label": "USES"
+        }
+      ]
+    }
+  },
+  "app\\services\\validation_service.py::module_code": {
+    "documentation": "### module_code\n\n**Description:**\nThe `module_code` serves as a foundational component within the `ValidationService` class, facilitating the execution of complex validation logic for incoming data. It ensures that the data being processed adheres to the necessary constraints and relationships defined by the application\u2019s business rules. This module is integral to maintaining data integrity and consistency across various services within the application.\n\n**Parameters/Attributes:**\nNone\n\n**Expected Input:**\n- The `module_code` does not directly accept input parameters. However, it operates within the context of the `ValidationService`, which expects instances of `RegressionInput` and `CorrelationInput` to be validated. These instances must contain appropriately structured data for their respective analyses.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The `module_code` is invoked as part of the validation process within the `ValidationService` class. It leverages the `data_svc` instance to access data from the data layer, which is crucial for validating the input data against existing records.\n- The logic encapsulated in `module_code` includes various validation checks that ensure the input data meets the expected formats and constraints. This may involve checking for distinct variables in `RegressionInput` and verifying that sufficient columns are present in `CorrelationInput`.\n- If any validation criteria are not met, the `module_code` will raise appropriate exceptions, such as `DataError`, to indicate issues with the input data. This mechanism helps in providing informative feedback to developers, allowing for efficient troubleshooting and resolution of validation issues.\n- Overall, `module_code` acts as a critical gatekeeping function within the `ValidationService`, ensuring that only logically valid data is processed further in the application, thereby enhancing the robustness and reliability of the system.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Data Validation Service",
+        "type": "Business Logic",
+        "summary": "Validates incoming data against business rules to ensure data integrity and consistency."
+      },
+      "semantic_edges": [
+        {
+          "target": "ValidationService",
+          "label": "CREATES"
+        },
+        {
+          "target": "DataService",
+          "label": "USES"
+        },
+        {
+          "target": "RegressionInput",
+          "label": "VALIDATES"
+        },
+        {
+          "target": "CorrelationInput",
+          "label": "VALIDATES"
+        }
+      ]
+    }
+  }
+}
