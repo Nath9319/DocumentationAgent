@@ -1,5 +1,5 @@
-import sqlite3
 import pandas as pd
+import sqlite3
 import os
 
 # Define the path for the database and CSV file
@@ -13,10 +13,20 @@ def create_sample_database():
     The script first generates a CSV file with sample housing data,
     then creates a SQLite database and populates a table with that data.
     """
-    # Ensure the data directory exists
+    # Step 1: Clean up old data directory and files if they exist
+    if os.path.exists("data"):
+        print("Removing old 'data' directory and its contents...")
+        for filename in os.listdir("data"):
+            file_path = os.path.join("data", filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        os.rmdir("data")
+        print("Old 'data' directory removed.")
+
+    # Ensure the data directory exists again
     os.makedirs("data", exist_ok=True)
 
-    # 1. Create a Sample DataFrame and save it as a CSV
+    # Step 2: Create a Sample DataFrame and save it as a CSV
     print("Creating sample CSV file...")
     data = {
         'area_sqft': [1500, 2200, 1800, 2500, 1200, 3000, 1600, 2100, 2800, 1900],
@@ -28,7 +38,7 @@ def create_sample_database():
     df.to_csv(CSV_PATH, index=False)
     print(f"Sample data saved to {CSV_PATH}")
 
-    # 2. Create SQLite Database and Table
+    # Step 3: Create SQLite Database and Table
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
         print(f"Removed existing database at {DB_PATH}")
@@ -46,7 +56,6 @@ def create_sample_database():
             print("Table verification successful.")
         else:
             print("Table verification failed.")
-
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
     finally:

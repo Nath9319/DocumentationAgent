@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import List
 
 
+
 # This file defines the Pydantic models for request body validation.
 # We've added custom @field_validator methods. These functions are automatically
 # "called" by FastAPI and Pydantic when a request comes in, ensuring the data
@@ -138,3 +139,19 @@ class ConfidenceIntervalInput(BaseModel):
 
 
 
+class FutureValueInput(BaseModel):
+    rate: float = Field(..., gt=0, description="Interest rate per period (e.g., 0.05 for 5%)")
+    nper: int = Field(..., gt=0, description="Total number of payment periods")
+    pmt: float = Field(..., description="Payment made each period (conventionally negative for cash outflow)")
+    pv: float = Field(..., description="Present value (conventionally negative for cash outflow)")
+
+class LoanPaymentInput(BaseModel):
+    rate: float = Field(..., gt=0, description="Interest rate per period")
+    nper: int = Field(..., gt=0, description="Total number of payment periods")
+    pv: float = Field(..., gt=0, description="Present value or principal of the loan (must be positive)")
+
+class PresentValueInput(BaseModel):
+    rate: float = Field(..., gt=0, description="Interest rate per period (e.g., 0.05 for 5%)")
+    nper: int = Field(..., gt=0, description="Total number of payment periods")
+    pmt: float = Field(..., description="Payment made each period (conventionally negative for cash outflow)")
+    fv: float = Field(..., description="Future value (conventionally negative for cash outflow)")
