@@ -7,20 +7,61 @@
         "start_line": 10,
         "end_line": 55,
         "text": "def create_sample_database():\n    \"\"\"\n    Creates a sample SQLite database from a sample CSV file.\n    The script first generates a CSV file with sample housing data,\n    then creates a SQLite database and populates a table with that data.\n    \"\"\"\n    os.makedirs('data', exist_ok=True)\n    print('Creating sample CSV file...')\n    data = {'area_sqft': [1500, 2200, 1800, 2500, 1200, 3000, 1600, 2100, 2800, 1900], 'num_bedrooms': [3, 4, 3, 5, 2, 4, 3, 4, 5, 3], 'age_years': [10, 5, 8, 2, 15, 7, 12, 6, 3, 9], 'price_usd': [300000, 450000, 350000, 520000, 250000, 550000, 320000, 430000, 580000, 380000]}\n    df = pd.DataFrame(data)\n    df.to_csv(CSV_PATH, index=False)\n    print(f'Sample data saved to {CSV_PATH}')\n    if os.path.exists(DB_PATH):\n        os.remove(DB_PATH)\n        print(f'Removed existing database at {DB_PATH}')\n    print(f'Creating new SQLite database at {DB_PATH}...')\n    try:\n        conn = sqlite3.connect(DB_PATH)\n        df.to_sql(TABLE_NAME, conn, if_exists='replace', index=False)\n        print(f\"Successfully created table '{TABLE_NAME}' in the database.\")\n        cursor = conn.cursor()\n        cursor.execute(f\"SELECT name FROM sqlite_master WHERE type='table' AND name='{TABLE_NAME}';\")\n        if cursor.fetchone():\n            print('Table verification successful.')\n        else:\n            print('Table verification failed.')\n    except sqlite3.Error as e:\n        print(f'An error occurred: {e}')\n    finally:\n        if conn:\n            conn.close()\n            print('\\nDatabase connection closed.')",
-        "docstring": "Creates a sample SQLite database from a sample CSV file.\nThe script first generates a CSV file with sample housing data,\nthen creates a SQLite database and populates a table with that data."
+        "docstring": "Creates a sample SQLite database from a sample CSV file.\nThe script first generates a CSV file with sample housing data,\nthen creates a SQLite database and populates a table with that data.",
+        "calls": [
+          "os.makedirs",
+          "print",
+          "pd.DataFrame",
+          "df.to_csv",
+          "print",
+          "exists",
+          "print",
+          "os.remove",
+          "print",
+          "sqlite3.connect",
+          "df.to_sql",
+          "print",
+          "conn.cursor",
+          "cursor.execute",
+          "cursor.fetchone",
+          "print",
+          "print",
+          "print",
+          "conn.close",
+          "print"
+        ]
       }
     ],
-    "module_level_code": "DB_PATH = os.path.join('data', 'sample_database.db')\nCSV_PATH = os.path.join('data', 'sample_data.csv')\nTABLE_NAME = 'housing_data'\nif __name__ == '__main__':\n    create_sample_database()"
+    "module_level_code": "DB_PATH = os.path.join('data', 'sample_database.db')\nCSV_PATH = os.path.join('data', 'sample_data.csv')\nTABLE_NAME = 'housing_data'\nif __name__ == '__main__':\n    create_sample_database()",
+    "module_level_calls": [
+      "join",
+      "create_sample_database"
+    ]
   },
   "main.py": {
     "classes": [],
     "functions": [],
-    "module_level_code": "app = FastAPI(title=settings.APP_NAME, description='A comprehensive API for scientific, statistical, and financial calculations.', version='2.0.0')\napp.mount('/static', StaticFiles(directory='static'), name='static')\ntemplates = Jinja2Templates(directory='templates')\n@app.exception_handler(APIException)\nasync def api_exception_handler(request: Request, exc: APIException):\n    return JSONResponse(status_code=exc.status_code, content={'detail': exc.detail})\napp.include_router(api_router, prefix=settings.API_V1_STR)\n@app.get('/', response_class=HTMLResponse, tags=['Frontend'])\nasync def read_root(request: Request):\n    \"\"\"\n    Serves the web-based calculator frontend.\n    \"\"\"\n    return templates.TemplateResponse('index.html', {'request': request})"
+    "module_level_code": "app = FastAPI(title=settings.APP_NAME, description='A comprehensive API for scientific, statistical, and financial calculations.', version='2.0.0')\napp.mount('/static', StaticFiles(directory='static'), name='static')\ntemplates = Jinja2Templates(directory='templates')\n@app.exception_handler(APIException)\nasync def api_exception_handler(request: Request, exc: APIException):\n    return JSONResponse(status_code=exc.status_code, content={'detail': exc.detail})\napp.include_router(api_router, prefix=settings.API_V1_STR)\n@app.get('/', response_class=HTMLResponse, tags=['Frontend'])\nasync def read_root(request: Request):\n    \"\"\"\n    Serves the web-based calculator frontend.\n    \"\"\"\n    return templates.TemplateResponse('index.html', {'request': request})",
+    "module_level_calls": [
+      "app.include_router",
+      "app.exception_handler",
+      "templates.TemplateResponse",
+      "app.mount",
+      "FastAPI",
+      "Jinja2Templates",
+      "StaticFiles",
+      "app.get",
+      "JSONResponse"
+    ]
   },
   "app\\api\\v1\\api.py": {
     "classes": [],
     "functions": [],
-    "module_level_code": "api_router = APIRouter()\napi_router.include_router(statistics.router, prefix='/statistics', tags=['Statistics'])"
+    "module_level_code": "api_router = APIRouter()\napi_router.include_router(statistics.router, prefix='/statistics', tags=['Statistics'])",
+    "module_level_calls": [
+      "APIRouter",
+      "api_router.include_router"
+    ]
   },
   "app\\api\\v1\\endpoints\\statistics.py": {
     "classes": [],
@@ -30,52 +71,108 @@
         "start_line": 11,
         "end_line": 26,
         "text": "@router.post('/regression/ols', summary='Perform OLS regression')\ndef perform_regression(payload: RegressionInput, validator: ValidationService=Depends(lambda: validation_service), stats_svc: StatsService=Depends(lambda: stats_service)):\n    try:\n        validator.validate_regression_inputs(payload)\n        summary = stats_svc.perform_ols_regression(db_path=payload.db_path, table_name=payload.table_name, dependent_var=payload.dependent_var, independent_vars=payload.independent_vars)\n        return {'analysis_type': 'OLS Regression', 'results_summary': summary}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "Depends",
+          "validator.validate_regression_inputs",
+          "stats_svc.perform_ols_regression",
+          "APIException",
+          "str"
+        ]
       },
       {
         "name": "get_correlation_matrix",
         "start_line": 33,
         "end_line": 51,
         "text": "@router.post('/correlation', summary='Calculate a correlation matrix')\ndef get_correlation_matrix(payload: CorrelationInput, validator: ValidationService=Depends(lambda: validation_service), stats_svc: StatsService=Depends(lambda: stats_service)):\n    try:\n        validator.validate_correlation_inputs(payload)\n        matrix = stats_svc.calculate_correlation_matrix(db_path=payload.db_path, table_name=payload.table_name, columns=payload.columns)\n        return {'analysis_type': 'Correlation Matrix', 'table': payload.table_name, 'correlation_matrix': matrix}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "Depends",
+          "validator.validate_correlation_inputs",
+          "stats_svc.calculate_correlation_matrix",
+          "APIException",
+          "str"
+        ]
       },
       {
         "name": "perform_ttest",
         "start_line": 57,
         "end_line": 65,
         "text": "@router.post('/test/independent_ttest', summary='Perform an independent t-test')\ndef perform_ttest(payload: TTestInput, service: StatsService=Depends(lambda: stats_service)):\n    try:\n        results = service.perform_independent_ttest(payload.sample1, payload.sample2)\n        return {'analysis_type': 'Independent Two-Sample T-Test', 'results': results}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "service.perform_independent_ttest",
+          "APIException",
+          "str"
+        ]
       },
       {
         "name": "calculate_std_deviation",
         "start_line": 73,
         "end_line": 81,
         "text": "@router.post('/standard_deviation', summary='Calculate standard deviation')\ndef calculate_std_deviation(payload: StdDevInput, stats_svc: StatsService=Depends(lambda: stats_service)):\n    try:\n        std_dev = stats_svc.calculate_standard_deviation(payload.data)\n        return {'analysis_type': 'Standard Deviation', 'result': std_dev}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "stats_svc.calculate_standard_deviation",
+          "APIException",
+          "str"
+        ]
       },
       {
         "name": "get_descriptive_stats",
         "start_line": 88,
         "end_line": 96,
         "text": "@router.post('/descriptive_stats', summary='Calculate descriptive statistics')\ndef get_descriptive_stats(payload: DescriptiveStatsInput, stats_svc: StatsService=Depends(lambda: stats_service)):\n    try:\n        result = stats_svc.calculate_descriptive_stats(payload.data)\n        return {'analysis_type': 'Descriptive Statistics', 'results': result}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "stats_svc.calculate_descriptive_stats",
+          "APIException",
+          "str"
+        ]
       },
       {
         "name": "get_confidence_interval",
         "start_line": 101,
         "end_line": 109,
         "text": "@router.post('/confidence_interval', summary='Calculate confidence interval for mean')\ndef get_confidence_interval(payload: ConfidenceIntervalInput, stats_svc: StatsService=Depends(lambda: stats_service)):\n    try:\n        interval = stats_svc.calculate_confidence_interval(payload.data, payload.confidence)\n        return {'analysis_type': 'Confidence Interval', 'results': interval}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "stats_svc.calculate_confidence_interval",
+          "APIException",
+          "str"
+        ]
       },
       {
         "name": "get_z_scores",
         "start_line": 114,
         "end_line": 122,
         "text": "@router.post('/z_scores', summary='Calculate z-scores')\ndef get_z_scores(payload: ZScoreInput, stats_svc: StatsService=Depends(lambda: stats_service)):\n    try:\n        z_scores = stats_svc.calculate_z_scores(payload.data)\n        return {'analysis_type': 'Z-Scores', 'z_scores': z_scores}\n    except Exception as e:\n        raise APIException(status_code=400, detail=str(e))",
-        "docstring": ""
+        "docstring": "",
+        "calls": [
+          "router.post",
+          "Depends",
+          "stats_svc.calculate_z_scores",
+          "APIException",
+          "str"
+        ]
       }
     ],
-    "module_level_code": "router = APIRouter()"
+    "module_level_code": "router = APIRouter()",
+    "module_level_calls": [
+      "APIRouter"
+    ]
   },
   "app\\core\\config.py": {
     "classes": [
@@ -85,11 +182,23 @@
         "end_line": 12,
         "text": "class Settings(BaseSettings):\n    \"\"\"\n    Application settings, loaded from environment variables.\n    \"\"\"\n    APP_NAME: str = 'Scientific Calculator API'\n    API_V1_STR: str = '/api/v1'\n\n    class Config:\n        env_file = '.env'",
         "methods": [],
-        "docstring": "Application settings, loaded from environment variables."
+        "docstring": "Application settings, loaded from environment variables.",
+        "inherited_classes": [
+          "BaseSettings"
+        ],
+        "imported_classes": [
+          "str",
+          "APP_NAME",
+          "API_V1_STR",
+          "env_file"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": "settings = Settings()"
+    "module_level_code": "settings = Settings()",
+    "module_level_calls": [
+      "Settings"
+    ]
   },
   "app\\core\\exceptions.py": {
     "classes": [
@@ -104,10 +213,25 @@
             "start_line": 7,
             "end_line": 10,
             "text": "def __init__(self, status_code: int, detail: str):\n    self.status_code = status_code\n    self.detail = detail\n    super().__init__(self.detail)",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "__init__",
+              "super"
+            ]
           }
         ],
-        "docstring": "Custom base exception class for the API.\nThis allows us to create a custom exception handler in main.py\nto return structured JSON error messages."
+        "docstring": "Custom base exception class for the API.\nThis allows us to create a custom exception handler in main.py\nto return structured JSON error messages.",
+        "inherited_classes": [
+          "Exception"
+        ],
+        "imported_classes": [
+          "status_code",
+          "str",
+          "super",
+          "self",
+          "detail",
+          "int"
+        ]
       },
       {
         "name": "CalculationError",
@@ -120,10 +244,22 @@
             "start_line": 14,
             "end_line": 15,
             "text": "def __init__(self, detail: str='A calculation error occurred.'):\n    super().__init__(status_code=400, detail=detail)",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "__init__",
+              "super"
+            ]
           }
         ],
-        "docstring": ""
+        "docstring": "",
+        "inherited_classes": [
+          "APIException"
+        ],
+        "imported_classes": [
+          "str",
+          "detail",
+          "super"
+        ]
       },
       {
         "name": "DataError",
@@ -136,14 +272,27 @@
             "start_line": 18,
             "end_line": 19,
             "text": "def __init__(self, detail: str='An error occurred while processing data.'):\n    super().__init__(status_code=400, detail=detail)",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "__init__",
+              "super"
+            ]
           }
         ],
-        "docstring": ""
+        "docstring": "",
+        "inherited_classes": [
+          "APIException"
+        ],
+        "imported_classes": [
+          "str",
+          "detail",
+          "super"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": ""
+    "module_level_code": "",
+    "module_level_calls": []
   },
   "app\\models\\calculator.py": {
     "classes": [
@@ -153,7 +302,14 @@
         "end_line": 17,
         "text": "class SingleInput(BaseModel):\n    \"\"\"Model for operations requiring a single number.\"\"\"\n    number: float",
         "methods": [],
-        "docstring": "Model for operations requiring a single number."
+        "docstring": "Model for operations requiring a single number.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "float",
+          "number"
+        ]
       },
       {
         "name": "DualInput",
@@ -161,7 +317,15 @@
         "end_line": 22,
         "text": "class DualInput(BaseModel):\n    \"\"\"Model for operations requiring two numbers.\"\"\"\n    number1: float\n    number2: float",
         "methods": [],
-        "docstring": "Model for operations requiring two numbers."
+        "docstring": "Model for operations requiring two numbers.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "number2",
+          "number1",
+          "float"
+        ]
       },
       {
         "name": "ListInput",
@@ -169,7 +333,16 @@
         "end_line": 26,
         "text": "class ListInput(BaseModel):\n    \"\"\"Model for operations on a list of numbers.\"\"\"\n    data: List[float] = Field(..., min_length=1)",
         "methods": [],
-        "docstring": "Model for operations on a list of numbers."
+        "docstring": "Model for operations on a list of numbers.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "data",
+          "float",
+          "List",
+          "Field"
+        ]
       },
       {
         "name": "TTestInput",
@@ -182,10 +355,29 @@
             "start_line": 36,
             "end_line": 41,
             "text": "@field_validator('sample2')\n@classmethod\ndef samples_must_not_be_identical(cls, v, values):\n    if 'sample1' in values.data and v == values.data['sample1']:\n        raise ValueError('Sample 1 and Sample 2 cannot be identical for a t-test.')\n    return v",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "field_validator",
+              "ValueError"
+            ]
           }
         ],
-        "docstring": "Model for an independent t-test. Validates that samples are not identical."
+        "docstring": "Model for an independent t-test. Validates that samples are not identical.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "float",
+          "values",
+          "field_validator",
+          "classmethod",
+          "sample1",
+          "sample2",
+          "ValueError",
+          "v",
+          "List",
+          "Field"
+        ]
       },
       {
         "name": "RegressionInput",
@@ -198,10 +390,31 @@
             "start_line": 52,
             "end_line": 56,
             "text": "@field_validator('independent_vars')\n@classmethod\ndef dependent_var_not_in_independent(cls, v, values):\n    if 'dependent_var' in values.data and values.data['dependent_var'] in v:\n        raise ValueError(f\"The dependent variable '{values.data['dependent_var']}' cannot also be an independent variable.\")\n    return v",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "field_validator",
+              "ValueError"
+            ]
           }
         ],
-        "docstring": "Model for OLS regression. Ensures variables are distinct."
+        "docstring": "Model for OLS regression. Ensures variables are distinct.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "str",
+          "independent_vars",
+          "dependent_var",
+          "values",
+          "field_validator",
+          "classmethod",
+          "db_path",
+          "ValueError",
+          "v",
+          "table_name",
+          "List",
+          "Field"
+        ]
       },
       {
         "name": "CorrelationInput",
@@ -214,10 +427,31 @@
             "start_line": 66,
             "end_line": 69,
             "text": "@field_validator('columns')\n@classmethod\ndef check_min_columns(cls, v):\n    if v is not None and len(v) < 2:\n        raise ValueError('At least two columns must be specified for a correlation matrix.')\n    return v",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "field_validator",
+              "ValueError",
+              "len"
+            ]
           }
         ],
-        "docstring": "Model for correlation matrix. Ensures at least two columns are provided if specified."
+        "docstring": "Model for correlation matrix. Ensures at least two columns are provided if specified.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "len",
+          "str",
+          "field_validator",
+          "classmethod",
+          "columns",
+          "db_path",
+          "ValueError",
+          "v",
+          "table_name",
+          "Optional",
+          "List"
+        ]
       },
       {
         "name": "MatrixInput",
@@ -230,17 +464,45 @@
             "start_line": 79,
             "end_line": 89,
             "text": "@field_validator('matrix')\n@classmethod\ndef matrix_must_be_square(cls, v):\n    if not v:\n        raise ValueError('Matrix cannot be empty.')\n    rows = len(v)\n    for row in v:\n        if len(row) != rows:\n            raise ValueError('Matrix must be square (same number of rows and columns).')\n    return v",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "field_validator",
+              "len",
+              "ValueError",
+              "len",
+              "ValueError"
+            ]
           },
           {
             "name": "to_numpy_array",
             "start_line": 91,
             "end_line": 94,
             "text": "def to_numpy_array(self) -> np.ndarray:\n    return np.array(self.matrix)",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "np.array"
+            ]
           }
         ],
-        "docstring": "Model for matrix operations. Includes validators and a helper function."
+        "docstring": "Model for matrix operations. Includes validators and a helper function.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "matrix",
+          "len",
+          "float",
+          "np",
+          "rows",
+          "field_validator",
+          "row",
+          "classmethod",
+          "self",
+          "ValueError",
+          "v",
+          "List",
+          "Field"
+        ]
       },
       {
         "name": "FutureValueInput",
@@ -253,10 +515,31 @@
             "start_line": 107,
             "end_line": 112,
             "text": "@field_validator('pmt', 'pv')\n@classmethod\ndef cash_outflow_must_be_negative(cls, v: float, info):\n    if v > 0:\n        raise ValueError(f\"'{info.field_name}' represents cash outflow and should be zero or negative.\")\n    return v",
-            "docstring": ""
+            "docstring": "",
+            "calls": [
+              "field_validator",
+              "ValueError"
+            ]
           }
         ],
-        "docstring": "Model for Future Value calculation. Validates cash flow conventions."
+        "docstring": "Model for Future Value calculation. Validates cash flow conventions.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "Field",
+          "pv",
+          "pmt",
+          "float",
+          "nper",
+          "info",
+          "field_validator",
+          "classmethod",
+          "ValueError",
+          "v",
+          "int",
+          "rate"
+        ]
       },
       {
         "name": "LoanPaymentInput",
@@ -264,7 +547,18 @@
         "end_line": 118,
         "text": "class LoanPaymentInput(BaseModel):\n    \"\"\"Model for Loan Payment calculation.\"\"\"\n    rate: float = Field(..., gt=0, description='Interest rate per period')\n    nper: int = Field(..., gt=0, description='Total number of payment periods')\n    pv: float = Field(..., gt=0, description='Present value or principal of the loan (must be positive)')",
         "methods": [],
-        "docstring": "Model for Loan Payment calculation."
+        "docstring": "Model for Loan Payment calculation.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "Field",
+          "pv",
+          "float",
+          "nper",
+          "int",
+          "rate"
+        ]
       },
       {
         "name": "StdDevInput",
@@ -272,7 +566,15 @@
         "end_line": 123,
         "text": "class StdDevInput(BaseModel):\n    \"\"\"Model for Standard Deviation calculation.\"\"\"\n    data: List[float]",
         "methods": [],
-        "docstring": "Model for Standard Deviation calculation."
+        "docstring": "Model for Standard Deviation calculation.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "data",
+          "float",
+          "List"
+        ]
       },
       {
         "name": "DescriptiveStatsInput",
@@ -280,7 +582,15 @@
         "end_line": 128,
         "text": "class DescriptiveStatsInput(BaseModel):\n    \"\"\"Model for Descriptive Statistics calculation.\"\"\"\n    data: List[float]",
         "methods": [],
-        "docstring": "Model for Descriptive Statistics calculation."
+        "docstring": "Model for Descriptive Statistics calculation.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "data",
+          "float",
+          "List"
+        ]
       },
       {
         "name": "ZScoreInput",
@@ -288,7 +598,15 @@
         "end_line": 132,
         "text": "class ZScoreInput(BaseModel):\n    data: List[float]\n    'Model for Z-Score calculation.'",
         "methods": [],
-        "docstring": ""
+        "docstring": "",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "data",
+          "float",
+          "List"
+        ]
       },
       {
         "name": "ConfidenceIntervalInput",
@@ -296,11 +614,21 @@
         "end_line": 137,
         "text": "class ConfidenceIntervalInput(BaseModel):\n    \"\"\"Model for Confidence Interval calculation.\"\"\"\n    data: List[float]\n    confidence: float = 0.95",
         "methods": [],
-        "docstring": "Model for Confidence Interval calculation."
+        "docstring": "Model for Confidence Interval calculation.",
+        "inherited_classes": [
+          "BaseModel"
+        ],
+        "imported_classes": [
+          "List",
+          "data",
+          "float",
+          "confidence"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": ""
+    "module_level_code": "",
+    "module_level_calls": []
   },
   "app\\services\\data_service.py": {
     "classes": [
@@ -315,28 +643,75 @@
             "start_line": 11,
             "end_line": 28,
             "text": "def get_dataframe_from_sqlite(self, db_path: str, table_name: str) -> pd.DataFrame:\n    \"\"\"\n        Connects to a SQLite database and returns an entire table as a pandas DataFrame.\n        This function is now used by ValidationService and StatsService.\n        \"\"\"\n    if not os.path.exists(db_path):\n        raise DataError(f'Database file not found at path: {db_path}')\n    try:\n        conn = sqlite3.connect(db_path)\n        query = f'SELECT * FROM \"{table_name}\"'\n        df = pd.read_sql_query(query, conn)\n        conn.close()\n        if df.empty:\n            raise DataError(f\"Table '{table_name}' is empty or does not exist.\")\n        return df\n    except Exception as e:\n        raise DataError(f'A database error occurred: {e}. Check table and database path.')",
-            "docstring": "Connects to a SQLite database and returns an entire table as a pandas DataFrame.\nThis function is now used by ValidationService and StatsService."
+            "docstring": "Connects to a SQLite database and returns an entire table as a pandas DataFrame.\nThis function is now used by ValidationService and StatsService.",
+            "calls": [
+              "exists",
+              "DataError",
+              "sqlite3.connect",
+              "pd.read_sql_query",
+              "conn.close",
+              "DataError",
+              "DataError"
+            ]
           },
           {
             "name": "get_series_from_file",
             "start_line": 30,
             "end_line": 44,
             "text": "def get_series_from_file(self, file: UploadFile, column_name: str) -> pd.Series:\n    \"\"\"Reads a CSV file, extracts a specified column, and returns it as a pandas Series.\"\"\"\n    if not file.filename.endswith('.csv'):\n        raise DataError('Invalid file type. Please upload a CSV file.')\n    try:\n        content = file.file.read().decode('utf-8')\n        df = pd.read_csv(StringIO(content))\n        if column_name not in df.columns:\n            raise DataError(f\"Column '{column_name}' not found in the CSV file.\")\n        return df[column_name]\n    except Exception as e:\n        raise DataError(f'Error processing file: {e}')",
-            "docstring": "Reads a CSV file, extracts a specified column, and returns it as a pandas Series."
+            "docstring": "Reads a CSV file, extracts a specified column, and returns it as a pandas Series.",
+            "calls": [
+              "endswith",
+              "DataError",
+              "decode",
+              "pd.read_csv",
+              "StringIO",
+              "DataError",
+              "DataError",
+              "read"
+            ]
           },
           {
             "name": "get_series_from_sqlite",
             "start_line": 46,
             "end_line": 51,
             "text": "def get_series_from_sqlite(self, db_path: str, table_name: str, column_name: str) -> pd.Series:\n    \"\"\"Reads a specific column from a SQLite table and returns it as a pandas Series.\"\"\"\n    df = self.get_dataframe_from_sqlite(db_path, table_name)\n    if column_name not in df.columns:\n        raise DataError(f\"Column '{column_name}' not found in table '{table_name}'.\")\n    return df[column_name]",
-            "docstring": "Reads a specific column from a SQLite table and returns it as a pandas Series."
+            "docstring": "Reads a specific column from a SQLite table and returns it as a pandas Series.",
+            "calls": [
+              "self.get_dataframe_from_sqlite",
+              "DataError"
+            ]
           }
         ],
-        "docstring": "Service for loading data into pandas objects from files and databases."
+        "docstring": "Service for loading data into pandas objects from files and databases.",
+        "inherited_classes": [],
+        "imported_classes": [
+          "content",
+          "os",
+          "df",
+          "str",
+          "query",
+          "pd",
+          "sqlite3",
+          "column_name",
+          "self",
+          "DataError",
+          "e",
+          "table_name",
+          "StringIO",
+          "db_path",
+          "file",
+          "UploadFile",
+          "Exception",
+          "conn"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": "data_service = DataService()"
+    "module_level_code": "data_service = DataService()",
+    "module_level_calls": [
+      "DataService"
+    ]
   },
   "app\\services\\financial_service.py": {
     "classes": [
@@ -351,28 +726,51 @@
             "start_line": 9,
             "end_line": 13,
             "text": "def calculate_future_value(self, rate: float, nper: int, pmt: float, pv: float) -> float:\n    \"\"\"\n        Calculates the future value of an investment.\n        \"\"\"\n    return npf.fv(rate=rate, nper=nper, pmt=pmt, pv=pv)",
-            "docstring": "Calculates the future value of an investment."
+            "docstring": "Calculates the future value of an investment.",
+            "calls": [
+              "npf.fv"
+            ]
           },
           {
             "name": "calculate_present_value",
             "start_line": 15,
             "end_line": 19,
             "text": "def calculate_present_value(self, rate: float, nper: int, pmt: float, fv: float) -> float:\n    \"\"\"\n        Calculates the present value of an investment.\n        \"\"\"\n    return npf.pv(rate=rate, nper=nper, pmt=pmt, fv=fv)",
-            "docstring": "Calculates the present value of an investment."
+            "docstring": "Calculates the present value of an investment.",
+            "calls": [
+              "npf.pv"
+            ]
           },
           {
             "name": "calculate_payment",
             "start_line": 21,
             "end_line": 25,
             "text": "def calculate_payment(self, rate: float, nper: int, pv: float) -> float:\n    \"\"\"\n        Calculates the periodic payment for a loan.\n        \"\"\"\n    return npf.pmt(rate=rate, nper=nper, pv=pv)",
-            "docstring": "Calculates the periodic payment for a loan."
+            "docstring": "Calculates the periodic payment for a loan.",
+            "calls": [
+              "npf.pmt"
+            ]
           }
         ],
-        "docstring": "A service class for handling common financial calculations.\nUses the numpy_financial library."
+        "docstring": "A service class for handling common financial calculations.\nUses the numpy_financial library.",
+        "inherited_classes": [],
+        "imported_classes": [
+          "fv",
+          "pv",
+          "pmt",
+          "float",
+          "nper",
+          "npf",
+          "int",
+          "rate"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": "financial_service = FinancialService()"
+    "module_level_code": "financial_service = FinancialService()",
+    "module_level_calls": [
+      "FinancialService"
+    ]
   },
   "app\\services\\stats_service.py": {
     "classes": [
@@ -387,63 +785,188 @@
             "start_line": 11,
             "end_line": 21,
             "text": "def _load_data(self, db_path: str, table_name: str, columns=None):\n    \"\"\"\n        Load data from SQLite database into a pandas DataFrame.\n        If columns is None, load all columns.\n        \"\"\"\n    with sqlite3.connect(db_path) as conn:\n        query = f'SELECT * FROM {table_name}'\n        df = pd.read_sql_query(query, conn)\n    if columns:\n        df = df[columns]\n    return df",
-            "docstring": "Load data from SQLite database into a pandas DataFrame.\nIf columns is None, load all columns."
+            "docstring": "Load data from SQLite database into a pandas DataFrame.\nIf columns is None, load all columns.",
+            "calls": [
+              "sqlite3.connect",
+              "pd.read_sql_query"
+            ]
           },
           {
             "name": "perform_ols_regression",
             "start_line": 23,
             "end_line": 75,
             "text": "def perform_ols_regression(self, db_path, table_name, dependent_var, independent_vars):\n    \"\"\"\n        Perform OLS regression using numpy's least squares (without statsmodels).\n        Returns a summary dictionary with coefficients, intercept, R-squared, and p-values.\n        \"\"\"\n    df = self._load_data(db_path, table_name, [dependent_var] + independent_vars)\n    X = df[independent_vars].values\n    y = df[dependent_var].values\n    X = np.column_stack((np.ones(X.shape[0]), X))\n    coef, residuals, rank, s = np.linalg.lstsq(X, y, rcond=None)\n    y_pred = X @ coef\n    residuals = y - y_pred\n    n = len(y)\n    p = X.shape[1]\n    dof = n - p\n    mse = np.sum(residuals ** 2) / dof\n    XTX_inv = np.linalg.inv(X.T @ X)\n    var_b = mse * XTX_inv\n    se = np.sqrt(np.diag(var_b))\n    t_stats = coef / se\n    p_values = 2 * (1 - stats.t.cdf(np.abs(t_stats), df=dof))\n    ss_total = np.sum((y - np.mean(y)) ** 2)\n    ss_residual = np.sum(residuals ** 2)\n    r_squared = 1 - ss_residual / ss_total\n    summary = {'coefficients': dict(zip(['intercept'] + independent_vars, coef)), 'standard_errors': dict(zip(['intercept'] + independent_vars, se)), 't_statistics': dict(zip(['intercept'] + independent_vars, t_stats)), 'p_values': dict(zip(['intercept'] + independent_vars, p_values)), 'r_squared': r_squared}\n    return summary",
-            "docstring": "Perform OLS regression using numpy's least squares (without statsmodels).\nReturns a summary dictionary with coefficients, intercept, R-squared, and p-values."
+            "docstring": "Perform OLS regression using numpy's least squares (without statsmodels).\nReturns a summary dictionary with coefficients, intercept, R-squared, and p-values.",
+            "calls": [
+              "self._load_data",
+              "np.column_stack",
+              "lstsq",
+              "len",
+              "inv",
+              "np.sqrt",
+              "np.sum",
+              "np.sum",
+              "np.sum",
+              "np.diag",
+              "dict",
+              "dict",
+              "dict",
+              "dict",
+              "np.ones",
+              "cdf",
+              "zip",
+              "zip",
+              "zip",
+              "zip",
+              "np.abs",
+              "np.mean"
+            ]
           },
           {
             "name": "calculate_correlation_matrix",
             "start_line": 77,
             "end_line": 83,
             "text": "def calculate_correlation_matrix(self, db_path, table_name, columns):\n    \"\"\"\n        Calculate Pearson correlation matrix for specified columns.\n        \"\"\"\n    df = self._load_data(db_path, table_name, columns)\n    corr_matrix = df.corr(method='pearson').to_dict()\n    return corr_matrix",
-            "docstring": "Calculate Pearson correlation matrix for specified columns."
+            "docstring": "Calculate Pearson correlation matrix for specified columns.",
+            "calls": [
+              "self._load_data",
+              "to_dict",
+              "df.corr"
+            ]
           },
           {
             "name": "perform_independent_ttest",
             "start_line": 85,
             "end_line": 94,
             "text": "def perform_independent_ttest(self, sample1, sample2):\n    \"\"\"\n        Perform independent two-sample t-test.\n        sample1 and sample2 should be lists or numpy arrays.\n        \"\"\"\n    t_stat, p_value = stats.ttest_ind(sample1, sample2, equal_var=False)\n    return {'t_statistic': t_stat, 'p_value': p_value}",
-            "docstring": "Perform independent two-sample t-test.\nsample1 and sample2 should be lists or numpy arrays."
+            "docstring": "Perform independent two-sample t-test.\nsample1 and sample2 should be lists or numpy arrays.",
+            "calls": [
+              "stats.ttest_ind"
+            ]
           },
           {
             "name": "calculate_standard_deviation",
             "start_line": 95,
             "end_line": 99,
             "text": "def calculate_standard_deviation(self, data: list) -> float:\n    \"\"\"\n        Calculate the standard deviation of a list of numbers.\n        \"\"\"\n    return float(np.std(data))",
-            "docstring": "Calculate the standard deviation of a list of numbers."
+            "docstring": "Calculate the standard deviation of a list of numbers.",
+            "calls": [
+              "float",
+              "np.std"
+            ]
           },
           {
             "name": "calculate_descriptive_stats",
             "start_line": 101,
             "end_line": 110,
             "text": "def calculate_descriptive_stats(self, data: List[float]) -> dict:\n    \"\"\"Calculate descriptive statistics for a list of numbers.\n        Returns a dictionary with mean, median, mode, variance, and standard deviation.\"\"\"\n    return {'mean': float(np.mean(data)), 'median': float(np.median(data)), 'mode': float(stats.mode(data, keepdims=True).mode[0]), 'variance': float(np.var(data)), 'std_dev': float(np.std(data))}",
-            "docstring": "Calculate descriptive statistics for a list of numbers.\nReturns a dictionary with mean, median, mode, variance, and standard deviation."
+            "docstring": "Calculate descriptive statistics for a list of numbers.\nReturns a dictionary with mean, median, mode, variance, and standard deviation.",
+            "calls": [
+              "float",
+              "float",
+              "float",
+              "float",
+              "float",
+              "np.mean",
+              "np.median",
+              "np.var",
+              "np.std",
+              "stats.mode"
+            ]
           },
           {
             "name": "calculate_z_scores",
             "start_line": 112,
             "end_line": 114,
             "text": "def calculate_z_scores(self, data: List[float]) -> List[float]:\n    \"\"\"Calculate Z-Scores for a list of numbers.\"\"\"\n    return list(((np.array(data) - np.mean(data)) / np.std(data)).round(4))",
-            "docstring": "Calculate Z-Scores for a list of numbers."
+            "docstring": "Calculate Z-Scores for a list of numbers.",
+            "calls": [
+              "list",
+              "round",
+              "np.std",
+              "np.array",
+              "np.mean"
+            ]
           },
           {
             "name": "calculate_confidence_interval",
             "start_line": 118,
             "end_line": 128,
             "text": "def calculate_confidence_interval(self, data: List[float], confidence: float) -> dict:\n    \"\"\"Calculate the confidence interval for a list of numbers.\"\"\"\n    n = len(data)\n    mean = np.mean(data)\n    stderr = st.sem(data)\n    margin = stderr * st.t.ppf((1 + confidence) / 2.0, n - 1)\n    return {'mean': float(mean), 'confidence_level': confidence, 'interval': [float(mean - margin), float(mean + margin)]}",
-            "docstring": "Calculate the confidence interval for a list of numbers."
+            "docstring": "Calculate the confidence interval for a list of numbers.",
+            "calls": [
+              "len",
+              "np.mean",
+              "st.sem",
+              "ppf",
+              "float",
+              "float",
+              "float"
+            ]
           }
         ],
-        "docstring": ""
+        "docstring": "",
+        "inherited_classes": [],
+        "imported_classes": [
+          "y",
+          "t_stat",
+          "list",
+          "p_values",
+          "ss_total",
+          "corr_matrix",
+          "np",
+          "pd",
+          "zip",
+          "ss_residual",
+          "stderr",
+          "rank",
+          "p_value",
+          "sample1",
+          "confidence",
+          "t_stats",
+          "mean",
+          "margin",
+          "query",
+          "sample2",
+          "XTX_inv",
+          "p",
+          "coef",
+          "len",
+          "df",
+          "independent_vars",
+          "se",
+          "stats",
+          "self",
+          "var_b",
+          "dof",
+          "dict",
+          "mse",
+          "y_pred",
+          "conn",
+          "s",
+          "data",
+          "X",
+          "str",
+          "float",
+          "st",
+          "dependent_var",
+          "sqlite3",
+          "r_squared",
+          "residuals",
+          "n",
+          "columns",
+          "db_path",
+          "table_name",
+          "summary",
+          "List"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": "stats_service = StatsService()"
+    "module_level_code": "stats_service = StatsService()",
+    "module_level_calls": [
+      "StatsService"
+    ]
   },
   "app\\services\\validation_service.py": {
     "classes": [
@@ -458,27 +981,73 @@
             "start_line": 15,
             "end_line": 19,
             "text": "def __init__(self, data_svc: DataService=data_service):\n    \"\"\"\n        Initializes the validation service with a dependency on the DataService.\n        \"\"\"\n    self.data_svc = data_svc",
-            "docstring": "Initializes the validation service with a dependency on the DataService."
+            "docstring": "Initializes the validation service with a dependency on the DataService.",
+            "calls": []
           },
           {
             "name": "validate_regression_inputs",
             "start_line": 21,
             "end_line": 56,
             "text": "def validate_regression_inputs(self, payload: RegressionInput):\n    \"\"\"\n        Connects to the database to validate that columns for a regression\n        analysis exist and are numeric.\n\n        This function is a perfect example of connecting a model (RegressionInput)\n        with another service (DataService) for deep validation.\n\n        Args:\n            payload (RegressionInput): The Pydantic model containing the request data.\n\n        Raises:\n            DataError: If any validation check fails.\n        \"\"\"\n    print(f'Performing deep validation for regression on table: {payload.table_name}')\n    df = self.data_svc.get_dataframe_from_sqlite(payload.db_path, payload.table_name)\n    all_vars = [payload.dependent_var] + payload.independent_vars\n    for var in all_vars:\n        if var not in df.columns:\n            raise DataError(f\"Column '{var}' not found in table '{payload.table_name}'.\")\n        if not pd.api.types.is_numeric_dtype(df[var]):\n            raise DataError(f\"Column '{var}' must be numeric for regression analysis.\")\n        if df[var].isnull().all():\n            raise DataError(f\"Column '{var}' contains no valid data; all values are null.\")\n    print('Regression input validation successful.')\n    return True",
-            "docstring": "Connects to the database to validate that columns for a regression\nanalysis exist and are numeric.\n\nThis function is a perfect example of connecting a model (RegressionInput)\nwith another service (DataService) for deep validation.\n\nArgs:\n    payload (RegressionInput): The Pydantic model containing the request data.\n\nRaises:\n    DataError: If any validation check fails."
+            "docstring": "Connects to the database to validate that columns for a regression\nanalysis exist and are numeric.\n\nThis function is a perfect example of connecting a model (RegressionInput)\nwith another service (DataService) for deep validation.\n\nArgs:\n    payload (RegressionInput): The Pydantic model containing the request data.\n\nRaises:\n    DataError: If any validation check fails.",
+            "calls": [
+              "print",
+              "get_dataframe_from_sqlite",
+              "print",
+              "all",
+              "DataError",
+              "is_numeric_dtype",
+              "DataError",
+              "DataError",
+              "isnull"
+            ]
           },
           {
             "name": "validate_correlation_inputs",
             "start_line": 58,
             "end_line": 86,
             "text": "def validate_correlation_inputs(self, payload: CorrelationInput):\n    \"\"\"\n        Validates that columns for a correlation analysis exist and are numeric.\n        \n        Args:\n            payload (CorrelationInput): The Pydantic model for correlation.\n            \n        Raises:\n            DataError: If validation fails.\n        \"\"\"\n    print(f'Performing deep validation for correlation on table: {payload.table_name}')\n    df = self.data_svc.get_dataframe_from_sqlite(payload.db_path, payload.table_name)\n    columns_to_check = payload.columns\n    if not columns_to_check:\n        columns_to_check = df.select_dtypes(include='number').columns.tolist()\n    if len(columns_to_check) < 2:\n        raise DataError('Correlation analysis requires at least two numeric columns.')\n    for col in columns_to_check:\n        if col not in df.columns:\n            raise DataError(f\"Column '{col}' not found in table '{payload.table_name}'.\")\n        if not pd.api.types.is_numeric_dtype(df[col]):\n            raise DataError(f\"Column '{col}' must be numeric for correlation analysis.\")\n    print('Correlation input validation successful.')\n    return True",
-            "docstring": "Validates that columns for a correlation analysis exist and are numeric.\n\nArgs:\n    payload (CorrelationInput): The Pydantic model for correlation.\n    \nRaises:\n    DataError: If validation fails."
+            "docstring": "Validates that columns for a correlation analysis exist and are numeric.\n\nArgs:\n    payload (CorrelationInput): The Pydantic model for correlation.\n    \nRaises:\n    DataError: If validation fails.",
+            "calls": [
+              "print",
+              "get_dataframe_from_sqlite",
+              "print",
+              "tolist",
+              "len",
+              "DataError",
+              "DataError",
+              "is_numeric_dtype",
+              "DataError",
+              "df.select_dtypes"
+            ]
           }
         ],
-        "docstring": "A service dedicated to performing complex, cross-service validations\nthat go beyond simple model field checks. This service connects models\nto the data layer to ensure requests are not just well-formed, but\nalso logically valid against the actual data."
+        "docstring": "A service dedicated to performing complex, cross-service validations\nthat go beyond simple model field checks. This service connects models\nto the data layer to ensure requests are not just well-formed, but\nalso logically valid against the actual data.",
+        "inherited_classes": [],
+        "imported_classes": [
+          "len",
+          "columns_to_check",
+          "df",
+          "data_svc",
+          "print",
+          "var",
+          "pd",
+          "RegressionInput",
+          "CorrelationInput",
+          "all_vars",
+          "data_service",
+          "DataService",
+          "payload",
+          "DataError",
+          "self",
+          "col"
+        ]
       }
     ],
     "functions": [],
-    "module_level_code": "validation_service = ValidationService()"
+    "module_level_code": "validation_service = ValidationService()",
+    "module_level_calls": [
+      "ValidationService"
+    ]
   }
 }
