@@ -1,21 +1,28 @@
 # Documentation for `CorrelationInput.check_min_columns`
 
+> ⚠️ **Quality Notice**: Documentation generated with 0% confidence. Some dependencies could not be fully resolved.
+
+
+> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
 ### CorrelationInput.check_min_columns() -> None
 
 **Description:**
-The `check_min_columns` method is responsible for validating that a given input meets the minimum column requirements necessary for further processing within the `CorrelationInput` class. This method ensures that the data structure being evaluated contains an adequate number of columns to perform correlation calculations, thereby preventing runtime errors that could arise from insufficient data.
+The `check_min_columns` method is responsible for validating that the input data contains a minimum number of columns required for further processing. This method is crucial in ensuring that the data integrity is maintained before any calculations or analyses are performed.
 
 **Parameters:**
 None
 
 **Expected Input:**
-- The method operates on an internal data structure (likely a DataFrame or similar object) that is expected to be passed to the `CorrelationInput` class. The specific structure and content of this data are not defined within the method itself, but it is implied that the data should be organized in a tabular format with multiple columns.
+- The method expects the input data to be structured in a way that it can be evaluated for the number of columns. Typically, this would be a DataFrame or similar structure where the number of columns can be easily counted.
+- The method is likely to be called within a context where the data has already been loaded and is ready for validation.
 
 **Returns:**
 None
 
 **Detailed Logic:**
-- The method begins by checking the number of columns in the input data structure.
-- It compares this count against a predefined minimum threshold, which is likely set as a class attribute or constant.
-- If the number of columns is below this threshold, the method raises a `ValueError`, indicating that the input does not meet the necessary requirements for processing.
-- This validation step is crucial for ensuring that subsequent operations that depend on the presence of sufficient data can proceed without encountering errors related to inadequate input. The method does not return any value; its primary function is to enforce data integrity through validation.
+- The method utilizes the `field_validator` from an external library to perform its validation checks. This validator is likely designed to enforce specific rules regarding the structure of the input data.
+- If the input data does not meet the minimum column requirement, the method raises a `ValueError`. This exception indicates that the data is insufficient for the intended operations, prompting the user to provide a more complete dataset.
+- The method's primary role is to act as a safeguard, ensuring that any subsequent operations on the data can be performed without encountering errors related to insufficient data structure.
+
+---
+*Generated with 0% context confidence*

@@ -1,27 +1,31 @@
 # Documentation for `perform_ttest`
 
-### perform_ttest(data: List[float], alpha: float = 0.05) -> Dict[str, Any]
+> ⚠️ **Quality Notice**: Documentation generated with 48% confidence. Some dependencies could not be fully resolved.
+
+
+> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
+### perform_ttest() -> dict
 
 **Description:**
-The `perform_ttest` function conducts an independent two-sample t-test on the provided dataset. It evaluates whether the means of two independent groups are statistically different from each other. This function is typically used in statistical analysis to determine if there is enough evidence to reject the null hypothesis, which states that there is no difference between the group means.
+The `perform_ttest` function is designed to execute a statistical independent two-sample t-test. This test evaluates whether the means of two independent samples are significantly different from each other. It leverages the `perform_independent_ttest` method from the `StatsService` class to carry out the computation and return the results.
 
 **Parameters:**
-- `data` (`List[float]`): A list of numerical values representing the two independent samples to be compared.
-- `alpha` (`float`, optional): The significance level for the t-test, defaulting to 0.05. This value determines the threshold for rejecting the null hypothesis.
+- `sample1` (`list` or `numpy.ndarray`): The first sample of data for the t-test.
+- `sample2` (`list` or `numpy.ndarray`): The second sample of data for the t-test.
 
 **Expected Input:**
-- `data` should be a list containing two sets of numerical values (e.g., [group1_values, group2_values]). Each group should have at least two observations for the t-test to be valid.
-- `alpha` should be a float between 0 and 1, representing the probability of rejecting the null hypothesis when it is true.
+- Both `sample1` and `sample2` should be either lists or numpy arrays containing numerical data. They must not be empty and should ideally represent independent samples from the same population.
 
 **Returns:**
-`Dict[str, Any]`: A dictionary containing the results of the t-test, including:
-- `t_statistic`: The calculated t-statistic value.
-- `p_value`: The p-value associated with the t-test.
-- `reject_null`: A boolean indicating whether to reject the null hypothesis based on the p-value and the significance level.
+`dict`: A dictionary containing the results of the t-test, specifically:
+- `t_statistic` (`float`): The calculated t-statistic value from the t-test.
+- `p_value` (`float`): The p-value associated with the t-test, indicating the probability of observing the data given that the null hypothesis is true.
 
 **Detailed Logic:**
-- The function begins by validating the input data to ensure it contains two independent samples.
-- It then calls the `service.perform_independent_ttest` function, passing the validated data and the significance level.
-- The results from the t-test are processed, and the t-statistic and p-value are extracted.
-- Finally, the function evaluates whether the p-value is less than the specified alpha level to determine if the null hypothesis should be rejected, and it constructs a result dictionary to return these findings.
-- The function is designed to handle exceptions gracefully, potentially raising an `APIException` if any errors occur during the execution of the t-test, ensuring robust error handling within the API framework.
+- The function first validates the input samples to ensure they meet the expected criteria (i.e., they are non-empty lists or numpy arrays).
+- It then calls the `perform_independent_ttest` method from the `StatsService` class, passing the two samples as arguments.
+- The `perform_independent_ttest` method computes the t-statistic and p-value using the `ttest_ind` function from the `scipy.stats` module, which performs the independent two-sample t-test.
+- Finally, the function returns a dictionary containing the t-statistic and p-value, providing the user with the results of the statistical test.
+
+---
+*Generated with 48% context confidence*

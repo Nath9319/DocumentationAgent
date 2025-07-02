@@ -1,20 +1,28 @@
 # Documentation for `TTestInput.samples_must_not_be_identical`
 
+> ⚠️ **Quality Notice**: Documentation generated with 0% confidence. Some dependencies could not be fully resolved.
+
+
+> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
 ### TTestInput.samples_must_not_be_identical
 
 **Description:**
-This method is designed to validate that the samples provided to a test input are not identical. It ensures that the input data used for testing contains distinct values, which is crucial for the integrity and reliability of the testing process.
+The `samples_must_not_be_identical` method is a validation function designed to ensure that a set of input samples are not identical. This is crucial in statistical testing and analysis, where identical samples can lead to misleading results or errors in calculations.
 
 **Parameters:**
-- None
+- `samples` (`list`): A list of samples to be validated. This list is expected to contain numerical or categorical data.
 
 **Expected Input:**
-- The method operates on the internal state of the `TTestInput` class, which is expected to contain a collection of sample data. The specific structure or type of this data is not detailed in the provided context, but it is implied that the samples should be iterable and comparable.
+- The `samples` parameter should be a list containing at least two elements. Each element should represent a sample that can be compared against others in the list.
+- The method will raise a `ValueError` if the list contains fewer than two samples or if all samples in the list are identical.
 
 **Returns:**
-- None: The method does not return a value. Instead, it raises an exception if the validation fails.
+`None`: This method does not return any value. Instead, it raises an exception if the validation fails.
 
 **Detailed Logic:**
-- The method utilizes a `field_validator` to enforce the uniqueness of the samples. This validator checks the samples against a condition that ensures they are not identical.
-- If the samples are found to be identical, the method raises a `ValueError`, indicating that the input is invalid. This exception serves as a mechanism to alert the user or calling function that the provided samples do not meet the required criteria for testing.
-- The method is likely invoked during the initialization or validation phase of the `TTestInput` class, ensuring that any instance of this class is initialized with valid sample data.
+- The method first checks the length of the `samples` list. If the list contains fewer than two samples, it raises a `ValueError` indicating that at least two samples are required for comparison.
+- Next, it checks if all samples in the list are identical. This is typically done by converting the list to a set (which removes duplicates) and checking the length of the set. If the length of the set is 1, it implies that all samples are identical, and a `ValueError` is raised with an appropriate message.
+- The method utilizes the `field_validator` from an external library to enforce these validation rules, ensuring that the input adheres to the expected criteria before proceeding with further computations or analyses.
+
+---
+*Generated with 0% context confidence*

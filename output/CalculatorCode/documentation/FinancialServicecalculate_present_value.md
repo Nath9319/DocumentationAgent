@@ -1,29 +1,29 @@
 # Documentation for `FinancialService.calculate_present_value`
 
-### calculate_present_value(rate: float, nper: int, pmt: float, fv: float, when: str) -> float
+> ⚠️ **Quality Notice**: Documentation generated with 0% confidence. Some dependencies could not be fully resolved.
+
+
+> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
+### calculate_present_value(cash_flows: list, discount_rate: float) -> float
 
 **Description:**
-Calculates the present value of an investment based on a specified interest rate, number of periods, periodic payment, future value, and the timing of the payment. This method is essential for financial analysis, allowing users to determine the current worth of future cash flows.
+Calculates the present value of a series of future cash flows, discounted at a specified rate. This method is essential for evaluating the worth of an investment by determining how much future cash flows are worth in today's terms.
 
 **Parameters:**
-- `rate` (`float`): The interest rate for each period, expressed as a decimal (e.g., 0.05 for 5%).
-- `nper` (`int`): The total number of payment periods in the investment's lifespan.
-- `pmt` (`float`): The amount of money paid or received in each period.
-- `fv` (`float`): The future value of the investment at the end of the last period.
-- `when` (`str`): Indicates when payments are due. Acceptable values are 'end' (default) for payments made at the end of each period or 'begin' for payments made at the beginning.
+- `cash_flows` (`list`): A list of floats representing the future cash flows expected from the investment. Each element in the list corresponds to a cash flow at a specific time period.
+- `discount_rate` (`float`): The discount rate as a decimal (e.g., 0.05 for a 5% discount rate). This rate is used to discount future cash flows back to their present value.
 
 **Expected Input:**
-- `rate` should be a non-negative float representing the interest rate per period.
-- `nper` should be a positive integer indicating the total number of periods.
-- `pmt` can be any float value, representing the payment amount per period.
-- `fv` should be a float representing the future value of the investment.
-- `when` should be a string that is either 'begin' or 'end', indicating the timing of the payments.
+- `cash_flows` should be a list containing numeric values (floats or integers) that represent the cash inflows or outflows at different time periods.
+- `discount_rate` should be a non-negative float. A value of 0.0 indicates no discounting, while a positive value reflects the rate at which future cash flows are discounted.
 
 **Returns:**
-`float`: The present value of the investment, representing the current worth of future cash flows discounted at the specified interest rate.
+`float`: The present value of the future cash flows, representing the total worth of the investment in today's currency.
 
 **Detailed Logic:**
-- The method utilizes the `npf.pv` function from the NumPy Financial library to perform the present value calculation.
-- It first prepares the input parameters, ensuring they conform to the expected types and values.
-- The `npf.pv` function is called with the provided parameters, which computes the present value based on the formula for discounting future cash flows.
-- The result is then returned as a float, representing the present value of the investment based on the specified criteria. This method effectively abstracts the complexity of the underlying financial calculations, providing a straightforward interface for users.
+- The method utilizes the `npf.pv` function from the external library to perform the present value calculation. This function takes the discount rate and the series of cash flows as inputs.
+- It applies the present value formula, which discounts each cash flow back to its present value based on the specified discount rate.
+- The final output is the sum of all discounted cash flows, providing a single value that represents the present worth of the investment. This calculation is crucial for financial analysis, investment decision-making, and comparing the value of different investment opportunities.
+
+---
+*Generated with 0% context confidence*

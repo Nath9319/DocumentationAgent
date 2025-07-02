@@ -1,11 +1,13 @@
 # File: agent/agent_nodes.py
 #
 # This file implements the core logic for each step in the agent's workflow.
-# This version has been refactored to import prompts from the prompts.templates
-# module for better organization and maintainability.
+# ENHANCED VERSION: Added advanced search, validation, and error handling
 
 import os
 import json
+import re
+from typing import Dict, List, Tuple, Any, Optional
+from difflib import SequenceMatcher
 from langchain_openai import AzureChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser, StrOutputParser
@@ -19,6 +21,110 @@ from prompts.templates import (
     DOCUMENTATION_PROMPT_TEMPLATE,
     CONCEPTUAL_GRAPH_PROMPT_TEMPLATE
 )
+
+
+class EnhancedDependencySearcher:
+    """Advanced searcher for finding dependencies in the code graph"""
+    
+    def __init__(self, graph: nx.MultiDiGraph):
+        self.graph = graph
+        self.searcher = RepoSearcher(graph)
+        # Build search indices for faster lookups
+        self._build_search_indices()
+    
+    def _build_search_indices(self):
+        """Build various indices for efficient searching"""
+        self.name_index = {}  # Maps lowercase names to actual node names
+        self.file_index = {}  # Maps file paths to nodes
+        self.method_index = {}  # Maps method names to their full qualified names
+        
+        for node, data in self.graph.nodes(data=True):
+            # Name index
+            self.name_index[node.lower()] = node
+            
+            # File index
+            fname = data.get('fname', '')
+            if fname:
+                if fname not in self.file_index:
+                    self.file_index[fname] = []
+                self.file_index[fname].append(node)
+            
+            # Method index for class.method patterns
+            if '.' in node:
+                parts = node.split('.')
+                method_name = parts[-1]
+                if method_name not in self.method_index:
+                    self.method_index[method_name] = []
+                self.method_index[method_name].append(node)
+    
+    def search_dependency(self, dep_name: str) -> List[Dict[str, Any]]:
+        """
+        Search for a dependency using multiple strategies.
+        Returns list of potential matches with confidence scores.
+        """
+        results = []
+        
+        # Strategy 1: Exact match
+        if self.graph.has_node(dep_name):
+            results.append({
+                'node': dep_name,
+                'confidence': 1.0,
+                'strategy': 'exact_match',
+                'data': self.graph.nodes[dep_name]
+            })
+            return results
+        
+        # Strategy 2: Case-insensitive match
+        lower_dep = dep_name.lower()
+        if lower_dep in self.name_index:
+            actual_name = self.name_index[lower_dep]
+            results.append({
+                'node': actual_name,
+                'confidence': 0.95,
+                'strategy': 'case_insensitive',
+                'data': self.graph.nodes[actual_name]
+            })
+        
+        # Strategy 3: Partial match with fuzzy matching
+        for node in self.graph.nodes():
+            similarity = SequenceMatcher(None, dep_name.lower(), node.lower()).ratio()
+            if similarity > 0.8:  # High similarity threshold
+                results.append({
+                    'node': node,
+                    'confidence': similarity,
+                    'strategy': 'fuzzy_match',
+                    'data': self.graph.nodes[node]
+                })
+        
+        # Strategy 4: Method name search (for unqualified method calls)
+        if dep_name in self.method_index:
+            for full_name in self.method_index[dep_name]:
+                results.append({
+                    'node': full_name,
+                    'confidence': 0.7,
+                    'strategy': 'method_match',
+                    'data': self.graph.nodes[full_name]
+                })
+        
+        # Strategy 5: Import alias resolution
+        common_aliases = {
+            'np': 'numpy',
+            'pd': 'pandas',
+            'plt': 'matplotlib.pyplot',
+            'tf': 'tensorflow',
+            'nn': 'torch.nn'
+        }
+        if dep_name in common_aliases:
+            results.append({
+                'node': None,
+                'confidence': 0.9,
+                'strategy': 'known_alias',
+                'data': {'external': True, 'actual_name': common_aliases[dep_name]}
+            })
+        
+        # Sort results by confidence
+        results.sort(key=lambda x: x['confidence'], reverse=True)
+        return results[:5]  # Return top 5 matches
 
 
 def initialize_documentation_queue(state: AgentState) -> dict:
@@ -72,8 +178,8 @@ def select_next_node(state: AgentState) -> dict:
 
 def gather_documentation_context(state: AgentState) -> dict:
     """
-    Analyzes the current node's code to find all dependencies, then gathers
-    context for them from the graph or the documentation cache.
+    ENHANCED VERSION: Analyzes the current node's code to find all dependencies,
+    then gathers context for them using advanced search strategies.
     """
     if state.get("is_finished"):
         return {}
@@ -83,66 +189,215 @@ def gather_documentation_context(state: AgentState) -> dict:
     repo_graph = state['repo_graph']
     documented_nodes = state['documented_nodes']
     
-    print(f"--- intelligently Gathering Context for '{current_node_name}' ---")
-
+    print(f"\n{'='*60}")
+    print(f"ENHANCED CONTEXT GATHERING FOR: '{current_node_name}'")
+    print(f"{'='*60}")
+    
+    # Initialize enhanced searcher
+    enhanced_searcher = EnhancedDependencySearcher(repo_graph)
+    
     # Step A: Use an LLM to find out what functions/classes are being called.
-    print("Step A: Analyzing code to identify dependencies...")
+    print("\n[STEP A] Analyzing code to identify dependencies...")
     llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), temperature=0.0, max_tokens=1024)
     prompt = PromptTemplate.from_template(CODE_ANALYSIS_PROMPT_TEMPLATE)
     chain = prompt | llm | JsonOutputParser()
     
+    dependencies = []
     try:
-        dependencies = chain.invoke({
+        analysis_result = chain.invoke({
             "source_code": current_node_info.get('info', '')
         })
-        print(f"Identified dependencies: {dependencies}")
+        
+        # Handle different response formats
+        if isinstance(analysis_result, list):
+            dependencies = analysis_result
+        elif isinstance(analysis_result, dict) and 'dependencies' in analysis_result:
+            dependencies = analysis_result['dependencies']
+        else:
+            dependencies = []
+            
+        print(f"✓ Identified {len(dependencies)} dependencies: {dependencies}")
+        
     except Exception as e:
-        print(f"Warning: Failed to analyze code for dependencies: {e}")
-        dependencies = []
+        print(f"✗ Error in dependency analysis: {str(e)}")
+        print("  Attempting fallback regex-based extraction...")
+        
+        # Fallback: Simple regex-based extraction
+        source_code = current_node_info.get('info', '')
+        patterns = [
+            r'(\w+)\s*\(',  # Function calls
+            r'(\w+\.\w+)\s*\(',  # Method calls
+            r'(\w+)\s*=\s*(\w+)\(',  # Assignments with calls
+            r'from\s+\w+\s+import\s+(\w+)',  # Imports
+            r'import\s+(\w+)'  # Direct imports
+        ]
+        
+        for pattern in patterns:
+            matches = re.findall(pattern, source_code)
+            dependencies.extend([m if isinstance(m, str) else m[-1] for m in matches])
+        
+        # Remove duplicates and filter out common keywords
+        keywords = {'self', 'def', 'class', 'return', 'if', 'else', 'for', 'while', 'in', 'and', 'or', 'not'}
+        dependencies = list(set(dep for dep in dependencies if dep not in keywords))
+        print(f"✓ Fallback extraction found {len(dependencies)} potential dependencies")
 
-    # Step B & C: Check for existing documentation and fetch missing info.
-    print("Step B & C: Verifying context and fetching missing information...")
+    # Step B & C: Check for existing documentation and fetch missing info using enhanced search
+    print("\n[STEP B & C] Verifying context and fetching missing information...")
     context_str = ""
+    available_context = {}
+    search_required = []
+    
+    # First check what's immediately available
+    for dep_name in dependencies:
+        if dep_name in documented_nodes:
+            print(f"  ✓ '{dep_name}' - Found in documented nodes")
+            available_context[dep_name] = {
+                'source': 'documented',
+                'content': documented_nodes[dep_name],
+                'confidence': 1.0
+            }
+        elif repo_graph.has_node(dep_name):
+            print(f"  ✓ '{dep_name}' - Found in repository graph")
+            available_context[dep_name] = {
+                'source': 'graph',
+                'content': repo_graph.nodes[dep_name],
+                'confidence': 1.0
+            }
+        else:
+            print(f"  ✗ '{dep_name}' - Not found, search required")
+            search_required.append(dep_name)
+    
+    # Enhanced search for missing dependencies
+    if search_required:
+        print(f"\n[ENHANCED SEARCH] Searching for {len(search_required)} missing dependencies...")
+        
+        for dep_name in search_required:
+            print(f"\n  🔍 Searching for '{dep_name}'...")
+            search_results = enhanced_searcher.search_dependency(dep_name)
+            
+            if search_results:
+                best_match = search_results[0]
+                print(f"    ✓ Found match: {best_match['node']} "
+                      f"(confidence: {best_match['confidence']:.2f}, "
+                      f"strategy: {best_match['strategy']})")
+                
+                if best_match['node']:  # Internal dependency found
+                    available_context[dep_name] = {
+                        'source': f"search_{best_match['strategy']}",
+                        'content': best_match['data'],
+                        'actual_name': best_match['node'],
+                        'confidence': best_match['confidence']
+                    }
+                else:  # External dependency
+                    available_context[dep_name] = {
+                        'source': 'external',
+                        'content': best_match['data'],
+                        'confidence': best_match['confidence']
+                    }
+                
+                # Show alternative matches if any
+                if len(search_results) > 1:
+                    print("    Alternative matches:")
+                    for alt in search_results[1:3]:  # Show up to 2 alternatives
+                        print(f"      - {alt['node']} (confidence: {alt['confidence']:.2f})")
+            else:
+                print(f"    ✗ No matches found - marking as external/unknown")
+                available_context[dep_name] = {
+                    'source': 'external',
+                    'content': None,
+                    'confidence': 0.0
+                }
+    
+    # Step D: Compile comprehensive context with metadata
+    print("\n[STEP D] Compiling comprehensive context for documentation...")
+    
+    context_metadata = {
+        'total_dependencies': len(dependencies),
+        'found': {
+            'documented': sum(1 for v in available_context.values() if v['source'] == 'documented'),
+            'graph': sum(1 for v in available_context.values() if v['source'] == 'graph'),
+            'search': sum(1 for v in available_context.values() if v['source'].startswith('search_')),
+            'external': sum(1 for v in available_context.values() if v['source'] == 'external')
+        },
+        'confidence_scores': [],
+        'average_confidence': 1.0
+    }
+    
+    # Build context string
     if not dependencies:
         context_str = "This node has no identified internal dependencies."
     else:
-        for dep_name in dependencies:
+        for dep_name, dep_info in available_context.items():
+            confidence = dep_info.get('confidence', 1.0)
+            context_metadata['confidence_scores'].append(confidence)
             context_block = ""
-            # Check if the dependency has already been documented.
-            if dep_name in documented_nodes:
-                print(f"   - Found existing documentation for '{dep_name}'.")
-                context_block = f"### Dependency: `{dep_name}` (Already Documented)\n\n{documented_nodes[dep_name]}\n\n---\n\n"
-            # If not, check if it exists in our main code graph.
-            elif repo_graph.has_node(dep_name):
-                print(f"   - Fetching info for '{dep_name}' from the code graph.")
-                dep_info = repo_graph.nodes[dep_name]
-                dep_code = dep_info.get('info', '# Source code not available')
-                dep_docstring = dep_info.get('docstring', 'No docstring available.')
+            
+            if dep_info['source'] == 'documented':
+                context_block = f"### Dependency: `{dep_name}` [Documented]\n\n{dep_info['content']}\n\n---\n\n"
+            elif dep_info['source'] == 'graph':
+                dep_data = dep_info['content']
+                dep_code = dep_data.get('info', '# Source code not available')
+                dep_docstring = dep_data.get('docstring', 'No docstring available.')
                 context_block = (
-                    f"### Dependency: `{dep_name}` (From Source)\n\n"
+                    f"### Dependency: `{dep_name}` [From Source]\n\n"
                     f"**Docstring:**\n```\n{dep_docstring}\n```\n\n"
                     f"**Source Code:**\n```python\n{dep_code}\n```\n\n---\n\n"
                 )
-            # If it's not in the graph, it's likely an external library.
-            else:
-                print(f"   - Dependency '{dep_name}' is likely an external library or built-in.")
-                context_block = f"### Dependency: `{dep_name}` (External or Built-in)\n\nThis is likely a call to an external library (e.g., os, pandas) or a Python built-in function.\n\n---\n\n"
+            elif dep_info['source'].startswith('search_'):
+                actual_name = dep_info.get('actual_name', dep_name)
+                dep_data = dep_info['content']
+                strategy = dep_info['source'].replace('search_', '').replace('_', ' ').title()
+                context_block = (
+                    f"### Dependency: `{dep_name}` → `{actual_name}` [Found via {strategy}] (Confidence: {confidence:.0%})\n\n"
+                    f"**Docstring:**\n```\n{dep_data.get('docstring', 'No docstring available.')}\n```\n\n"
+                    f"**Source Code:**\n```python\n{dep_data.get('info', '# Source code not available')}\n```\n\n---\n\n"
+                )
+            else:  # external
+                actual_name = dep_info.get('content', {}).get('actual_name', dep_name) if dep_info.get('content') else dep_name
+                context_block = f"### Dependency: `{dep_name}` [External Library]\n\n"
+                context_block += f"This appears to be an external library"
+                if actual_name != dep_name:
+                    context_block += f" (likely `{actual_name}`)"
+                context_block += ".\n\n---\n\n"
             
             context_str += context_block
-
-    # Step D: Send the complete context to the next nodes.
-    print("Step D: Assembled comprehensive context for the next step.")
-    return {"context_for_llm": context_str}
+    
+    # Calculate average confidence
+    if context_metadata['confidence_scores']:
+        context_metadata['average_confidence'] = sum(context_metadata['confidence_scores']) / len(context_metadata['confidence_scores'])
+    
+    # Print summary
+    print(f"\n📊 Context Gathering Summary:")
+    print(f"  - Total Dependencies: {context_metadata['total_dependencies']}")
+    print(f"  - Documented: {context_metadata['found']['documented']}")
+    print(f"  - From Graph: {context_metadata['found']['graph']}")
+    print(f"  - Via Search: {context_metadata['found']['search']}")
+    print(f"  - External: {context_metadata['found']['external']}")
+    print(f"  - Average Confidence: {context_metadata['average_confidence']:.1%}")
+    print(f"{'='*60}\n")
+    
+    return {
+        "context_for_llm": context_str,
+        "context_metadata": context_metadata
+    }
 
 
 def generate_documentation(state: AgentState) -> dict:
     """
     Invokes the LLM to generate documentation for the current node.
+    ENHANCED: Now includes context quality indicators in documentation.
     """
     if state.get("is_finished"): return {}
     print(f"--- Generating Documentation for '{state['current_node_name']}' ---")
     
     node_info = state['current_node_info']
+    context_metadata = state.get('context_metadata', {})
+    
+    # Add quality warning if confidence is low
+    quality_note = ""
+    if context_metadata.get('average_confidence', 1.0) < 0.7:
+        quality_note = "\n> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.\n"
+    
     llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), temperature=0.2, max_tokens=1024)
     prompt = PromptTemplate.from_template(DOCUMENTATION_PROMPT_TEMPLATE)
     chain = prompt | llm | StrOutputParser()
@@ -159,6 +414,10 @@ def generate_documentation(state: AgentState) -> dict:
         "source_code": node_info.get('info', '# Source code not available')
     })
     
+    # Prepend quality note if needed
+    if quality_note:
+        generated_doc = quality_note + generated_doc
+    
     documented_nodes = state['documented_nodes']
     documented_nodes[state['current_node_name']] = generated_doc
     
@@ -168,11 +427,14 @@ def generate_conceptual_graph_data(state: AgentState) -> dict:
     """
     Builds the conceptual graph by merging AST metadata with LLM-generated
     semantic metadata for the current node.
+    ENHANCED: Now includes confidence scores in relationships.
     """
     if state.get("is_finished"): return {}
     current_node = state['current_node_name']
     print(f"--- Generating Conceptual Graph Data for '{current_node}' ---")
 
+    context_metadata = state.get('context_metadata', {})
+    
     llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), temperature=0.0, max_tokens=1024)
     prompt = PromptTemplate.from_template(CONCEPTUAL_GRAPH_PROMPT_TEMPLATE)
     chain = prompt | llm | JsonOutputParser()
@@ -194,6 +456,9 @@ def generate_conceptual_graph_data(state: AgentState) -> dict:
         base_metadata = state['repo_graph'].nodes[current_node]
         semantic_metadata = response_data.get('semantic_metadata', {})
         
+        # Add context quality to metadata
+        semantic_metadata['context_confidence'] = context_metadata.get('average_confidence', 1.0)
+        
         if not conceptual_graph.has_node(current_node):
             conceptual_graph.add_node(current_node, **base_metadata)
         
@@ -206,13 +471,15 @@ def generate_conceptual_graph_data(state: AgentState) -> dict:
 
         final_output_data[current_node] = {
             'documentation': state['documented_nodes'][current_node],
-            'conceptual_data': response_data
+            'conceptual_data': response_data,
+            'context_metadata': context_metadata
         }
     except Exception as e:
         print(f"Warning: Failed to process conceptual data for node '{current_node}': {e}")
         final_output_data[current_node] = {
             'documentation': state['documented_nodes'][current_node],
-            'conceptual_data': {"error": str(e)}
+            'conceptual_data': {"error": str(e)},
+            'context_metadata': context_metadata
         }
 
     return {
@@ -249,7 +516,6 @@ def should_continue(state: AgentState) -> str:
     """
     Determines whether the agent should continue its work.
     """
-
     if state.get("is_finished"):
         return "end"
         
