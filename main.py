@@ -8,11 +8,24 @@ import sys
 import pickle
 import json
 import networkx as nx
+import subprocess
 from dotenv import load_dotenv
 from datetime import datetime
 from typing import Dict, Any
 from core.construct_graph import CodeGraph
 from agent.agent_graph import create_agent_graph
+
+def clone_repository(repo_url: str, destination_folder: str):
+    """
+    Clones a public GitHub repository into a local directory.
+    """
+    print(f"Cloning repository: {repo_url} into {destination_folder}")
+    try:
+        subprocess.run(["git", "clone", repo_url, destination_folder], check=True)
+        print(f"Repository cloned successfully into: {destination_folder}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error cloning the repository: {e}")
+        sys.exit(1)
 
 def run_documentation_agent(repo_path: str):
     """
@@ -220,3 +233,18 @@ if __name__ == "__main__":
         
     repository_path = sys.argv[1]
     run_documentation_agent(repository_path)
+
+    # if len(sys.argv) < 2:
+    #     print("Usage: python main.py <repository_url>")
+    #     sys.exit(1)
+    
+    # # Get the repository URL from the command line argument
+    # repo_url = sys.argv[1]
+    # repo_name = repo_url.split("/")[-1].replace(".git", "")
+    # destination_folder = os.path.join(os.getcwd(), repo_name)
+
+    # # Step 1: Clone the repository
+    # clone_repository(repo_url, destination_folder)
+
+    # # Step 2: Run the documentation agent on the cloned repository
+    # run_documentation_agent(destination_folder)    
