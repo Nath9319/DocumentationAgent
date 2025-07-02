@@ -1,4 +1,4 @@
-# File: main.py
+# main.py
 #
 # This is the main entry point for the AI Documentation Agent.
 # This version is corrected to properly initialize the agent's state and
@@ -95,7 +95,7 @@ def run_documentation_agent(repo_path: str):
 
         # 3. Save individual markdown files for each documented node
         print("\n--- Saving individual documentation files... ---")
-        docs_output_dir = os.path.join(output_dir, "documentation")
+        '''docs_output_dir = os.path.join(output_dir, "documentation")
         os.makedirs(docs_output_dir, exist_ok=True)
 
         for node_name, data in final_output_data.items():
@@ -105,8 +105,34 @@ def run_documentation_agent(repo_path: str):
                 doc_path = os.path.join(docs_output_dir, f"{sanitized_name}.md")
                 with open(doc_path, "w", encoding='utf-8') as f:
                     f.write(f"# Documentation for `{node_name}`\n\n")
+                    f.write(data['documentation'])'''
+        # New code 
+        for node_name, data in final_output_data.items():
+            if 'documentation' in data and data['documentation']:
+                source_path = data.get("fname")
+                if not source_path:
+                    continue  # Skip if source file path isn't available
+
+        # Get path relative to repo root
+                rel_path = os.path.relpath(source_path, repo_path)
+                rel_dir = os.path.dirname(rel_path)
+
+        # Create target directory under output/<repo_name>/<source_file_path>
+                target_dir = os.path.join(output_dir, rel_dir)
+                os.makedirs(target_dir, exist_ok=True)
+
+        # Generate safe filename from node name
+                sanitized_name = "".join(c for c in node_name if c.isalnum() or c in ('_', '-')).rstrip()
+                doc_path = os.path.join(target_dir, f"{sanitized_name}.md")
+
+        # Write the markdown file
+                with open(doc_path, "w", encoding="utf-8") as f:
+                    f.write(f"# Documentation for `{node_name}`\n\n")
                     f.write(data['documentation'])
-        print(f"Saved {len(final_output_data)} documentation files to: '{docs_output_dir}'")
+
+            print(f"Saved {len(final_output_data)} documentation files to structured output folders under: '{output_dir}'")
+
+        
 
     else:
         print("\n--- Agent finished, but no final state was captured. Outputs not saved. ---")
