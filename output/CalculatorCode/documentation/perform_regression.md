@@ -1,23 +1,41 @@
 # Documentation for `perform_regression`
 
-### perform_regression(data: dict, model_type: str) -> dict
+> ⚠️ **Quality Notice**: Documentation generated with 57% confidence. Some dependencies could not be fully resolved.
+
+
+> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
+### perform_regression(payload: RegressionInput)
 
 **Description:**
-The `perform_regression` function executes a regression analysis on the provided dataset using a specified regression model type. It validates the input data, performs the regression analysis, and returns the results in a structured format. This function is designed to facilitate statistical analysis within the application, allowing users to derive insights from their data.
+The `perform_regression` function orchestrates the process of validating input data for regression analysis and subsequently performing Ordinary Least Squares (OLS) regression. It ensures that the necessary columns exist in the specified database table and that they are numeric before executing the regression analysis. The function returns a summary of the regression results, including coefficients, intercept, R-squared value, and p-values.
 
 **Parameters:**
-- `data` (`dict`): A dictionary containing the dataset to be analyzed. The expected structure of this dictionary should conform to the requirements of the regression analysis.
-- `model_type` (`str`): A string indicating the type of regression model to be used (e.g., "OLS" for Ordinary Least Squares). This parameter determines the algorithm that will be applied to the data.
+- `payload` (`RegressionInput`): A Pydantic model containing the request data, which includes the database path, table name, dependent variable, and independent variables for the regression analysis.
 
 **Expected Input:**
-- `data` should be a dictionary with keys representing variable names and values as lists of numerical data points. The data should not contain any missing values or non-numeric entries.
-- `model_type` must be a valid string that corresponds to one of the supported regression models. If an unsupported model type is provided, the function should raise an appropriate exception.
+- `payload` should be an instance of `RegressionInput`, which must contain:
+  - `db_path`: A string representing the path to the database.
+  - `table_name`: A string indicating the name of the table containing the data.
+  - `dependent_var`: A string specifying the name of the dependent variable.
+  - `independent_vars`: A list of strings representing the names of the independent variables.
+- The columns specified in `dependent_var` and `independent_vars` must exist in the database table and must be of numeric type.
 
 **Returns:**
-`dict`: A dictionary containing the results of the regression analysis, which may include coefficients, statistical metrics (e.g., R-squared, p-values), and any other relevant output based on the regression model used.
+`dict`: A summary dictionary containing the results of the regression analysis, including:
+- `coefficients`: A dictionary mapping variable names to their corresponding coefficients.
+- `standard_errors`: A dictionary mapping variable names to their standard errors.
+- `t_statistics`: A dictionary mapping variable names to their t-statistics.
+- `p_values`: A dictionary mapping variable names to their p-values.
+- `r_squared`: A float representing the R-squared value of the regression.
 
 **Detailed Logic:**
-- The function begins by validating the input parameters using the `validator.validate_regression_inputs` function, which ensures that the data structure and model type are appropriate for regression analysis.
-- Upon successful validation, the function calls `stats_svc.perform_ols_regression` (or another relevant regression function based on the `model_type`) to execute the regression analysis on the provided dataset.
-- The results from the regression analysis are then formatted into a dictionary, which is returned to the caller.
-- If any errors occur during validation or regression execution, the function raises an `APIException`, allowing for structured error handling and reporting within the API framework.
+1. The function begins by validating the input data using the `validate_regression_inputs` method from the `ValidationService`. This method checks that the specified columns exist in the database and are numeric.
+2. Upon successful validation, the function retrieves the data from the specified database table using the `StatsService.perform_ols_regression` method.
+3. It constructs the design matrix `X` by including a column of ones for the intercept and the values of the independent variables.
+4. The function then applies NumPy's least squares method to compute the regression coefficients and other statistics.
+5. Finally, it compiles the results into a summary dictionary and returns it, providing a comprehensive overview of the regression analysis outcomes. 
+
+This function integrates multiple services to ensure robust validation and execution of regression analysis, making it a critical component of the statistical analysis workflow within the application.
+
+---
+*Generated with 57% context confidence*

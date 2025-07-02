@@ -1,20 +1,29 @@
 # Documentation for `APIException`
 
+> ⚠️ **Quality Notice**: Documentation generated with 52% confidence. Some dependencies could not be fully resolved.
+
+
+> ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
 ### APIException
 
 **Description:**
-`APIException` is a custom base exception class designed specifically for handling errors within the API framework of the application. It serves as a foundation for creating more specific exception types that can be raised during API operations. This class facilitates the implementation of a structured exception handling mechanism, allowing the application to return well-defined JSON error messages to clients, thereby improving error reporting and debugging.
+`APIException` is a custom base exception class designed specifically for handling errors within an API context. It facilitates the creation of a structured error response mechanism, allowing for consistent JSON-formatted error messages to be returned to clients when exceptions occur. This class serves as a foundation for defining more specific exceptions that can be raised throughout the API.
 
 **Parameters/Attributes:**
-None. The `APIException` class does not define any additional parameters or attributes beyond those inherited from the base `Exception` class.
+- `status_code` (`int`): An integer representing the HTTP status code associated with the error (e.g., 404 for Not Found, 500 for Internal Server Error).
+- `detail` (`str`): A string providing a detailed message about the error, which can be useful for debugging or informing the client about the nature of the issue.
 
 **Expected Input:**
-- The `APIException` class can be instantiated with any arguments that are valid for the built-in `Exception` class. This typically includes a message string that describes the error.
+- `status_code` should be a valid HTTP status code, typically a non-negative integer.
+- `detail` should be a descriptive string that conveys the error information clearly.
 
 **Returns:**
-None. The `APIException` class does not return a value; it raises an exception when instantiated.
+`None`: The constructor does not return a value but initializes an instance of the `APIException` class.
 
 **Detailed Logic:**
-- The `APIException` class inherits from Python's built-in `Exception` class, which provides the basic functionality for exception handling.
-- When an instance of `APIException` is created, it calls the constructor of the base `Exception` class using `super().__init__()`. This ensures that any initialization logic defined in the `Exception` class is executed, allowing for standard exception behavior.
-- The primary purpose of this class is to enable the creation of custom exceptions that can be caught and handled in a structured manner within the API's main application logic, particularly in the `main.py` file where the custom exception handler is implemented. This enhances the ability to return structured JSON responses for error scenarios, improving the overall user experience and API usability.
+- Upon instantiation, the `APIException` class captures the provided `status_code` and `detail` attributes.
+- It calls the constructor of its superclass (`Exception`) with the `detail` message, ensuring that the exception can be raised and caught in a standard manner.
+- This class does not implement any additional methods or logic beyond the initialization of its attributes, but it serves as a foundational class for other exceptions that may extend its functionality.
+
+---
+*Generated with 52% context confidence*

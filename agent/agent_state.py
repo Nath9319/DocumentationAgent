@@ -1,14 +1,16 @@
 # File: agent/agent_state.py
 #
 # This file defines the structure of the state object for our LangGraph agent.
-# This version is simplified and robust.
+# ENHANCED VERSION: Added context metadata and quality tracking fields
 
-from typing import TypedDict, List, Dict, Set, Any
+from typing import TypedDict, List, Dict, Set, Any, Optional
 import networkx as nx
 
 class AgentState(TypedDict):
     """
     Defines the state of the documentation agent.
+    
+    ENHANCED: Added context_metadata field for tracking quality and confidence.
 
     Attributes:
         repo_graph (nx.MultiDiGraph): The original, AST-based code graph.
@@ -26,6 +28,14 @@ class AgentState(TypedDict):
         current_node_info (dict): The full attribute dictionary for the current node.
         context_for_llm (str): The compiled context string to be sent to the LLM.
         
+        # ENHANCED: New field for context quality metadata
+        context_metadata (Dict[str, Any]): Metadata about gathered context including:
+            - total_dependencies: number of dependencies identified
+            - found: breakdown by source (documented, graph, search, external)
+            - confidence_scores: list of confidence scores for each dependency
+            - average_confidence: overall confidence in the context
+            - validation: results from context validation if performed
+        
         # A flag to signal the end of the process.
         is_finished (bool):
     """
@@ -41,5 +51,8 @@ class AgentState(TypedDict):
     current_node_name: str
     current_node_info: dict
     context_for_llm: str
+    
+    # ENHANCED: New metadata field
+    context_metadata: Dict[str, Any]
     
     is_finished: bool
