@@ -7,26 +7,29 @@
 ### MatrixInput
 
 **Description:**
-The `MatrixInput` class serves as a model for handling matrix operations within the application. It incorporates validation mechanisms to ensure that the matrices conform to specified requirements and includes a helper function to facilitate matrix-related tasks.
+`MatrixInput` is a model designed for handling matrix operations within the application. It incorporates validation mechanisms to ensure that the input matrices conform to specified criteria, and it provides a helper function to facilitate matrix-related tasks. This class is built upon the `BaseModel`, leveraging its foundational features to enhance functionality.
 
 **Parameters/Attributes:**
 - **Attributes:**
-  - `matrix` (`np.array`): A NumPy array representing the matrix data. This attribute is essential for performing matrix operations and must adhere to the validation rules defined within the class.
-  - Additional attributes may be defined for validation purposes, but specific details are not provided in the context.
+  - `matrix` (`np.array`): This attribute holds the matrix data as a NumPy array. It is the primary data structure for matrix operations and is subject to validation.
+  - Additional attributes may be defined within the class, but specific details are not provided.
 
 **Expected Input:**
-- The `matrix` attribute should be a NumPy array. It is expected to meet certain validation criteria, such as dimensions and data types, which are enforced by the class's internal validators. The exact constraints are not specified but typically involve checks for non-empty arrays and appropriate numerical types.
+- The `matrix` attribute is expected to be a NumPy array. The input should adhere to the following constraints:
+  - The matrix should be two-dimensional (i.e., it must have rows and columns).
+  - The data type of the elements within the matrix should be numeric (e.g., integers or floats).
+  - Validation checks may enforce specific dimensions or properties, depending on the implementation.
 
 **Returns:**
-`None`: The class does not return a value upon instantiation. Instead, it initializes the matrix and sets up the necessary validation mechanisms.
+- The class does not return a value upon instantiation. Instead, it initializes an object that can be used for further matrix operations and validations.
 
 **Detailed Logic:**
-- Upon creation of an instance of `MatrixInput`, the class initializes its attributes, particularly the `matrix`.
-- The class utilizes validators, likely defined through the `field_validator` from the external library, to ensure that the input matrix meets the required specifications. This may include checks for shape, data type, and other properties relevant to matrix operations.
-- The helper function included in the class is designed to assist with common matrix tasks, although the specific functionality of this helper function is not detailed in the provided context.
-- The class inherits from `BaseModel`, which may provide additional functionality or structure for model validation and data handling, although specifics are not elaborated upon in the context. 
+- Upon instantiation, the `MatrixInput` class utilizes the `BaseModel` to inherit common functionalities and properties.
+- The class likely employs the `Field` and `field_validator` from the external libraries to define and validate the `matrix` attribute. This ensures that any matrix assigned to the attribute meets the required specifications.
+- The helper function within the class is designed to perform specific matrix operations, although the exact nature of these operations is not detailed in the provided information.
+- The class interacts with NumPy (`np.array`) to facilitate efficient matrix manipulations, leveraging its capabilities for mathematical operations and data handling.
 
-Overall, `MatrixInput` is structured to facilitate robust matrix handling while ensuring that all inputs are validated according to predefined rules, thereby enhancing the reliability of matrix operations within the application.
+This documentation provides a comprehensive overview of the `MatrixInput` class, outlining its purpose, expected behavior, and the underlying logic that governs its functionality.
 
 ---
 *Generated with 0% context confidence*

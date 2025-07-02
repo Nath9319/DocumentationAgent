@@ -7,24 +7,23 @@
 ### get_z_scores(data: List[float]) -> List[float]
 
 **Description:**
-The `get_z_scores` function calculates the Z-scores for a given list of numerical data. Z-scores are statistical measures that describe a value's relationship to the mean of a group of values, indicating how many standard deviations an element is from the mean. This function leverages the `calculate_z_scores` method from the `StatsService` class to perform the computation.
+The `get_z_scores` function calculates the Z-scores for a given list of numerical data. Z-scores indicate how many standard deviations an element is from the mean of the dataset, providing a way to understand the relative position of each data point within the distribution.
 
 **Parameters:**
 - `data` (`List[float]`): A list of floating-point numbers for which the Z-scores will be calculated.
 
 **Expected Input:**
-- `data` should be a non-empty list of floats. The list must contain numerical values, and it is expected that the list has more than one element to compute meaningful Z-scores. An empty list or a list with a single element may lead to undefined behavior or errors.
+- The `data` parameter should be a non-empty list of floats. It is important that the list contains numerical values to ensure valid calculations. If the list is empty or contains non-numeric values, the function may raise an exception.
 
 **Returns:**
-`List[float]`: A list of Z-scores corresponding to the input data. Each Z-score indicates how many standard deviations each value in the input list is from the mean of the list.
+`List[float]`: A list of Z-scores corresponding to the input data. Each Z-score represents the number of standard deviations a data point is from the mean of the dataset.
 
 **Detailed Logic:**
-- The function first validates the input to ensure that it is a non-empty list of floats.
-- It then calls the `calculate_z_scores` method from the `StatsService` class, passing the input data to it.
-- The `calculate_z_scores` method computes the Z-scores by subtracting the mean of the data from each value and dividing the result by the standard deviation of the data. The results are rounded to four decimal places.
-- Finally, the function returns the list of calculated Z-scores, providing a standardized measure of the input data's distribution. 
-
-This function is essential for statistical analysis, particularly in scenarios where understanding the relative position of data points within a dataset is necessary.
+- The function begins by validating the input data to ensure it is a non-empty list of floats.
+- It then calculates the mean and standard deviation of the input data using the `calculate_z_scores` method from the `StatsService` class.
+- The Z-scores are computed using the formula: \( Z = \frac{(X - \text{mean})}{\text{std\_dev}} \), where \( X \) is each individual data point.
+- The results are rounded to four decimal places for precision and returned as a list.
+- If any errors occur during the calculation (e.g., division by zero if the standard deviation is zero), the function raises an `APIException` to provide structured error handling, ensuring that the API can return a well-formed JSON error message to the client.
 
 ---
 *Generated with 48% context confidence*

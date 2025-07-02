@@ -7,21 +7,20 @@
 ### DataError
 
 **Description:**
-The `DataError` class is a custom exception designed to handle errors related to data processing within the application. It extends the base exception class, allowing it to be raised in scenarios where data integrity or validity issues occur, providing a clear indication of the nature of the error.
+`DataError` is a custom exception class designed to handle errors related to data processing within the application. It extends the base exception class, allowing it to be raised in scenarios where data integrity or validity issues occur, providing a clear indication of the nature of the error.
 
 **Parameters/Attributes:**
 None
 
 **Expected Input:**
-The `DataError` class does not take any specific input parameters upon instantiation. However, it can be raised with an optional message that describes the error in detail.
+- This class does not take any specific input parameters upon instantiation, but it is typically used in conjunction with error messages that describe the data-related issue encountered.
 
 **Returns:**
 None
 
 **Detailed Logic:**
-- The `DataError` class inherits from the built-in exception class, utilizing `super().__init__` to initialize the base exception with a custom message if provided.
-- This class serves as a specialized exception that can be caught and handled separately from other general exceptions, allowing developers to implement specific error handling logic for data-related issues.
-- By defining this custom exception, the codebase can maintain clarity and specificity in error reporting, making it easier to debug and manage data-related problems.
+- The `DataError` class inherits from the built-in `Exception` class, utilizing the `super().__init__` method to initialize the base class. This allows it to function as a standard exception while also providing a specific context for data-related errors.
+- When raised, `DataError` can be caught in exception handling blocks, enabling developers to manage data errors gracefully and provide meaningful feedback to users or logs. The class serves as a specialized exception type, enhancing the clarity and maintainability of error handling in the codebase.
 
 ---
 *Generated with 0% context confidence*

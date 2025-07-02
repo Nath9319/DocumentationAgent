@@ -7,24 +7,25 @@
 ### TTestInput
 
 **Description:**
-`TTestInput` is a model class designed to represent the input parameters for conducting an independent t-test. It ensures that the samples provided for the test are not identical, thereby validating the assumptions necessary for the t-test to be meaningful.
+`TTestInput` is a model designed for performing an independent t-test, a statistical method used to determine if there are significant differences between the means of two independent samples. This class includes validation to ensure that the samples provided for the t-test are not identical, which is a prerequisite for the test's assumptions.
 
 **Parameters/Attributes:**
-- `sample1` (`list`): The first sample of data points to be tested.
-- `sample2` (`list`): The second sample of data points to be tested.
+- `sample1` (`List[float]`): The first sample of data points for the t-test.
+- `sample2` (`List[float]`): The second sample of data points for the t-test.
 
 **Expected Input:**
-- `sample1` and `sample2` should be lists containing numerical values. 
+- `sample1` and `sample2` should be lists of floating-point numbers representing the data points of the two independent samples.
 - Both samples must contain at least one data point.
-- The two samples must not be identical; if they are, a validation error will be raised.
+- The samples must not be identical; if they are, a validation error will be raised.
 
 **Returns:**
-`None`: The class does not return a value but raises validation errors if the input conditions are not met.
+`None`: The class does not return a value but raises exceptions if validation fails.
 
 **Detailed Logic:**
-- Upon initialization, `TTestInput` validates the provided samples. It checks if both samples are identical and raises a `ValueError` if they are, ensuring that the assumptions for the independent t-test are satisfied.
-- The class leverages the `BaseModel` for foundational model behavior and utilizes `Field` for defining the attributes of the samples.
-- The `field_validator` is employed to enforce the validation rules, ensuring that the samples meet the necessary criteria before any statistical analysis is performed.
+- The `TTestInput` class inherits from `BaseModel`, which provides foundational functionality for model validation.
+- It utilizes the `Field` class to define the attributes `sample1` and `sample2`, ensuring they are appropriately typed and validated.
+- The `field_validator` function is employed to implement custom validation logic that checks whether the two samples are identical. If they are found to be identical, a `ValueError` is raised, indicating that the samples do not meet the requirements for conducting an independent t-test.
+- The class encapsulates the necessary data and validation logic, making it suitable for use in statistical analysis workflows where independent t-tests are required.
 
 ---
 *Generated with 0% context confidence*

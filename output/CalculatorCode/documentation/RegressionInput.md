@@ -7,22 +7,25 @@
 ### RegressionInput
 
 **Description:**
-The `RegressionInput` class serves as a model for Ordinary Least Squares (OLS) regression analysis. It is designed to ensure that the input variables used in the regression are distinct, thereby preventing issues that may arise from multicollinearity. This class is a part of a larger framework that likely involves statistical modeling and data analysis.
+The `RegressionInput` class serves as a model for Ordinary Least Squares (OLS) regression analysis. It is designed to ensure that the input variables used in the regression are distinct, thereby preventing issues that may arise from multicollinearity. This class encapsulates the necessary attributes and validation logic required for preparing data for OLS regression.
 
 **Parameters/Attributes:**
-- **Attributes:** The class does not explicitly define any attributes in the provided information. However, it is expected to inherit attributes from its parent class, `BaseModel`, which may include various properties related to the model's configuration and data handling.
-
+- **Attributes:**
+  - `dependent_variable` (`Field`): Represents the dependent variable in the regression model. It must be distinct from the independent variables.
+  - `independent_variables` (`List[Field]`): A list of independent variables used in the regression. Each variable must be distinct from one another and from the dependent variable.
+  
 **Expected Input:**
-- The `RegressionInput` class is expected to receive distinct variable inputs for regression analysis. These inputs should be structured in a way that adheres to the requirements of OLS regression, meaning that each variable must be independent and not correlated with others. The specifics of the input format are likely defined in the parent class or through the use of external libraries.
+- The `dependent_variable` must be a valid field that is distinct from all entries in `independent_variables`.
+- The `independent_variables` must be a list of valid fields, ensuring that no two variables in this list are the same, and that none of them match the `dependent_variable`.
 
 **Returns:**
-- The class does not return any values directly. Instead, it serves as a structured representation of the input data for regression analysis, which can be utilized by other components of the application.
+`None`: The class does not return a value upon instantiation. Instead, it initializes an object that can be used for further regression analysis.
 
 **Detailed Logic:**
-- The `RegressionInput` class inherits from `BaseModel`, which likely provides foundational functionality for model management, including data validation and processing.
-- The class utilizes the `Field` and `field_validator` from external libraries to define and validate the input fields. This ensures that the data conforms to the expected types and constraints.
-- The class may raise a `ValueError` if the input variables do not meet the distinctness requirement, ensuring robust error handling and data integrity.
-- Overall, the class encapsulates the logic necessary to prepare and validate input data for OLS regression, allowing for seamless integration with other components of the statistical analysis framework.
+- Upon initialization, the `RegressionInput` class validates the provided `dependent_variable` and `independent_variables` to ensure that they are distinct. This is crucial for the integrity of the regression analysis.
+- The class leverages external libraries such as `Field` for defining the structure of the variables and `field_validator` for implementing the validation logic.
+- If the validation fails (e.g., if any variables are not distinct), a `ValueError` is raised, indicating the nature of the input error.
+- The class does not perform any regression calculations itself but serves as a preparatory step for ensuring that the data is suitable for OLS regression analysis.
 
 ---
 *Generated with 0% context confidence*

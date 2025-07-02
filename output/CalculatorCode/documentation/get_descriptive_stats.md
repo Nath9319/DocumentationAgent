@@ -4,31 +4,30 @@
 
 
 > ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
-### get_descriptive_stats(data: List[float]) -> dict
+### get_descriptive_stats() -> dict
 
 **Description:**
-The `get_descriptive_stats` function is designed to compute and return a set of descriptive statistics for a given list of numerical data. It serves as an endpoint in an API, allowing clients to retrieve statistical insights such as mean, median, mode, variance, and standard deviation from the provided dataset.
+The `get_descriptive_stats` function is designed to retrieve and compute descriptive statistics for a given dataset. It serves as an endpoint in an API, allowing clients to submit data and receive statistical insights, such as mean, median, mode, variance, and standard deviation. The function leverages a service layer to perform the calculations, ensuring separation of concerns and maintainability.
 
 **Parameters:**
-- `data` (`List[float]`): A list of floating-point numbers for which the descriptive statistics will be calculated.
+- `data` (`List[float]`): A list of numerical values for which descriptive statistics are to be calculated.
 
 **Expected Input:**
-- `data` should be a non-empty list of floats. The list must contain numerical values, and it is expected that the list has sufficient data points to compute meaningful statistics (e.g., at least one number for mean and standard deviation calculations).
+- The `data` parameter should be a list containing numerical values (floats). It is expected that the list is non-empty; otherwise, the statistical calculations may not be valid. The function may also handle edge cases, such as lists with identical values, which could affect the mode calculation.
 
 **Returns:**
-`dict`: A dictionary containing the calculated descriptive statistics, which includes:
-- `mean`: The average of the numbers in the list.
-- `median`: The middle value when the numbers are sorted.
-- `mode`: The most frequently occurring number in the list.
-- `variance`: A measure of how much the numbers vary from the mean.
-- `std_dev`: The standard deviation, indicating the amount of variation or dispersion in the dataset.
+`dict`: A dictionary containing the calculated descriptive statistics, including:
+- `mean`: The average of the dataset.
+- `median`: The middle value when the dataset is sorted.
+- `mode`: The most frequently occurring value(s) in the dataset.
+- `variance`: A measure of the data's spread.
+- `std_dev`: The standard deviation, indicating how much the values deviate from the mean.
 
 **Detailed Logic:**
-- The function begins by validating the input data to ensure it meets the expected format and constraints.
-- It then calls the `calculate_descriptive_stats` method from the `StatsService` class, passing the input list of numbers.
-- The `calculate_descriptive_stats` method performs the actual computation of the statistics using NumPy and SciPy libraries, which provide efficient implementations for statistical calculations.
-- Finally, the results are returned as a dictionary, structured to provide easy access to each of the computed statistics.
-- If any errors occur during the processing, the function may raise an `APIException`, ensuring that clients receive a structured error response in case of issues.
+- The function begins by validating the input data to ensure it meets the expected criteria.
+- It then calls the `calculate_descriptive_stats` method from the `StatsService` class, passing the input data to compute the required statistics.
+- The results from the `StatsService` are formatted into a dictionary structure, which is then returned to the client.
+- If any errors occur during processing, such as invalid data types or empty lists, the function raises an `APIException` with an appropriate status code and detail message, ensuring that clients receive clear feedback on any issues encountered.
 
 ---
 *Generated with 48% context confidence*

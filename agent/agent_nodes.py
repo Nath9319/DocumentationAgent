@@ -33,22 +33,45 @@ class EnhancedDependencySearcher:
         self._build_search_indices()
     
     def _build_search_indices(self):
-        """Build various indices for efficient searching"""
+        """
+        Builds multiple indices to enable efficient searching of nodes in the graph by name, file, or method.
+
+        This method creates three indices:
+        - name_index: Maps lowercase node names to their actual names for case-insensitive lookup.
+        - file_index: Maps file paths to lists of node names defined in each file.
+        - method_index: Maps method names to lists of their fully qualified names (e.g., ClassName.method).
+
+        For each node in the graph:
+            - Adds an entry to name_index using the lowercase node name.
+            - Adds the node to file_index under its file path, if available.
+            - If the node name contains a dot ('.'), treats it as a method and adds it to method_index under the method name.
+
+        This indexing supports fast lookups for search, navigation, and analysis tasks.
+
+        Example:
+            self._build_search_indices()
+            node = self.name_index.get('myfunction')
+            nodes_in_file = self.file_index.get('utils.py')
+            qualified_methods = self.method_index.get('run')
+
+        Returns:
+            None
+        """
         self.name_index = {}  # Maps lowercase names to actual node names
         self.file_index = {}  # Maps file paths to nodes
         self.method_index = {}  # Maps method names to their full qualified names
-        
+
         for node, data in self.graph.nodes(data=True):
             # Name index
             self.name_index[node.lower()] = node
-            
+
             # File index
             fname = data.get('fname', '')
             if fname:
                 if fname not in self.file_index:
                     self.file_index[fname] = []
                 self.file_index[fname].append(node)
-            
+
             # Method index for class.method patterns
             if '.' in node:
                 parts = node.split('.')
@@ -59,8 +82,28 @@ class EnhancedDependencySearcher:
     
     def search_dependency(self, dep_name: str) -> List[Dict[str, Any]]:
         """
-        Search for a dependency using multiple strategies.
-        Returns list of potential matches with confidence scores.
+        Searches for a dependency node in the graph using multiple strategies and returns a list of potential matches with confidence scores.
+
+        The search is performed in the following order:
+        1. Exact match: Checks if the dependency name exactly matches a node in the graph.
+        2. Case-insensitive match: Looks for a node name that matches the dependency name, ignoring case.
+        3. Fuzzy match: Uses SequenceMatcher to find nodes with high similarity to the dependency name.
+        4. Method name search: Finds nodes that match the dependency as a method name (for unqualified method calls).
+        5. Import alias resolution: Recognizes common import aliases (e.g., 'np' for 'numpy') and maps them to their actual package names.
+
+        For each matching strategy, a dictionary is added to the results list containing:
+            - 'node': The matched node name or None for external dependencies.
+            - 'confidence': A float score indicating the confidence of the match.
+            - 'strategy': The name of the matching strategy used.
+            - 'data': Additional data about the node or dependency.
+
+        The results are sorted by confidence in descending order, and the top 5 matches are returned.
+
+        Args:
+            dep_name (str): The name of the dependency to search for.
+
+        Returns:
+            List[Dict[str, Any]]: A list of up to 5 dictionaries, each describing a potential match with confidence and metadata.
         """
         results = []
         
@@ -149,7 +192,34 @@ def initialize_documentation_queue(state: AgentState) -> dict:
 
 def select_next_node(state: AgentState) -> dict:
     """
-    Selects the next node to document from the queue.
+    Selects the next node to document from the queue or remaining nodes.
+
+    This function manages the process of determining which code node should be documented next.
+    It first checks the primary queue (`nodes_to_document`). If the queue is empty, it looks for
+    any remaining undocumented nodes in the repository graph and selects one to break cycles or
+    start a new component. The function prints informative messages about its decision process.
+
+    Steps:
+    1. Prints a header indicating the selection process has started.
+    2. Retrieves the current queue of nodes to document from the agent state.
+    3. If the queue is empty:
+        a. Prints a message and computes the set of remaining undocumented nodes.
+        b. If there are no remaining nodes, prints a message and returns a flag indicating completion.
+        c. Otherwise, selects the first remaining node to continue processing and prints its name.
+    4. If the queue is not empty, pops the next node from the queue.
+    5. Retrieves information about the selected node from the repository graph.
+    6. Prints the selected node and its category.
+    7. Returns a dictionary containing the selected node's name, its info, and the updated queue.
+
+    Args:
+        state (AgentState): The current agent state, including queues and the repository graph.
+
+    Returns:
+        dict: A dictionary with keys:
+            - "current_node_name": The name of the node selected for documentation.
+            - "current_node_info": Metadata about the selected node.
+            - "nodes_to_document": The updated queue of nodes to document.
+            - If finished, returnscts the next node to document from the queue.
     """
     print("\n--- Selecting Next Node to Document ---")
     
@@ -178,8 +248,35 @@ def select_next_node(state: AgentState) -> dict:
 
 def gather_documentation_context(state: AgentState) -> dict:
     """
-    ENHANCED VERSION: Analyzes the current node's code to find all dependencies,
-    then gathers context for them using advanced search strategies.
+    Gathers and compiles context for documenting the current code node, including advanced dependency analysis and confidence scoring.
+
+    Steps:
+    1. Checks if the documentation process is finished; if so, returns an empty dictionary.
+    2. Retrieves the current node's name, info, the repository graph, and already documented nodes from the state.
+    3. Initializes an EnhancedDependencySearcher for advanced dependency lookups.
+    4. Uses an LLM (or a regex fallback) to analyze the current node's code and identify dependencies.
+        - If the LLM fails, falls back to regex-based extraction.
+        - Filters out common Python keywords from dependencies.
+    5. For each dependency:
+        - If already documented, adds its content to the context.
+        - If present in the repo graph, adds its node data to the context.
+        - Otherwise, marks it for enhanced search.
+    6. For dependencies not found, uses EnhancedDependencySearcher to find the best match and adds the result to the context, including confidence and strategy.
+    7. Compiles a context string for the LLM, including docstrings, code, or external library notes for each dependency.
+    8. Calculates and records confidence scores and metadata about the context gathering process.
+    9. Prints a summary of the context gathering results, including counts and average confidence.
+    10. Returns a dictionary containing:
+        - "context_for_llm": The compiled context string for use in documentation generation.
+        - "context_metadata": Metadata including dependency counts, sources, and confidence scores.
+
+    Args:
+        state (AgentState): The current agent state, including the node to document, the repo graph, and documented nodes.
+
+    Returns:
+        dict: {
+            "context_for_llm": str,  # Markdown-formatted context for the LLM
+            "context_metadata": dict # Metadata about dependencies and confidence
+        }
     """
     if state.get("is_finished"):
         return {}
@@ -401,7 +498,17 @@ def generate_documentation(state: AgentState) -> dict:
     llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), temperature=0.2, max_tokens=1024)
     prompt = PromptTemplate.from_template(DOCUMENTATION_PROMPT_TEMPLATE)
     chain = prompt | llm | StrOutputParser()
-    
+    ### Dependency Adding
+    dependencies = context_metadata.get('dependencies', [])
+    if not dependencies and 'context_for_llm' in state:
+        # Optionally, extract dependency names from the context string if not present in metadata
+        # (You may want to explicitly pass the dependency list in gather_documentation_context)
+        dependencies = []  # fallback: leave empty or parse from context string if needed
+
+    dependencies_section = ""
+    if dependencies:
+        dependencies_section = "\n**Dependencies:**\n" + "\n".join(f"- `{dep}`" for dep in dependencies) + "\n"
+        
     print("Invoking LLM for documentation...")
     generated_doc = chain.invoke({
         "node_name": state['current_node_name'],
@@ -416,7 +523,7 @@ def generate_documentation(state: AgentState) -> dict:
     
     # Prepend quality note if needed
     if quality_note:
-        generated_doc = quality_note + generated_doc
+        generated_doc = quality_note + dependencies_section + generated_doc
     
     documented_nodes = state['documented_nodes']
     documented_nodes[state['current_node_name']] = generated_doc
@@ -425,9 +532,31 @@ def generate_documentation(state: AgentState) -> dict:
 
 def generate_conceptual_graph_data(state: AgentState) -> dict:
     """
-    Builds the conceptual graph by merging AST metadata with LLM-generated
-    semantic metadata for the current node.
-    ENHANCED: Now includes confidence scores in relationships.
+    Builds and updates the conceptual graph for the current code node by merging AST metadata with LLM-generated semantic metadata.
+
+    Steps:
+    1. Checks if the documentation process is finished; if so, returns an empty dictionary.
+    2. Retrieves the current node's name and prints a header for conceptual graph generation.
+    3. Gets context metadata from the state for use in confidence scoring.
+    4. Initializes an AzureChatOpenAI LLM and prepares a prompt for conceptual graph analysis.
+    5. Invokes the LLM to generate semantic metadata and conceptual relationships for the current node.
+    6. Retrieves the conceptual graph and base metadata for the current node from the repository graph.
+    7. Merges LLM-generated semantic metadata with AST metadata, including context confidence.
+    8. Adds the current node to the conceptual graph if not already present.
+    9. Sets node attributes in the conceptual graph with the merged metadata.
+    10. Iterates over semantic edges returned by the LLM:
+        - For each edge, adds an edge to the conceptual graph if the target node exists, using the provided label.
+    11. Updates the final output data for the current node with documentation, conceptual data, and context metadata.
+    12. Handles exceptions by logging a warning and storing error information in the output data.
+    13. Returns the updated conceptual graph and final output data.
+
+    Args:
+        state (AgentState): The current agent state, including node information, context, and output data.
+
+    Returns:
+        dict: {
+            "conceptual_graph": The updated conceptual graph (networkx graph object),
+            "final_output_data": The updated output data dictionary for allNCED: Now includes confidence scores in relationships.
     """
     if state.get("is_finished"): return {}
     current_node = state['current_node_name']

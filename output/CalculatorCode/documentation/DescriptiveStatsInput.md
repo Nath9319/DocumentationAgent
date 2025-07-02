@@ -7,22 +7,22 @@
 ### DescriptiveStatsInput
 
 **Description:**
-The `DescriptiveStatsInput` class serves as a model for calculating descriptive statistics. It is designed to encapsulate the necessary input data required for performing various statistical analyses, such as mean, median, mode, variance, and standard deviation.
+The `DescriptiveStatsInput` class serves as a model for calculating descriptive statistics. It encapsulates the necessary attributes and methods required to perform statistical analysis on a given dataset, providing a structured way to manage input data for such calculations.
 
 **Parameters/Attributes:**
 - `data` (`List[float]`): A list of numerical values representing the dataset for which descriptive statistics will be calculated.
 
 **Expected Input:**
-- The `data` attribute should be a list of floating-point numbers. It is expected that the list contains valid numerical entries, and it should not be empty, as descriptive statistics cannot be computed on an empty dataset.
+- The `data` attribute should be a list of floating-point numbers. It is expected that the list contains valid numerical entries, and it should not be empty, as descriptive statistics require a dataset to compute meaningful results.
 
 **Returns:**
-`None`: The class does not return any value upon instantiation. Instead, it initializes an object that holds the input data for further statistical processing.
+`None`: The class does not return a value upon instantiation. Instead, it initializes an object that can be used to perform further calculations related to descriptive statistics.
 
 **Detailed Logic:**
-- Upon instantiation, the `DescriptiveStatsInput` class initializes with a list of numerical values provided as input.
-- The class is likely to inherit from `BaseModel`, which may provide additional functionality or validation mechanisms for the data.
-- The primary role of this class is to serve as a structured input for subsequent calculations of descriptive statistics, ensuring that the data is organized and accessible for further processing.
-- The class does not perform any calculations itself but acts as a container for the input data, which can be utilized by other functions or methods that perform the actual statistical computations.
+- The `DescriptiveStatsInput` class inherits from `BaseModel`, which likely provides foundational functionality for model representation, such as validation and serialization.
+- Upon creation of an instance of `DescriptiveStatsInput`, the provided dataset is stored in the `data` attribute.
+- The class is designed to facilitate the calculation of various descriptive statistics (such as mean, median, mode, variance, and standard deviation) by providing a structured way to manage and validate the input data.
+- The interaction with `BaseModel` may include methods for data validation and ensuring that the input adheres to expected formats and types, although specific methods are not detailed in the provided context.
 
 ---
 *Generated with 0% context confidence*
