@@ -1,11 +1,11 @@
 {
-  "generation_timestamp": "2025-07-01T21:13:35.684811",
-  "processing_time_seconds": 725.236444,
+  "generation_timestamp": "2025-07-02T13:18:13.711747",
+  "processing_time_seconds": 1197.818039,
   "repository_path": "CalculatorCode",
   "total_nodes": 64,
   "documented_nodes": 64,
   "quality_metrics": {
-    "average_context_confidence": 0.2119993406056611,
+    "average_context_confidence": 0.21310687370301892,
     "high_confidence_nodes": 7,
     "medium_confidence_nodes": 1,
     "low_confidence_nodes": 56,

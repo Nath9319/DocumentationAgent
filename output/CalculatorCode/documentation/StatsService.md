@@ -7,27 +7,28 @@
 ### StatsService
 
 **Description:**
-The `StatsService` class is designed to provide statistical analysis and data processing functionalities. It serves as a service layer that interacts with a SQLite database to retrieve data, perform various statistical computations, and return the results in a structured format. The class utilizes several external libraries for data manipulation and statistical analysis, ensuring robust and efficient processing of data.
+The `StatsService` class is designed to provide statistical analysis and data processing functionalities. It interacts with a SQLite database to retrieve data, performs various statistical computations, and returns the results. The class leverages external libraries such as NumPy and SciPy for advanced mathematical operations and statistical tests.
 
 **Parameters/Attributes:**
-- `db_path` (`str`): The file path to the SQLite database from which the service retrieves data.
-- `connection` (`sqlite3.Connection`): An active connection to the SQLite database, established upon initialization of the class.
-- `data` (`pd.DataFrame`): A DataFrame that holds the data retrieved from the database for further analysis.
-- `results` (`dict`): A dictionary that stores the results of various statistical computations performed by the class methods.
+- `db_path` (`str`): The file path to the SQLite database from which data will be retrieved.
+- `connection` (`sqlite3.Connection`): A connection object used to interact with the SQLite database.
+- `data` (`pd.DataFrame`): A DataFrame that holds the data retrieved from the database for analysis.
+- `results` (`dict`): A dictionary to store the results of various statistical computations.
 
 **Expected Input:**
 - `db_path` should be a valid string representing the path to an existing SQLite database file.
-- The data retrieved from the database is expected to be in a format compatible with pandas DataFrames, allowing for efficient manipulation and analysis.
+- The data retrieved from the database is expected to be in a format compatible with Pandas DataFrames, allowing for statistical operations.
 
 **Returns:**
-`None`: The class does not return any values directly upon instantiation. However, it provides methods that return various statistical results based on the data processed.
+`None`: The class does not return a value directly but provides methods that return statistical results based on the data processed.
 
 **Detailed Logic:**
-- Upon initialization, the `StatsService` class establishes a connection to the SQLite database using the provided `db_path`. It retrieves data from the database and loads it into a pandas DataFrame for analysis.
-- The class includes methods that perform various statistical analyses, such as calculating means, medians, standard deviations, and performing t-tests. These methods leverage external libraries like NumPy and SciPy for efficient computation.
-- The class also provides functionality to compute correlations and regressions, utilizing methods from NumPy and pandas.
-- Results from the computations are stored in the `results` attribute, allowing for easy access and retrieval after analysis.
-- The class is designed to handle various statistical tasks, making it a versatile tool for data analysis within the application.
+- Upon instantiation, the `StatsService` class establishes a connection to the SQLite database using the provided `db_path`.
+- It retrieves data from the database and loads it into a Pandas DataFrame for further analysis.
+- The class includes methods for various statistical operations, such as calculating means, variances, standard deviations, and performing t-tests.
+- It utilizes NumPy functions for numerical operations and SciPy functions for statistical tests, ensuring efficient computation.
+- The results of the computations are stored in the `results` attribute, which can be accessed through specific methods designed to return the desired statistical metrics.
+- The class also handles potential exceptions that may arise during database connections or data retrieval, ensuring robust operation.
 
 ---
 *Generated with 0% context confidence*

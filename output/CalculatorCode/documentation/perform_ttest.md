@@ -4,17 +4,17 @@
 
 
 > ⚠️ **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.
-### perform_ttest() -> dict
+### perform_ttest(sample1: list, sample2: list) -> dict
 
 **Description:**
-The `perform_ttest` function is designed to execute a statistical independent two-sample t-test. This test evaluates whether the means of two independent samples are significantly different from each other. It leverages the `perform_independent_ttest` method from the `StatsService` class to carry out the computation and return the results.
+The `perform_ttest` function conducts an independent two-sample t-test to compare the means of two samples. It assesses whether the means of the two groups are statistically different from each other, returning the t-statistic and the p-value associated with the test.
 
 **Parameters:**
-- `sample1` (`list` or `numpy.ndarray`): The first sample of data for the t-test.
-- `sample2` (`list` or `numpy.ndarray`): The second sample of data for the t-test.
+- `sample1` (`list`): The first sample data, which should be a list or a numpy array containing numerical values.
+- `sample2` (`list`): The second sample data, which should also be a list or a numpy array containing numerical values.
 
 **Expected Input:**
-- Both `sample1` and `sample2` should be either lists or numpy arrays containing numerical data. They must not be empty and should ideally represent independent samples from the same population.
+- Both `sample1` and `sample2` must be lists or numpy arrays containing numerical data. The samples can be of different lengths, and they do not need to have equal variance.
 
 **Returns:**
 `dict`: A dictionary containing the results of the t-test, specifically:
@@ -22,10 +22,9 @@ The `perform_ttest` function is designed to execute a statistical independent tw
 - `p_value` (`float`): The p-value associated with the t-test, indicating the probability of observing the data given that the null hypothesis is true.
 
 **Detailed Logic:**
-- The function first validates the input samples to ensure they meet the expected criteria (i.e., they are non-empty lists or numpy arrays).
-- It then calls the `perform_independent_ttest` method from the `StatsService` class, passing the two samples as arguments.
-- The `perform_independent_ttest` method computes the t-statistic and p-value using the `ttest_ind` function from the `scipy.stats` module, which performs the independent two-sample t-test.
-- Finally, the function returns a dictionary containing the t-statistic and p-value, providing the user with the results of the statistical test.
+- The function utilizes the `perform_independent_ttest` method from the `StatsService` class, which implements the independent two-sample t-test using the `ttest_ind` function from the `scipy.stats` module.
+- It computes the t-statistic and p-value by passing the two samples to the `ttest_ind` function, with the `equal_var` parameter set to `False`, indicating that the function should not assume equal population variances.
+- The results are returned as a dictionary containing the t-statistic and p-value, which can be used to evaluate the statistical significance of the difference between the two sample means.
 
 ---
 *Generated with 48% context confidence*

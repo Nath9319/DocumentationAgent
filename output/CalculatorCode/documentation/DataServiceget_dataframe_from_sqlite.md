@@ -7,22 +7,25 @@
 ### DataService.get_dataframe_from_sqlite() -> pd.DataFrame
 
 **Description:**
-This method connects to a SQLite database and retrieves an entire table as a pandas DataFrame. It facilitates data access for other services, specifically `ValidationService` and `StatsService`, by providing a structured representation of the data stored in the database.
+This method connects to a SQLite database and retrieves an entire table as a pandas DataFrame. It is designed to facilitate data extraction for further processing or analysis, making it accessible for other services such as `ValidationService` and `StatsService`.
 
 **Parameters:**
-- None
+- `db_path` (`str`): The file path to the SQLite database from which the data will be retrieved.
+- `table_name` (`str`): The name of the table within the SQLite database that is to be converted into a DataFrame.
 
 **Expected Input:**
-- The method expects the SQLite database to be accessible and the specified table to exist within that database. There are no specific input parameters required for this method.
+- `db_path` should be a valid string representing the path to an existing SQLite database file. If the path does not exist, an error will be raised.
+- `table_name` should be a valid string that corresponds to an existing table within the specified SQLite database. If the table does not exist, an error will be raised.
 
 **Returns:**
-`pd.DataFrame`: A pandas DataFrame containing all the records from the specified table in the SQLite database. This DataFrame can be used for further data manipulation and analysis.
+`pd.DataFrame`: A pandas DataFrame containing all rows and columns from the specified table in the SQLite database.
 
 **Detailed Logic:**
-- The method begins by establishing a connection to the SQLite database using `sqlite3.connect`, ensuring that the database file exists and is accessible.
-- It then executes a SQL query to select all records from a specified table using `pd.read_sql_query`, which reads the results directly into a pandas DataFrame.
-- After retrieving the data, the method ensures that the database connection is properly closed using `conn.close`, which is crucial for resource management and preventing database locks.
-- If any errors occur during the data retrieval process, the method is designed to raise a `DataError`, allowing for specific error handling related to data integrity or connection issues. This enhances the robustness of the data retrieval process.
+- The method begins by checking if the provided database path exists using `os.path.exists`. If the path is invalid, it raises a `DataError` to indicate the issue.
+- Upon confirming the existence of the database, it establishes a connection to the SQLite database using `sqlite3.connect`.
+- A SQL query is constructed to select all data from the specified table using `pd.read_sql_query`, which executes the query and retrieves the data as a DataFrame.
+- After the data is successfully fetched, the database connection is closed using `conn.close` to ensure that resources are released.
+- If any errors occur during the data retrieval process, a `DataError` is raised, providing a clear indication of the nature of the issue encountered.
 
 ---
 *Generated with 20% context confidence*

@@ -7,22 +7,22 @@
 ### TTestInput.samples_must_not_be_identical
 
 **Description:**
-The `samples_must_not_be_identical` method is a validation function designed to ensure that a set of input samples are not identical. This is crucial in statistical testing and analysis, where identical samples can lead to misleading results or errors in calculations.
+This method is designed to validate that the samples provided to a test input are not identical. It ensures that the input data used for testing contains distinct values, which is crucial for the integrity of statistical analyses and tests.
 
 **Parameters:**
-- `samples` (`list`): A list of samples to be validated. This list is expected to contain numerical or categorical data.
+None
 
 **Expected Input:**
-- The `samples` parameter should be a list containing at least two elements. Each element should represent a sample that can be compared against others in the list.
-- The method will raise a `ValueError` if the list contains fewer than two samples or if all samples in the list are identical.
+- The method operates on the samples attribute of the `TTestInput` class, which is expected to be a collection (e.g., list or array) of numerical values. The collection should contain at least two elements for the validation to be meaningful.
+- The method will raise a `ValueError` if the samples are identical or if there are fewer than two samples.
 
 **Returns:**
-`None`: This method does not return any value. Instead, it raises an exception if the validation fails.
+None
 
 **Detailed Logic:**
-- The method first checks the length of the `samples` list. If the list contains fewer than two samples, it raises a `ValueError` indicating that at least two samples are required for comparison.
-- Next, it checks if all samples in the list are identical. This is typically done by converting the list to a set (which removes duplicates) and checking the length of the set. If the length of the set is 1, it implies that all samples are identical, and a `ValueError` is raised with an appropriate message.
-- The method utilizes the `field_validator` from an external library to enforce these validation rules, ensuring that the input adheres to the expected criteria before proceeding with further computations or analyses.
+- The method utilizes the `field_validator` from an external library to enforce the validation rule.
+- It checks the samples attribute of the `TTestInput` instance to determine if all values are the same.
+- If the samples are found to be identical, a `ValueError` is raised, indicating that the samples must not be identical. This is critical for ensuring that statistical tests, such as t-tests, can be performed accurately and meaningfully.
 
 ---
 *Generated with 0% context confidence*

@@ -7,21 +7,22 @@
 ### calculate_correlation_matrix(self, columns: List[str]) -> Dict[str, Dict[str, float]]
 
 **Description:**
-Calculates the Pearson correlation matrix for the specified columns of a dataset. This method analyzes the linear relationship between pairs of columns, providing a statistical measure of how closely related they are.
+Calculates the Pearson correlation matrix for the specified columns of a dataset. This method analyzes the linear relationship between pairs of columns, providing insights into how closely related the data points are across the selected features.
 
 **Parameters:**
-- `columns` (`List[str]`): A list of column names for which the correlation matrix will be computed. Each column name must correspond to a valid column in the dataset.
+- `columns` (`List[str]`): A list of strings representing the names of the columns for which the correlation matrix will be calculated.
 
 **Expected Input:**
-- `columns` should be a list of strings, where each string is the name of a column in the dataset. The specified columns must exist in the dataset loaded by the service. If any column names are invalid or do not exist, the method may raise an error.
+- `columns` should be a non-empty list of strings, where each string corresponds to a valid column name in the dataset. The dataset must contain numerical data in these columns to compute the correlation.
 
 **Returns:**
-`Dict[str, Dict[str, float]]`: A nested dictionary representing the Pearson correlation coefficients between the specified columns. The outer dictionary's keys are the column names, and the values are dictionaries where each key is another column name, and the corresponding value is the correlation coefficient.
+`Dict[str, Dict[str, float]]`: A nested dictionary representing the Pearson correlation coefficients between the specified columns. The outer dictionary's keys are the column names, and the values are dictionaries where each key is another column name and the value is the correlation coefficient.
 
 **Detailed Logic:**
-- The method begins by invoking `self._load_data`, which retrieves the dataset needed for analysis. This dataset is expected to be in a format compatible with correlation calculations.
-- It then uses the `df.corr` function from an external library to compute the correlation matrix specifically for the columns provided in the `columns` parameter. This function calculates the Pearson correlation coefficients, which measure the linear correlation between pairs of columns.
-- Finally, the resulting correlation matrix is transformed into a dictionary format using the `to_dict` method, making it easier to access and interpret the correlation values for each pair of specified columns. The method ensures that the output is structured for straightforward consumption by other components of the application.
+- The method begins by invoking `self._load_data`, which is responsible for loading the dataset into a DataFrame. This step ensures that the data is ready for analysis.
+- Once the data is loaded, the method utilizes the `corr` function from the DataFrame to compute the correlation matrix specifically for the columns provided in the input list.
+- The resulting correlation matrix is then transformed into a dictionary format using the `to_dict` method, making it easier to access and interpret the correlation values.
+- The final output is a structured dictionary that allows users to quickly identify the correlation between each pair of specified columns, facilitating further data analysis and decision-making.
 
 ---
 *Generated with 0% context confidence*
