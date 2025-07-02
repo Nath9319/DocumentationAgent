@@ -1,10 +1,6 @@
-# main.py
-#
-# This is the main entry point for the AI Documentation Agent.
-# ENHANCED VERSION: Added quality indicators and metadata tracking
-
 import os
 import sys
+import subprocess
 import pickle
 import json
 import networkx as nx
@@ -13,6 +9,18 @@ from datetime import datetime
 from typing import Dict, Any
 from core.construct_graph import CodeGraph
 from agent.agent_graph import create_agent_graph
+
+def clone_repository(repo_url: str, destination_folder: str):
+    """
+    Clones a public GitHub repository into a local directory.
+    """
+    print(f"Cloning repository: {repo_url} into {destination_folder}")
+    try:
+        subprocess.run(["git", "clone", repo_url, destination_folder], check=True)
+        print(f"Repository cloned successfully into: {destination_folder}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error cloning the repository: {e}")
+        sys.exit(1)
 
 def run_documentation_agent(repo_path: str):
     """
@@ -32,7 +40,7 @@ def run_documentation_agent(repo_path: str):
         sys.exit(1)
 
     # --- Step 2: Construct or Load the AST Code Graph ---
-    graph_file = "graph.pkl"
+    graph_file = "pickle_graph.pkl"  # ENHANCED: Use a more descriptive name for clarity
     if os.path.exists(graph_file):
         print(f"Found existing graph file: '{graph_file}'. Loading it.")
         with open(graph_file, 'rb') as f:
@@ -68,7 +76,7 @@ def run_documentation_agent(repo_path: str):
     }
     
     total_nodes = len(repo_graph.nodes())
-    recursion_limit = total_nodes * 6
+    recursion_limit = total_nodes * 660
     config = {"recursion_limit": recursion_limit}
     
     print(f"\n--- Invoking Enhanced Agent ---")
@@ -127,7 +135,7 @@ def run_documentation_agent(repo_path: str):
 
         # 4. Save individual markdown files for each documented node
         print("\n--- Saving individual documentation files... ---")
-        '''docs_output_dir = os.path.join(output_dir, "documentation")
+        docs_output_dir = os.path.join(output_dir, "documentation")
         os.makedirs(docs_output_dir, exist_ok=True)
 
         low_confidence_count = 0
@@ -135,7 +143,14 @@ def run_documentation_agent(repo_path: str):
             if 'documentation' in data and data['documentation']:
                 # Sanitize the node name for use as a filename
                 sanitized_name = "".join(c for c in node_name if c.isalnum() or c in ('_', '-')).rstrip()
-                doc_path = os.path.join(docs_output_dir, f"{sanitized_name}.md")
+                # Determine the path to the file where this component is located
+                component_path = os.path.normpath(data.get('file_path', ''))  # Assume file path is in the data
+                component_path = os.path.dirname(component_path)  # Get the directory of the file
+
+                # Generate the documentation path based on file's relative path
+                # This now ensures that we create folders based on the component's file location
+                doc_path = os.path.join(output_dir, component_path, f"{sanitized_name}.md")
+
                 
                 # Check context quality
                 context_metadata = data.get('context_metadata', {})
@@ -215,8 +230,16 @@ def calculate_quality_metrics(final_output_data: Dict[str, Any]) -> Dict[str, An
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python main.py <path_to_repository>")
+        print("Usage: python main.py <repository_url>")
         sys.exit(1)
-        
-    repository_path = sys.argv[1]
-    run_documentation_agent(repository_path)
+    
+    # Get the repository URL from the command line argument
+    repo_url = sys.argv[1]
+    repo_name = repo_url.split("/")[-1].replace(".git", "")
+    destination_folder = os.path.join(os.getcwd(), repo_name)
+
+    # Step 1: Clone the repository
+    clone_repository(repo_url, destination_folder)
+
+    # Step 2: Run the documentation agent on the cloned repository
+    run_documentation_agent(destination_folder)
