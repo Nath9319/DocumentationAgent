@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+numpy
+pandas
+scipy
+statsmodels
+python-multipart
+jinja2
+pydantic-settings
