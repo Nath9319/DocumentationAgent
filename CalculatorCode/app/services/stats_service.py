@@ -1,31 +1,25 @@
 import numpy as np
 import pandas as pd
 from scipy import stats
-import sqlite3
 from typing import List, Dict
 import scipy.stats as st
+from app.services.data_service import data_service  # Import the DataService
 
 
 class StatsService:
 
     def _load_data(self, db_path: str, table_name: str, columns=None):
         """
-        Load data from SQLite database into a pandas DataFrame.
+        Load data from SQLite database into a pandas DataFrame using DataService.
         If columns is None, load all columns.
         """
-        with sqlite3.connect(db_path) as conn:
-            query = f"SELECT * FROM {table_name}"
-            df = pd.read_sql_query(query, conn)
-        if columns:
-            df = df[columns]
-        return df
+        return data_service.get_dataframe_from_sqlite(db_path, table_name)  # Use DataService to load data
 
     def perform_ols_regression(self, db_path, table_name, dependent_var, independent_vars):
         """
         Perform OLS regression using numpy's least squares (without statsmodels).
         Returns a summary dictionary with coefficients, intercept, R-squared, and p-values.
         """
-
         df = self._load_data(db_path, table_name, [dependent_var] + independent_vars)
 
         # Prepare design matrix X and response vector y
@@ -76,7 +70,7 @@ class StatsService:
 
     def calculate_correlation_matrix(self, db_path, table_name, columns):
         """
-        Calculate Pearson correlation matrix for specified columns.
+        Calculate Pearson correlation matrix for specified columns using DataService.
         """
         df = self._load_data(db_path, table_name, columns)
         corr_matrix = df.corr(method='pearson').to_dict()
@@ -92,6 +86,7 @@ class StatsService:
             "t_statistic": t_stat,
             "p_value": p_value
         }
+
     def calculate_standard_deviation(self, data: list) -> float:
         """
         Calculate the standard deviation of a list of numbers.
@@ -113,8 +108,6 @@ class StatsService:
         """Calculate Z-Scores for a list of numbers."""
         return list(((np.array(data) - np.mean(data)) / np.std(data)).round(4))
 
-    
-
     def calculate_confidence_interval(self, data: List[float], confidence: float) -> dict:
         """Calculate the confidence interval for a list of numbers."""
         n = len(data)
@@ -126,11 +119,6 @@ class StatsService:
             "confidence_level": confidence,
             "interval": [float(mean - margin), float(mean + margin)]
         }
-    
-
-
-    
-
 
 # Singleton instance
 stats_service = StatsService()
