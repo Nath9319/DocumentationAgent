@@ -2,7 +2,7 @@
 #
 # This file wires together all the agent nodes into a stateful graph
 # using the LangGraph library. This version has a more robust control flow.
-
+from langchain_core.runnables import RunnableLambda
 from langgraph.graph import StateGraph, END
 from .agent_state import AgentState
 from .agent_nodes import (
@@ -37,13 +37,26 @@ def create_agent_graph() -> StateGraph:
     
     # --- THIS IS THE FIX: The main control router ---
     # After selecting a node, decide if the process is finished or needs to continue.
-    graph.add_conditional_edges(
+    '''graph.add_conditional_edges(
         "select_node",
         # A simple router based on whether the 'is_finished' flag was set.
-        lambda x: "end" if x.get("is_finished") else "continue",
+        RunnableLambda(lambda x: "end" if x.get("is_finished") else "continue"),
         {
             "continue": "gather_context", # If not finished, proceed with documentation.
             "end": END,                   # If finished, terminate the graph.
+        }
+    )'''
+        # Wrap the lambda in RunnableLambda
+    path_fn = RunnableLambda(lambda x: "end" if x.get("is_finished") else "continue")
+    #Manually set the name
+    path_fn.name = "check_is_finished"
+
+    graph.add_conditional_edges(
+        "select_node",
+        path_fn,
+        {
+            "continue": "gather_context",
+            "end": END,
         }
     )
     

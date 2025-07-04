@@ -271,6 +271,16 @@ class CodeGraph:
         graph = self.tags_to_graph(tags)
         
         return graph
+    
+
+def generate_structure_json(repo_path: str, output_path: str = "structure.json"):
+    """
+    Public utility to generate structure.json from a given repo path.
+    """
+    graph_builder = CodeGraph(root=repo_path)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        json.dump(graph_builder.structure_cache, f, indent=2)
+    print(f" structure.json saved at: {output_path}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -282,7 +292,7 @@ if __name__ == "__main__":
     repo_graph = graph_builder.build_graph()
 
     print("\n" + "="*50)
-    print(f"🏅 Successfully constructed the code graph for '{dir_name}'")
+    print(f"Successfully constructed the code graph for '{dir_name}'")
     print(f"   - Nodes: {len(repo_graph.nodes())}")
     print(f"   - Edges: {len(repo_graph.edges())}")
     print("="*50)
@@ -292,10 +302,10 @@ if __name__ == "__main__":
     graph_output_file = 'pickle_graph.pkl'
     with open(graph_output_file, 'wb') as f:
         pickle.dump(repo_graph, f)
-    print(f"🏅 Saved graph to '{graph_output_file}'")
+    print(f" Saved graph to '{graph_output_file}'")
 
     # Save the detailed structure as a JSON file
     structure_output_file = 'structure.json'
     with open(structure_output_file, 'w', encoding='utf-8') as f:
         json.dump(graph_builder.structure_cache, f, indent=2)
-    print(f"🏅 Saved repository structure to '{structure_output_file}'")
+    print(f" Saved repository structure to '{structure_output_file}'")
