@@ -1,0 +1,13 @@
+{
+  "generation_timestamp": "2025-07-04T14:00:52.122497",
+  "processing_time_seconds": 160.03527,
+  "total_nodes": 7,
+  "documented_nodes": 7,
+  "quality_metrics": {
+    "average_context_confidence": 0.38095238095238093,
+    "high_confidence_nodes": 2,
+    "medium_confidence_nodes": 0,
+    "low_confidence_nodes": 5,
+    "total_documented": 7
+  }
+}

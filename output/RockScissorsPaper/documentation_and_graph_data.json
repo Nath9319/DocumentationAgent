@@ -1,0 +1,271 @@
+{
+  "textWahl": {
+    "documentation": "\n> \u26a0\ufe0f **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.\n### textWahl() -> None\n\n**Description:**\nThe `textWahl` function facilitates user interaction in a Rock-Paper-Scissors game by prompting the player to make a choice between rock, paper, or scissors. It handles user input, validates it, and provides feedback based on the player's selection.\n\n**Parameters:**\nNone\n\n**Expected Input:**\n- The function expects the user to input a string representing their choice. Valid inputs are \"rock\", \"paper\", or \"scissors\". The function is case-insensitive and will prompt the user again if the input is invalid.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The function begins by displaying a prompt to the user, asking them to select one of the three options: rock, paper, or scissors.\n- It captures the user's input using the `input` function and normalizes it to lowercase to ensure case insensitivity.\n- The function checks if the input is one of the valid options. If the input is valid, it prints a confirmation message displaying the player's choice.\n- If the input is invalid, it raises a `ValueError`, which is a built-in exception in Python, indicating that the user has provided an invalid selection.\n- The function may also include a delay using the `sleep` function to enhance user experience by pacing the interaction.\n- Overall, `textWahl` serves as a critical component for gathering user input in the game, ensuring that the input is both valid and user-friendly.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "User Choice Handler for Rock-Paper-Scissors Game",
+        "type": "Business Logic",
+        "summary": "Facilitates user interaction by prompting for and validating choices in a Rock-Paper-Scissors game.",
+        "context_confidence": 0.0
+      },
+      "semantic_edges": [
+        {
+          "target": "print",
+          "label": "USES"
+        },
+        {
+          "target": "input",
+          "label": "USES"
+        },
+        {
+          "target": "int",
+          "label": "USES"
+        },
+        {
+          "target": "ValueError",
+          "label": "USES"
+        },
+        {
+          "target": "sleep",
+          "label": "USES"
+        }
+      ]
+    },
+    "context_metadata": {
+      "total_dependencies": 6,
+      "found": {
+        "documented": 0,
+        "graph": 0,
+        "search": 0,
+        "external": 6
+      },
+      "confidence_scores": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "average_confidence": 0.0
+    },
+    "fname": "RockPaperScissors.py"
+  },
+  "clear": {
+    "documentation": "\n> \u26a0\ufe0f **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.\n### clear() \n\n**Description:**\nThe `clear` function is designed to clear the console screen, providing a clean slate for user interaction in a command-line interface. This is particularly useful in applications like games, where a fresh display can enhance the user experience by removing previous outputs.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nNone. The function does not require any input parameters.\n\n**Returns:**\nNone. The function does not return any value.\n\n**Detailed Logic:**\n- The function utilizes the `system` method from an external library to execute a command that clears the console screen.\n- The specific command executed depends on the operating system: typically, it uses `cls` for Windows and `clear` for Unix-based systems (like Linux and macOS).\n- This ensures that the console is cleared effectively across different environments, enhancing the usability of the application. \n\nBy calling this function, users can expect a refreshed console view, which is particularly beneficial in interactive applications such as games or command-line tools.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Console Screen Clearer",
+        "type": "Utility",
+        "summary": "Clears the console screen to provide a fresh display for user interaction.",
+        "context_confidence": 0.0
+      },
+      "semantic_edges": [
+        {
+          "target": "system",
+          "label": "USES"
+        }
+      ]
+    },
+    "context_metadata": {
+      "total_dependencies": 1,
+      "found": {
+        "documented": 0,
+        "graph": 0,
+        "search": 0,
+        "external": 1
+      },
+      "confidence_scores": [
+        0.0
+      ],
+      "average_confidence": 0.0
+    },
+    "fname": "RockPaperScissors.py"
+  },
+  "randomChoice": {
+    "documentation": "\n> \u26a0\ufe0f **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.\n### randomChoice() -> str\n\n**Description:**\nThe `randomChoice` function selects a random option from a predefined list of choices, typically used in games like Rock-Paper-Scissors. It leverages randomness to ensure that the selection is unpredictable, simulating a fair game scenario.\n\n**Parameters:**\n- None\n\n**Expected Input:**\n- The function does not take any parameters directly. Instead, it operates on a predefined list of choices that are hardcoded within the function. The choices typically include options like \"rock,\" \"paper,\" and \"scissors.\"\n\n**Returns:**\n`str`: A randomly selected choice from the predefined list of options.\n\n**Detailed Logic:**\n- The function utilizes the `randint` function from an external library to generate a random integer that corresponds to an index in the list of choices.\n- It first defines a list containing the possible choices.\n- Then, it generates a random index within the bounds of the list length.\n- Finally, it returns the choice at the randomly generated index, ensuring that each option has an equal probability of being selected. This randomness is crucial for the fairness of the game.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Random Choice Selector",
+        "type": "Utility",
+        "summary": "Selects a random option from a predefined list of choices to ensure fairness in games.",
+        "context_confidence": 0.0
+      },
+      "semantic_edges": [
+        {
+          "target": "randint",
+          "label": "USES"
+        }
+      ]
+    },
+    "context_metadata": {
+      "total_dependencies": 1,
+      "found": {
+        "documented": 0,
+        "graph": 0,
+        "search": 0,
+        "external": 1
+      },
+      "confidence_scores": [
+        0.0
+      ],
+      "average_confidence": 0.0
+    },
+    "fname": "RockPaperScissors.py"
+  },
+  "whoWins": {
+    "documentation": "### whoWins(player1_choice: str, player2_choice: str) -> str\n\n**Description:**\nDetermines the winner of a Rock-Paper-Scissors game based on the choices made by two players. The function evaluates the selections and returns the result indicating whether Player 1 wins, Player 2 wins, or if the game is a tie.\n\n**Parameters:**\n- `player1_choice` (`str`): The choice made by Player 1. This should be one of the three valid options: \"rock\", \"paper\", or \"scissors\".\n- `player2_choice` (`str`): The choice made by Player 2. This should also be one of the three valid options: \"rock\", \"paper\", or \"scissors\".\n\n**Expected Input:**\n- Both `player1_choice` and `player2_choice` must be strings representing valid game choices. The function expects these inputs to be case-sensitive and strictly one of the three valid options. Any other input may lead to unexpected behavior.\n\n**Returns:**\n`str`: A string indicating the outcome of the game. Possible return values are:\n- \"Player 1 wins\" if Player 1's choice beats Player 2's choice.\n- \"Player 2 wins\" if Player 2's choice beats Player 1's choice.\n- \"It's a tie\" if both players make the same choice.\n\n**Detailed Logic:**\n- The function begins by comparing the choices of both players.\n- It uses a series of conditional statements to determine the winner based on the rules of Rock-Paper-Scissors:\n  - Rock beats Scissors.\n  - Scissors beats Paper.\n  - Paper beats Rock.\n- If both players choose the same option, the function identifies this as a tie.\n- The result is then returned as a string that clearly states the outcome of the game. The function does not rely on any external modules or complex data structures, making it straightforward and efficient in its logic.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Rock-Paper-Scissors Game Winner Determiner",
+        "type": "Business Logic",
+        "summary": "Determines the winner of a Rock-Paper-Scissors game based on the choices made by two players.",
+        "context_confidence": 1.0
+      },
+      "semantic_edges": []
+    },
+    "context_metadata": {
+      "total_dependencies": 0,
+      "found": {
+        "documented": 0,
+        "graph": 0,
+        "search": 0,
+        "external": 0
+      },
+      "confidence_scores": [],
+      "average_confidence": 1.0
+    },
+    "fname": "RockPaperScissors.py"
+  },
+  "goodbye": {
+    "documentation": "\n> \u26a0\ufe0f **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.\n### goodbye() -> None\n\n**Description:**\nThe `goodbye` function is designed to provide a farewell message to the user. It serves as a simple way to conclude interactions within the application, ensuring that the user receives a polite exit message before the program terminates.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nNone\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The function utilizes the `print` function to display a farewell message to the user, indicating that the program is concluding.\n- It also incorporates the `sleep` function to introduce a brief pause before the program exits, enhancing the user experience by allowing the farewell message to be read before the application closes.\n- The overall logic is straightforward, focusing on user interaction and experience rather than complex computations or data manipulations.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Farewell Message Handler",
+        "type": "Utility",
+        "summary": "Displays a farewell message to the user and pauses before program termination.",
+        "context_confidence": 0.0
+      },
+      "semantic_edges": [
+        {
+          "target": "print",
+          "label": "USES"
+        },
+        {
+          "target": "sleep",
+          "label": "USES"
+        }
+      ]
+    },
+    "context_metadata": {
+      "total_dependencies": 2,
+      "found": {
+        "documented": 0,
+        "graph": 0,
+        "search": 0,
+        "external": 2
+      },
+      "confidence_scores": [
+        0.0,
+        0.0
+      ],
+      "average_confidence": 0.0
+    },
+    "fname": "RockPaperScissors.py"
+  },
+  "getChoicesString": {
+    "documentation": "### getChoicesString() -> str\n\n**Description:**\nThe `getChoicesString` function generates a formatted string that represents the available choices in a game of Rock, Paper, Scissors. This function serves to provide users with a clear and concise display of the options they can select from during gameplay.\n\n**Parameters:**\nNone\n\n**Expected Input:**\nNone. The function does not require any input parameters.\n\n**Returns:**\n`str`: A formatted string that lists the available choices for the game, typically including \"Rock\", \"Paper\", and \"Scissors\".\n\n**Detailed Logic:**\n- The function constructs a string that enumerates the choices available to the player in the Rock, Paper, Scissors game.\n- It likely formats the choices in a user-friendly manner, possibly including punctuation or conjunctions to enhance readability.\n- The output string is intended to be displayed to the user, allowing them to understand their options before making a selection.\n- This function operates independently without any internal dependencies, relying solely on its own logic to produce the output.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Game Choices Formatter",
+        "type": "Utility",
+        "summary": "Generates a formatted string representing the available choices in a Rock, Paper, Scissors game.",
+        "context_confidence": 1.0
+      },
+      "semantic_edges": []
+    },
+    "context_metadata": {
+      "total_dependencies": 0,
+      "found": {
+        "documented": 0,
+        "graph": 0,
+        "search": 0,
+        "external": 0
+      },
+      "confidence_scores": [],
+      "average_confidence": 1.0
+    },
+    "fname": "RockPaperScissors.py"
+  },
+  "RockPaperScissors.py::module_code": {
+    "documentation": "\n> \u26a0\ufe0f **Note**: Some dependencies could not be fully resolved. Documentation may be incomplete.\n### module_code\n\n**Description:**\nThe `module_code` serves as the main entry point for the Rock-Paper-Scissors game. It orchestrates the flow of the game by integrating various components, including user input, random choice generation, and determining the winner based on the players' selections. This module is designed to provide an interactive gaming experience in a command-line interface.\n\n**Parameters/Attributes:**\nNone\n\n**Expected Input:**\n- The module expects user input in the form of a string representing the player's choice (either \"rock\", \"paper\", or \"scissors\"). The input is handled through the `textWahl` function, which validates the input before proceeding with the game logic.\n\n**Returns:**\nNone\n\n**Detailed Logic:**\n- The module begins by clearing the console using the `clear` function to provide a fresh display for the game.\n- It prompts the user to make a choice using the `textWahl` function, which ensures that the input is valid and provides feedback to the player.\n- The module then generates a random choice for the computer using the `randomChoice` function, ensuring a fair game.\n- It compares the player's choice with the computer's choice by calling the `whoWins` function, which determines the outcome of the game.\n- Based on the result, the module may display a message indicating whether the player won, lost, or if the game was a tie.\n- Finally, the module concludes the game by calling the `goodbye` function, which provides a farewell message to the user before exiting the program. \n\nThis structure allows for a seamless and engaging user experience, leveraging the functionalities of the various dependencies to create a complete Rock-Paper-Scissors game.",
+    "conceptual_data": {
+      "semantic_metadata": {
+        "label": "Rock-Paper-Scissors Game Controller",
+        "type": "Business Logic",
+        "summary": "Orchestrates the flow of the Rock-Paper-Scissors game by managing user input, computer choices, and determining the game outcome.",
+        "context_confidence": 0.6666666666666666
+      },
+      "semantic_edges": [
+        {
+          "target": "clear",
+          "label": "USES"
+        },
+        {
+          "target": "textWahl",
+          "label": "USES"
+        },
+        {
+          "target": "goodbye",
+          "label": "USES"
+        },
+        {
+          "target": "randomChoice",
+          "label": "USES"
+        },
+        {
+          "target": "whoWins",
+          "label": "USES"
+        },
+        {
+          "target": "getChoicesString",
+          "label": "USES"
+        },
+        {
+          "target": "sleep",
+          "label": "USES"
+        },
+        {
+          "target": "input",
+          "label": "USES"
+        },
+        {
+          "target": "sys.exit",
+          "label": "USES"
+        }
+      ]
+    },
+    "context_metadata": {
+      "total_dependencies": 9,
+      "found": {
+        "documented": 6,
+        "graph": 0,
+        "search": 0,
+        "external": 3
+      },
+      "confidence_scores": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "average_confidence": 0.6666666666666666
+    },
+    "fname": "RockPaperScissors.py"
+  }
+}

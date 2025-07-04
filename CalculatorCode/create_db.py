@@ -2,11 +2,17 @@ import pandas as pd
 import sqlite3
 import os
 
+<<<<<<< HEAD
 # Define the path for the database and CSV file inside the 'calculator_code' folder
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Gets the path of the current script
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 DB_PATH = os.path.join(DATA_DIR, 'sample_database.db')
 CSV_PATH = os.path.join(DATA_DIR, 'sample_data.csv')
+=======
+# Define the path for the database and CSV file
+DB_PATH = os.path.join("data", "sample_database.db")
+CSV_PATH = os.path.join("data", "sample_data.csv")
+>>>>>>> f6061b0228250a53c82190181e85a5683699240a
 TABLE_NAME = "housing_data"
 
 def create_sample_database():
@@ -16,6 +22,7 @@ def create_sample_database():
     then creates a SQLite database and populates a table with that data.
     """
     # Step 1: Clean up old data directory and files if they exist
+<<<<<<< HEAD
     if os.path.exists(DATA_DIR):
         print("Removing old 'data' directory and its contents...")
         for filename in os.listdir(DATA_DIR):
@@ -27,6 +34,19 @@ def create_sample_database():
 
     # Ensure the data directory exists again
     os.makedirs(DATA_DIR, exist_ok=True)
+=======
+    if os.path.exists("data"):
+        print("Removing old 'data' directory and its contents...")
+        for filename in os.listdir("data"):
+            file_path = os.path.join("data", filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        os.rmdir("data")
+        print("Old 'data' directory removed.")
+
+    # Ensure the data directory exists again
+    os.makedirs("data", exist_ok=True)
+>>>>>>> f6061b0228250a53c82190181e85a5683699240a
 
     # Step 2: Create a Sample DataFrame and save it as a CSV
     print("Creating sample CSV file...")
