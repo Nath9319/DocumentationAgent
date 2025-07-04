@@ -4,27 +4,34 @@ from app.services.stats_service import stats_service, StatsService
 from app.services.validation_service import validation_service, ValidationService
 from app.core.exceptions import APIException
 from app.models.calculator import StdDevInput
+from app.services.financial_service import financial_service, FinancialService
+from fastapi import APIRouter, Depends
+from app.services.financial_service import financial_service, FinancialService  # Import FinancialService
+from app.models.calculator import FutureValueInput, LoanPaymentInput, PresentValueInput  # Import relevant models
+from app.core.exceptions import APIException  # For custom error handling
+from fastapi import APIRouter, Depends
+from app.services.stats_service import stats_service  # Import StatsService
+from app.models.calculator import RegressionInput  # Import relevant input model
 
 router = APIRouter()
 
+
 @router.post("/regression/ols", summary="Perform OLS regression")
 def perform_regression(
-    payload: RegressionInput, 
-    validator: ValidationService = Depends(lambda: validation_service),
+    payload: RegressionInput,
     stats_svc: StatsService = Depends(lambda: stats_service)
 ):
     try:
-        validator.validate_regression_inputs(payload)
+        # Perform the regression using StatsService, which internally uses DataService
         summary = stats_svc.perform_ols_regression(
-            db_path=payload.db_path, 
-            table_name=payload.table_name, 
-            dependent_var=payload.dependent_var, 
+            db_path=payload.db_path,
+            table_name=payload.table_name,
+            dependent_var=payload.dependent_var,
             independent_vars=payload.independent_vars
         )
         return {"analysis_type": "OLS Regression", "results_summary": summary}
     except Exception as e:
         raise APIException(status_code=400, detail=str(e))
-# This endpoint performs an Ordinary Least Squares (OLS) regression.
 # It uses the StatsService to perform the regression and returns the results.
 
 
@@ -122,3 +129,66 @@ def get_z_scores(
         raise APIException(status_code=400, detail=str(e))
 # This endpoint calculates the z-scores for a list of numbers.
 # It uses the StatsService to perform the calculation and returns the z-scores.
+
+# --- Financial Endpoints ---
+# Endpoint for calculating Future Value
+@router.post("/calculate-future-value", summary="Calculate Future Value of an Investment")
+def calculate_future_value(
+    payload: FutureValueInput, 
+    financial_svc: FinancialService = Depends(lambda: financial_service)
+):
+    """
+    Endpoint to calculate the future value of an investment.
+    Takes rate, number of periods, payment, and present value as inputs.
+    """
+    try:
+        future_value = financial_svc.calculate_future_value(
+            rate=payload.rate,
+            nper=payload.nper,
+            pmt=payload.pmt,
+            pv=payload.pv
+        )
+        return {"analysis_type": "Future Value", "future_value": future_value}
+    except ValueError as e:
+        raise APIException(status_code=400, detail=str(e))
+
+# Endpoint for calculating Present Value
+@router.post("/calculate-present-value", summary="Calculate Present Value of an Investment")
+def calculate_present_value(
+    payload: PresentValueInput, 
+    financial_svc: FinancialService = Depends(lambda: financial_service)
+):
+    """
+    Endpoint to calculate the present value of an investment.
+    Takes rate, number of periods, payment, and future value as inputs.
+    """
+    try:
+        present_value = financial_svc.calculate_present_value(
+            rate=payload.rate,
+            nper=payload.nper,
+            pmt=payload.pmt,
+            fv=payload.fv
+        )
+        return {"analysis_type": "Present Value", "present_value": present_value}
+    except ValueError as e:
+        raise APIException(status_code=400, detail=str(e))
+
+# Endpoint for calculating Loan Payment
+@router.post("/calculate-loan-payment", summary="Calculate Loan Payment")
+def calculate_loan_payment(
+    payload: LoanPaymentInput, 
+    financial_svc: FinancialService = Depends(lambda: financial_service)
+):
+    """
+    Endpoint to calculate the periodic payment for a loan.
+    Takes rate, number of periods, and present value as inputs.
+    """
+    try:
+        loan_payment = financial_svc.calculate_payment(
+            rate=payload.rate,
+            nper=payload.nper,
+            pv=payload.pv
+        )
+        return {"analysis_type": "Loan Payment", "loan_payment": loan_payment}
+    except ValueError as e:
+        raise APIException(status_code=400, detail=str(e))
