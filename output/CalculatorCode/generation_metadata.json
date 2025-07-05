@@ -1,29 +1,15 @@
 {
-<<<<<<< HEAD
-  "generation_timestamp": "2025-07-02T13:18:13.711747",
-  "processing_time_seconds": 1197.818039,
-  "repository_path": "CalculatorCode",
-  "total_nodes": 64,
-  "documented_nodes": 64,
+  "generation_timestamp": "2025-07-04T19:37:24.028787",
+  "processing_time_seconds": 939.897812,
+  "repository_path": "C:\\Users\\Admin\\Downloads\\DocumentationAgent\\CalculatorCode",
+  "total_nodes": 66,
+  "documented_nodes": 66,
   "quality_metrics": {
-    "average_context_confidence": 0.21310687370301892,
-    "high_confidence_nodes": 7,
+    "average_context_confidence": 0.23667969996479366,
+    "high_confidence_nodes": 8,
     "medium_confidence_nodes": 1,
-    "low_confidence_nodes": 56,
-    "total_documented": 64
-=======
-  "generation_timestamp": "2025-07-02T19:22:54.141176",
-  "processing_time_seconds": 1784.660722,
-  "repository_path": "CalculatorCode",
-  "total_nodes": 158,
-  "documented_nodes": 158,
-  "quality_metrics": {
-    "average_context_confidence": 0.946544384267967,
-    "high_confidence_nodes": 141,
-    "medium_confidence_nodes": 6,
-    "low_confidence_nodes": 11,
-    "total_documented": 158
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
+    "low_confidence_nodes": 57,
+    "total_documented": 66
   },
   "enhanced_features": [
     "fuzzy_dependency_matching",

@@ -6,10 +6,7 @@
 # are essential for the documentation agent's logic.
 
 import networkx as nx
-<<<<<<< HEAD
-=======
 from typing import List, Dict, Set, Tuple
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
 
 class RepoSearcher:
     """A class to perform searches and traversals on a repository code graph."""
@@ -23,11 +20,7 @@ class RepoSearcher:
         """
         self.graph = graph
 
-<<<<<<< HEAD
-    def get_dependencies(self, node_name: str) -> list[str]:
-=======
     def get_dependencies(self, node_name: str) -> List[str]:
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         Finds all nodes that the given node directly calls or contains.
         This is useful for understanding what a function/class relies on.
@@ -36,22 +29,14 @@ class RepoSearcher:
             node_name (str): The name of the node to find dependencies for.
 
         Returns:
-<<<<<<< HEAD
-            list[str]: A list of node names that are successors of the given node.
-=======
             List[str]: A list of node names that are successors of the given node.
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         if node_name not in self.graph:
             return []
         # Successors are nodes that the current node has an edge pointing TO.
         return list(self.graph.successors(node_name))
 
-<<<<<<< HEAD
-    def get_references(self, node_name: str) -> list[str]:
-=======
     def get_references(self, node_name: str) -> List[str]:
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         Finds all nodes that directly call the given node.
         This is useful for understanding how and where a function/class is used.
@@ -60,20 +45,13 @@ class RepoSearcher:
             node_name (str): The name of the node to find references for.
 
         Returns:
-<<<<<<< HEAD
-            list[str]: A list of node names that are predecessors of the given node.
-=======
             List[str]: A list of node names that are predecessors of the given node.
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         if node_name not in self.graph:
             return []
         # Predecessors are nodes that have an edge pointing FROM them TO the current node.
         return list(self.graph.predecessors(node_name))
 
-<<<<<<< HEAD
-    def dfs_traversal(self, start_node: str, depth_limit: int = 5) -> list[str]:
-=======
     def get_class_methods(self, class_name: str) -> List[str]:
         """
         Finds all methods that belong to a given class.
@@ -235,7 +213,6 @@ class RepoSearcher:
         return dict(self.graph.nodes[node_name])
 
     def dfs_traversal(self, start_node: str, depth_limit: int = 5) -> List[str]:
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         Performs a depth-first search (DFS) traversal from a starting node.
         Explores as far as possible along each branch before backtracking.
@@ -245,11 +222,7 @@ class RepoSearcher:
             depth_limit (int): The maximum depth to explore.
 
         Returns:
-<<<<<<< HEAD
-            list[str]: A list of visited nodes in the order they were discovered.
-=======
             List[str]: A list of visited nodes in the order they were discovered.
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         if start_node not in self.graph:
             return []
@@ -269,11 +242,7 @@ class RepoSearcher:
                             stack.append((neighbor, level + 1))
         return visited
 
-<<<<<<< HEAD
-    def bfs_traversal(self, start_node: str, depth_limit: int = 5) -> list[str]:
-=======
     def bfs_traversal(self, start_node: str, depth_limit: int = 5) -> List[str]:
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         Performs a breadth-first search (BFS) traversal from a starting node.
         Explores all neighbors at the present depth prior to moving on to nodes
@@ -305,8 +274,6 @@ class RepoSearcher:
                         if neighbor not in visited:
                             queue.append((neighbor, level + 1))
         return visited
-<<<<<<< HEAD
-=======
 
     def find_shortest_path(self, source: str, target: str) -> List[str]:
         """
@@ -476,4 +443,3 @@ class RepoSearcher:
                         queue.append((successor, current_depth + 1))
         
         return depths
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
