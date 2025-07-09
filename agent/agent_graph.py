@@ -11,6 +11,7 @@ from .agent_nodes import (
     gather_documentation_context,
     generate_documentation,
     generate_conceptual_graph_data,
+    build_documentation_graph,  # Add this line
     update_documentation_queue,
     should_continue
 )

@@ -76,8 +76,9 @@ def run_documentation_agent(repo_path: str):
     initial_state = {
         "repo_graph": repo_graph,
         "conceptual_graph": nx.MultiDiGraph(),
+        "documentation_graph": nx.MultiDiGraph(),  # Add this line
         "final_output_data": {},
-        "context_metadata": {}  # ENHANCED: Initialize context metadata
+        "context_metadata": {}
     }
     
     total_nodes = len(repo_graph.nodes())
@@ -143,6 +144,41 @@ def run_documentation_agent(repo_path: str):
         docs_output_dir = os.path.join(output_dir, "documentation")
         os.makedirs(docs_output_dir, exist_ok=True)
 
+        # Save the documentation graph
+        doc_graph = final_state.get('documentation_graph')
+        if doc_graph:
+            doc_graph_path = os.path.join(output_dir, "documentation_graph.pkl")
+            with open(doc_graph_path, 'wb') as f:
+                pickle.dump(doc_graph, f)
+            print(f"✓ Documentation graph saved to: {doc_graph_path}")
+            
+            # Also save a JSON representation for easier inspection
+            doc_graph_json = {
+                "nodes": [],
+                "edges": []
+            }
+            
+            for node, attrs in doc_graph.nodes(data=True):
+                doc_graph_json["nodes"].append({
+                    "id": node,
+                    "documentation": attrs.get('info', ''),  # This now contains documentation
+                    "category": attrs.get('original_category', 'unknown'),
+                    "file": attrs.get('fname', ''),
+                    "line": attrs.get('line', [0, 0])
+                })
+            
+            for u, v, attrs in doc_graph.edges(data=True):
+                doc_graph_json["edges"].append({
+                    "source": u,
+                    "target": v,
+                    "label": attrs.get('label', 'unknown')
+                })
+            
+            doc_graph_json_path = os.path.join(output_dir, "documentation_graph.json")
+            with open(doc_graph_json_path, 'w', encoding='utf-8') as f:
+                json.dump(doc_graph_json, f, indent=2)
+            print(f"✓ Documentation graph JSON saved to: {doc_graph_json_path}")
+            
         low_confidence_count = 0
         for node_name, data in final_output_data.items():
             if 'documentation' in data and data['documentation']:

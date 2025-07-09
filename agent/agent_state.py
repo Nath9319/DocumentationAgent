@@ -56,3 +56,5 @@ class AgentState(TypedDict):
     context_metadata: Dict[str, Any]
     
     is_finished: bool
+
+    documentation_graph: nx.MultiDiGraph  # Graph with documentation text instead of code
