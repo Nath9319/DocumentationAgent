@@ -115,3 +115,6 @@ data/sample_database.db
 
 # Ignore agenticSeek folder
 agenticSeek/
+phase2_scrum.md
+segment_documents.md
+confidence_levels.csv
