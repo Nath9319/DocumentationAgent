@@ -1,14 +1,26 @@
-# core/agent_manager.py
+# Modified agent_manager.py with LangGraph integration
 
 import os
 import json
 import time
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional, Callable, TypedDict
 from datetime import datetime
 import asyncio
 from pathlib import Path
 import logging
 from langchain_openai import AzureChatOpenAI
+# Add LangGraph imports
+from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
+
+# Define a TypedDict for agent state
+class AgentState(TypedDict):
+    agent_id: str
+    status: str
+    data: Dict[str, Any]
+    messages: List[Dict[str, Any]]
+    errors: List[str]
+    metrics: Dict[str, Any]
 
 class AgentRegistry:
     """Registry for managing available agent types and instances"""
@@ -68,12 +80,15 @@ class AgentRegistry:
         return results
 
 class AgentManager:
-    """Central coordination system for multi-agent lifecycle management"""
+    """Central coordination system for multi-agent lifecycle management using LangGraph"""
     
     def __init__(self, data_dir: str = "agent_manager_data"):
         self.registry = AgentRegistry()
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
+        
+        # Initialize checkpointer for state persistence
+        self.checkpointer = MemorySaver()
         
         self.message_queue = asyncio.Queue()
         self.resource_limits = {
@@ -85,9 +100,8 @@ class AgentManager:
         self.logger = logging.getLogger("AgentManager")
         self._setup_logging()
         
-        # Initialize state tracking
+        # Initialize state tracking with LangGraph state
         self.agent_states = {}
-        self.health_status = {}
     
     def _setup_logging(self):
         """Set up logging configuration"""
@@ -111,7 +125,7 @@ class AgentManager:
         # Add more agent types as needed
     
     async def start_agent(self, agent_id: str, initial_state: Dict[str, Any] = None) -> Dict[str, Any]:
-        """Start an agent with optional initial state"""
+        """Start an agent with LangGraph state management"""
         if agent_id not in self.registry.agent_instances:
             raise ValueError(f"Unknown agent ID: {agent_id}")
         
@@ -119,11 +133,21 @@ class AgentManager:
         agent = agent_info["instance"]
         
         try:
-            # Set up initial state if provided
+            # Set up initial state
             state = initial_state or {}
             
+            # Create LangGraph state
+            agent_state = AgentState(
+                agent_id=agent_id,
+                status="running",
+                data=state,
+                messages=[],
+                errors=[],
+                metrics={}
+            )
+            
             # Store reference to the agent's state
-            self.agent_states[agent_id] = state
+            self.agent_states[agent_id] = agent_state
             
             # Update agent status
             agent_info["status"] = "running"
@@ -131,9 +155,20 @@ class AgentManager:
             
             self.logger.info(f"Started agent: {agent_id}")
             
-            # For async agents, we'd use await agent.ainvoke(state)
-            # For sync agents, we use a separate thread
-            result = agent.invoke(state)
+            # Create thread_id for checkpointing
+            thread_id = f"agent_{agent_id}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            
+            # Configure LangGraph with checkpointer
+            config = {
+                "configurable": {
+                    "thread_id": thread_id,
+                    "agent_id": agent_id
+                }
+            }
+            
+            # For async agents, use agent.ainvoke(state, config)
+            # For sync agents, use a separate thread
+            result = agent.invoke(state, config=config)
             
             # Update agent status on completion
             agent_info["status"] = "completed"
@@ -166,7 +201,7 @@ class AgentManager:
         return True
     
     async def send_message(self, from_agent: str, to_agent: str, message: Dict[str, Any]):
-        """Send a message from one agent to another"""
+        """Send a message from one agent to another using LangGraph state"""
         if to_agent not in self.registry.agent_instances:
             raise ValueError(f"Unknown target agent ID: {to_agent}")
         
@@ -181,9 +216,14 @@ class AgentManager:
         # Add to message queue
         await self.message_queue.put(envelope)
         self.logger.info(f"Message queued from {from_agent} to {to_agent}")
+        
+        # If the target agent has state, add message to its state
+        if to_agent in self.agent_states:
+            target_state = self.agent_states[to_agent]
+            target_state["messages"].append(envelope)
     
     async def message_processor(self):
-        """Process messages in the queue"""
+        """Process messages in the queue with LangGraph state updates"""
         while True:
             # Get the next message
             envelope = await self.message_queue.get()
@@ -192,9 +232,27 @@ class AgentManager:
                 to_agent = envelope["to"]
                 agent_instance = self.registry.get_agent(to_agent)
                 
-                # Deliver message to agent
-                # This would depend on how agents handle messages
-                # For LangGraph agents, we might update their state
+                # Get agent state
+                agent_state = self.agent_states.get(to_agent)
+                if agent_state:
+                    # Update state with new message
+                    agent_state["messages"].append(envelope)
+                    
+                    # Create thread_id for continuation
+                    thread_id = f"agent_{to_agent}_msg_{len(agent_state['messages'])}"
+                    
+                    # Configure LangGraph with thread_id for state continuity
+                    config = {
+                        "configurable": {
+                            "thread_id": thread_id,
+                            "agent_id": to_agent
+                        }
+                    }
+                    
+                    # Process message with the agent
+                    # This would be implemented differently depending on how agents handle messages
+                    # For LangGraph agents, we might update state and re-invoke
+                    self.logger.info(f"Processing message for {to_agent}")
                 
                 self.logger.info(f"Delivered message to {to_agent}")
             except Exception as e:
@@ -224,17 +282,20 @@ class AgentManager:
         agent_info["last_health_check"] = health["timestamp"]
         agent_info["metrics"] = health["metrics"]
         
-        self.health_status[agent_id] = health
         return health
     
     async def restart_agent(self, agent_id: str) -> bool:
-        """Restart a failed or stopped agent"""
+        """Restart a failed or stopped agent with LangGraph state persistence"""
         if agent_id not in self.registry.agent_instances:
             raise ValueError(f"Unknown agent ID: {agent_id}")
         
         # Stop the agent if it's running
         if self.registry.agent_instances[agent_id]["status"] == "running":
             await self.stop_agent(agent_id)
+        
+        # Get the last state from checkpointer if available
+        thread_id = f"agent_{agent_id}"
+        saved_state = self.checkpointer.get(thread_id)
         
         # Recreate the agent
         agent_info = self.registry.agent_instances[agent_id]
@@ -247,8 +308,9 @@ class AgentManager:
         # Create new instance
         self.registry.create_agent(agent_type, agent_id, config)
         
-        # Start the new instance
-        await self.start_agent(agent_id, self.agent_states.get(agent_id))
+        # Start the new instance with saved state or existing state
+        initial_state = saved_state or self.agent_states.get(agent_id, {}).get("data", {})
+        await self.start_agent(agent_id, initial_state)
         
         self.logger.info(f"Restarted agent: {agent_id}")
         return True
