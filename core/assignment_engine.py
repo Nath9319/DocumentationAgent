@@ -1,3 +1,52 @@
+import sqlite3
+from typing import List, Dict, Tuple, Set, Any, Optional
+from dataclasses import dataclass
+import json
+from datetime import datetime
+from pathlib import Path
+import heapq
+import hashlib
+from enum import Enum
+import logging
+import time
+import os
+
+# Import internal components
+from core.chunk_manager import ChunkManager, ChunkState
+from core.similarity_calculator import SimilarityCalculator
+
+
+class AssignmentStrategy(Enum):
+    """Strategies for assigning documents to chunks"""
+    SIMILARITY = "similarity"  # Based on content similarity
+    BALANCED = "balanced"      # Prioritize load balancing
+    HYBRID = "hybrid"          # Balance similarity and load
+    METADATA = "metadata"      # Based on metadata matching
+    MANUAL = "manual"          # Manual assignments
+
+
+class AssignmentStatus(Enum):
+    """Status of a document assignment"""
+    PENDING = "pending"       # Assignment is pending
+    ASSIGNED = "assigned"     # Successfully assigned
+    FAILED = "failed"         # Assignment failed
+    CONFLICTED = "conflicted" # Conflicting assignment exists
+    REASSIGNED = "reassigned" # Document was reassigned
+
+
+@dataclass
+class AssignmentRecord:
+    """Record of a document assignment to a chunk"""
+    document_id: str
+    chunk_id: str
+    status: AssignmentStatus
+    score: float
+    strategy: AssignmentStrategy
+    assigned_at: str
+    previous_chunk_id: Optional[str] = None
+    conflict_details: Optional[Dict] = None
+    metadata: Optional[Dict] = None
+
 class AssignmentEngine:
     """
     Intelligent document-to-chunk assignment system with conflict 
@@ -1394,51 +1443,4 @@ class AssignmentEngine:
                     "unresolved": conflict_count - resolved_count
                 },
                 "average_score": avg_score
-            }import sqlite3
-from typing import List, Dict, Tuple, Set, Any, Optional
-from dataclasses import dataclass
-import json
-from datetime import datetime
-from pathlib import Path
-import heapq
-import hashlib
-from enum import Enum
-import logging
-import time
-import os
-
-# Import internal components
-from core.chunk_manager import ChunkManager, ChunkState
-from core.similarity_calculator import SimilarityCalculator
-
-
-class AssignmentStrategy(Enum):
-    """Strategies for assigning documents to chunks"""
-    SIMILARITY = "similarity"  # Based on content similarity
-    BALANCED = "balanced"      # Prioritize load balancing
-    HYBRID = "hybrid"          # Balance similarity and load
-    METADATA = "metadata"      # Based on metadata matching
-    MANUAL = "manual"          # Manual assignments
-
-
-class AssignmentStatus(Enum):
-    """Status of a document assignment"""
-    PENDING = "pending"       # Assignment is pending
-    ASSIGNED = "assigned"     # Successfully assigned
-    FAILED = "failed"         # Assignment failed
-    CONFLICTED = "conflicted" # Conflicting assignment exists
-    REASSIGNED = "reassigned" # Document was reassigned
-
-
-@dataclass
-class AssignmentRecord:
-    """Record of a document assignment to a chunk"""
-    document_id: str
-    chunk_id: str
-    status: AssignmentStatus
-    score: float
-    strategy: AssignmentStrategy
-    assigned_at: str
-    previous_chunk_id: Optional[str] = None
-    conflict_details: Optional[Dict] = None
-    metadata: Optional[Dict] = None
+            }

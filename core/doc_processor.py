@@ -699,7 +699,9 @@ class DocumentProcessor:
         
         # Write to file if requested
         if output_file:
-            output_path = self.data_dir / output_file
+            output_dir = "CreatedFile"
+            os.makedirs(output_dir, exist_ok=True)
+            output_path = os.path.join(output_dir, output_file or "TechnicalDocument.md")
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(documentation)
             print(f"Architectural documentation written to {output_path}")

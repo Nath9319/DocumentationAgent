@@ -126,10 +126,10 @@ class WorkflowEngine:
             "version": definition["version"]
         }
         
-        # Create LangGraph representation
-        self._create_workflow_langgraph(name, definition)
-    
-    def _create_workflow_langgraph(self, workflow_name: str, definition: Dict[str, Any]):
+        # Pass workflow_graph to LangGraph creation
+        self._create_workflow_langgraph(name, definition, workflow_graph)
+
+    def _create_workflow_langgraph(self, workflow_name: str, definition: Dict[str, Any], workflow_graph: nx.DiGraph):
         """Create a LangGraph representation of the workflow"""
         
         # Create StateGraph with WorkflowState
@@ -137,40 +137,28 @@ class WorkflowEngine:
         
         # Add nodes
         for node_id, node_def in definition["nodes"].items():
-            # Create a function that will call the appropriate handler
             def node_executor(state: WorkflowState, node_id=node_id, node_def=node_def):
-                # Mark node as running
                 state["node_status"][node_id] = NodeStatus.RUNNING.value
                 state["current_nodes"] = [n for n in state["current_nodes"] if n != node_id] + [node_id]
-                
-                # Prepare handler input
                 input_data = {
                     "node_id": node_id,
                     "instance_id": state["instance_id"],
                     "workflow_data": state["data"],
                     "node_params": node_def.get("params", {})
                 }
-                
-                # Call node handler (node handlers need to be registered separately)
                 try:
                     if node_def.get("type") in self.node_handlers:
                         handler = self.node_handlers[node_def["type"]]
-                        # Call the handler (synchronously for this example)
                         result = handler(input_data)
-                        
-                        # Update state with result
                         state["data"][f"node_result_{node_id}"] = result
                         state["node_status"][node_id] = NodeStatus.COMPLETED.value
                         state["completed_nodes"] = state["completed_nodes"] + [node_id]
-                        
-                        # Log success
                         state["logs"].append({
                             "timestamp": datetime.now().isoformat(),
                             "level": "INFO",
                             "message": f"Node {node_id} completed successfully"
                         })
                     else:
-                        # Log error for missing handler
                         state["logs"].append({
                             "timestamp": datetime.now().isoformat(),
                             "level": "ERROR",
@@ -180,7 +168,6 @@ class WorkflowEngine:
                         state["failed_nodes"] = state["failed_nodes"] + [node_id]
                         state["error"] = f"No handler for node type: {node_def.get('type')}"
                 except Exception as e:
-                    # Log error
                     state["logs"].append({
                         "timestamp": datetime.now().isoformat(),
                         "level": "ERROR",
@@ -189,10 +176,7 @@ class WorkflowEngine:
                     state["node_status"][node_id] = NodeStatus.FAILED.value
                     state["failed_nodes"] = state["failed_nodes"] + [node_id]
                     state["error"] = str(e)
-                
                 return state
-            
-            # Add node to graph
             workflow_builder.add_node(node_id, node_executor)
         
         # Add edges
@@ -200,14 +184,9 @@ class WorkflowEngine:
             source = edge["source"]
             target = edge["target"]
             condition = edge.get("condition")
-            
             if condition:
-                # Add conditional edge with a router function
                 def edge_router(state: WorkflowState, condition=condition):
-                    # Evaluate condition (simplified for this example)
-                    # In a real implementation, this would evaluate the condition expression
                     try:
-                        # Simple check if the condition variable exists in state data
                         condition_var = condition.get("variable", "")
                         if condition_var in state["data"]:
                             expected_value = condition.get("value")
@@ -215,7 +194,6 @@ class WorkflowEngine:
                             if actual_value == expected_value:
                                 return target
                             else:
-                                # Find alternative targets for this source
                                 alt_targets = [e["target"] for e in definition["edges"] 
                                             if e["source"] == source and e != edge]
                                 if alt_targets:
@@ -225,15 +203,12 @@ class WorkflowEngine:
                         else:
                             return END
                     except Exception as e:
-                        # Log error
                         state["logs"].append({
                             "timestamp": datetime.now().isoformat(),
                             "level": "ERROR",
                             "message": f"Error evaluating condition: {str(e)}"
                         })
                         return END
-                
-                # Add conditional edge
                 workflow_builder.add_conditional_edges(
                     source,
                     edge_router,
@@ -243,29 +218,21 @@ class WorkflowEngine:
                     }
                 )
             else:
-                # Add direct edge
                 workflow_builder.add_edge(source, target)
         
         # Find start nodes (nodes with no incoming edges)
         start_nodes = [node for node in workflow_graph.nodes() 
                     if workflow_graph.in_degree(node) == 0]
-        
-        # Set entry point - first start node
         if start_nodes:
             workflow_builder.set_entry_point(start_nodes[0])
         
         # Find end nodes (nodes with no outgoing edges)
         end_nodes = [node for node in workflow_graph.nodes() 
                     if workflow_graph.out_degree(node) == 0]
-        
-        # Add edges from end nodes to END
         for end_node in end_nodes:
             workflow_builder.add_edge(end_node, END)
         
-        # Compile the graph
         compiled_graph = workflow_builder.compile()
-        
-        # Store the compiled LangGraph
         self.workflow_graphs[workflow_name] = compiled_graph
     
     def register_node_handler(self, node_type: str, handler: Callable):
