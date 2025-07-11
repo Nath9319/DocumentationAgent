@@ -1,0 +1,254 @@
+# core/agent_manager.py
+
+import os
+import json
+import time
+from typing import Dict, List, Any, Optional, Callable
+from datetime import datetime
+import asyncio
+from pathlib import Path
+import logging
+from langchain_openai import AzureChatOpenAI
+
+class AgentRegistry:
+    """Registry for managing available agent types and instances"""
+    
+    def __init__(self):
+        self.agent_types = {}
+        self.agent_instances = {}
+        self.logger = logging.getLogger("AgentRegistry")
+    
+    def register_agent_type(self, agent_type: str, agent_factory: Callable):
+        """Register a new agent type with its factory function"""
+        self.agent_types[agent_type] = agent_factory
+        self.logger.info(f"Registered agent type: {agent_type}")
+    
+    def create_agent(self, agent_type: str, agent_id: str, config: Dict[str, Any]) -> str:
+        """Create a new agent instance of the specified type"""
+        if agent_type not in self.agent_types:
+            raise ValueError(f"Unknown agent type: {agent_type}")
+        
+        factory = self.agent_types[agent_type]
+        agent = factory(agent_id, config)
+        
+        self.agent_instances[agent_id] = {
+            "type": agent_type,
+            "instance": agent,
+            "config": config,
+            "status": "created",
+            "created_at": datetime.now().isoformat(),
+            "last_health_check": None,
+            "metrics": {}
+        }
+        
+        self.logger.info(f"Created agent instance: {agent_id} (type: {agent_type})")
+        return agent_id
+    
+    def get_agent(self, agent_id: str) -> Any:
+        """Get an agent instance by ID"""
+        if agent_id not in self.agent_instances:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+        
+        return self.agent_instances[agent_id]["instance"]
+    
+    def list_agents(self, agent_type: str = None) -> List[Dict[str, Any]]:
+        """List all agent instances, optionally filtered by type"""
+        results = []
+        
+        for agent_id, agent_info in self.agent_instances.items():
+            if agent_type is None or agent_info["type"] == agent_type:
+                results.append({
+                    "id": agent_id,
+                    "type": agent_info["type"],
+                    "status": agent_info["status"],
+                    "created_at": agent_info["created_at"],
+                    "last_health_check": agent_info["last_health_check"]
+                })
+        
+        return results
+
+class AgentManager:
+    """Central coordination system for multi-agent lifecycle management"""
+    
+    def __init__(self, data_dir: str = "agent_manager_data"):
+        self.registry = AgentRegistry()
+        self.data_dir = Path(data_dir)
+        self.data_dir.mkdir(exist_ok=True)
+        
+        self.message_queue = asyncio.Queue()
+        self.resource_limits = {
+            "max_agents": 10,
+            "max_tokens_per_agent": 100000,
+            "max_concurrent_runs": 5
+        }
+        
+        self.logger = logging.getLogger("AgentManager")
+        self._setup_logging()
+        
+        # Initialize state tracking
+        self.agent_states = {}
+        self.health_status = {}
+    
+    def _setup_logging(self):
+        """Set up logging configuration"""
+        log_file = self.data_dir / "agent_manager.log"
+        
+        handler = logging.FileHandler(log_file)
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        
+        self.logger.addHandler(handler)
+        self.logger.setLevel(logging.INFO)
+    
+    def register_agent_types(self):
+        """Register available agent types"""
+        from agent.agent_graph import create_agent_graph
+        
+        # Register documentation agent
+        self.registry.register_agent_type("documentation", 
+            lambda agent_id, config: create_agent_graph())
+        
+        # Add more agent types as needed
+    
+    async def start_agent(self, agent_id: str, initial_state: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Start an agent with optional initial state"""
+        if agent_id not in self.registry.agent_instances:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+        
+        agent_info = self.registry.agent_instances[agent_id]
+        agent = agent_info["instance"]
+        
+        try:
+            # Set up initial state if provided
+            state = initial_state or {}
+            
+            # Store reference to the agent's state
+            self.agent_states[agent_id] = state
+            
+            # Update agent status
+            agent_info["status"] = "running"
+            agent_info["started_at"] = datetime.now().isoformat()
+            
+            self.logger.info(f"Started agent: {agent_id}")
+            
+            # For async agents, we'd use await agent.ainvoke(state)
+            # For sync agents, we use a separate thread
+            result = agent.invoke(state)
+            
+            # Update agent status on completion
+            agent_info["status"] = "completed"
+            agent_info["completed_at"] = datetime.now().isoformat()
+            
+            return result
+        except Exception as e:
+            # Update agent status on error
+            agent_info["status"] = "failed"
+            agent_info["error"] = str(e)
+            
+            self.logger.error(f"Agent {agent_id} failed: {e}")
+            raise
+    
+    async def stop_agent(self, agent_id: str) -> bool:
+        """Stop a running agent"""
+        if agent_id not in self.registry.agent_instances:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+        
+        agent_info = self.registry.agent_instances[agent_id]
+        
+        if agent_info["status"] != "running":
+            return False
+        
+        # Update agent status
+        agent_info["status"] = "stopped"
+        agent_info["stopped_at"] = datetime.now().isoformat()
+        
+        self.logger.info(f"Stopped agent: {agent_id}")
+        return True
+    
+    async def send_message(self, from_agent: str, to_agent: str, message: Dict[str, Any]):
+        """Send a message from one agent to another"""
+        if to_agent not in self.registry.agent_instances:
+            raise ValueError(f"Unknown target agent ID: {to_agent}")
+        
+        # Create message envelope
+        envelope = {
+            "from": from_agent,
+            "to": to_agent,
+            "timestamp": datetime.now().isoformat(),
+            "message": message
+        }
+        
+        # Add to message queue
+        await self.message_queue.put(envelope)
+        self.logger.info(f"Message queued from {from_agent} to {to_agent}")
+    
+    async def message_processor(self):
+        """Process messages in the queue"""
+        while True:
+            # Get the next message
+            envelope = await self.message_queue.get()
+            
+            try:
+                to_agent = envelope["to"]
+                agent_instance = self.registry.get_agent(to_agent)
+                
+                # Deliver message to agent
+                # This would depend on how agents handle messages
+                # For LangGraph agents, we might update their state
+                
+                self.logger.info(f"Delivered message to {to_agent}")
+            except Exception as e:
+                self.logger.error(f"Error delivering message: {e}")
+            finally:
+                self.message_queue.task_done()
+    
+    async def health_check(self, agent_id: str) -> Dict[str, Any]:
+        """Check the health of an agent"""
+        if agent_id not in self.registry.agent_instances:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+        
+        agent_info = self.registry.agent_instances[agent_id]
+        
+        # Perform health check
+        health = {
+            "status": agent_info["status"],
+            "timestamp": datetime.now().isoformat(),
+            "metrics": {
+                "memory_usage": 0,  # Would need to be implemented
+                "token_usage": 0,   # Would need to be implemented
+                "runtime": 0        # Would need to be implemented
+            }
+        }
+        
+        # Update last health check
+        agent_info["last_health_check"] = health["timestamp"]
+        agent_info["metrics"] = health["metrics"]
+        
+        self.health_status[agent_id] = health
+        return health
+    
+    async def restart_agent(self, agent_id: str) -> bool:
+        """Restart a failed or stopped agent"""
+        if agent_id not in self.registry.agent_instances:
+            raise ValueError(f"Unknown agent ID: {agent_id}")
+        
+        # Stop the agent if it's running
+        if self.registry.agent_instances[agent_id]["status"] == "running":
+            await self.stop_agent(agent_id)
+        
+        # Recreate the agent
+        agent_info = self.registry.agent_instances[agent_id]
+        agent_type = agent_info["type"]
+        config = agent_info["config"]
+        
+        # Remove old instance
+        del self.registry.agent_instances[agent_id]
+        
+        # Create new instance
+        self.registry.create_agent(agent_type, agent_id, config)
+        
+        # Start the new instance
+        await self.start_agent(agent_id, self.agent_states.get(agent_id))
+        
+        self.logger.info(f"Restarted agent: {agent_id}")
+        return True
