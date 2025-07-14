@@ -7,7 +7,7 @@
 
 import networkx as nx
 from typing import List, Dict, Set, Tuple
-
+from typing import Dict, Any
 
 class RepoSearcher:
     """A class to perform searches and traversals on a repository code graph."""

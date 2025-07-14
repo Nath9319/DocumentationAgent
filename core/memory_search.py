@@ -3,7 +3,8 @@ from typing import List, Dict, Any, Tuple
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import json
-
+import sqlite3
+from .memory_store import MemoryStore
 class MemorySearchEngine:
     """High-performance search for compressed memory"""
     
