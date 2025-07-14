@@ -230,7 +230,36 @@ class ChunkManager:
             self.update_chunk_state(chunk_id, ChunkState.ACTIVE)
         
         return chunk_id
-    
+# Add to ChunkManager class
+    def create_similarity_chunk(self, 
+                            initial_docs: List[str], 
+                            similarity_scores: Dict[str, float],
+                            max_docs: int = 10) -> str:
+        """Create chunk with similarity constraints"""
+        if len(initial_docs) > max_docs:
+            raise ValueError(f"Cannot create chunk with {len(initial_docs)} docs (max: {max_docs})")
+        
+        chunk_id = self.create_chunk(
+            initial_docs=initial_docs,
+            capacity=max_docs,
+            tags=["similarity_based"],
+            similarity_group=f"sim_{hashlib.md5(str(sorted(initial_docs)).encode()).hexdigest()[:8]}"
+        )
+        
+        # Store similarity metadata
+        self._store_similarity_metadata(chunk_id, similarity_scores)
+        return chunk_id
+
+    def _store_similarity_metadata(self, chunk_id: str, similarity_scores: Dict[str, float]):
+        """Store similarity scores for chunk"""
+        with sqlite3.connect(self.db_path) as conn:
+            for doc_pair, score in similarity_scores.items():
+                conn.execute("""
+                    INSERT INTO chunk_relationships 
+                    (source_chunk_id, target_chunk_id, relationship_type, weight, metadata)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (chunk_id, doc_pair, "SIMILARITY", score, json.dumps({"type": "document_similarity"})))
+
     def get_chunk(self, chunk_id: str) -> Optional[ChunkMetadata]:
         """
         Retrieve chunk metadata by ID.

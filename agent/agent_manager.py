@@ -3,6 +3,7 @@
 import os
 import json
 import time
+import networkx as nx
 from typing import Dict, List, Any, Optional, Callable, TypedDict
 from datetime import datetime
 import asyncio
@@ -12,7 +13,8 @@ from langchain_openai import AzureChatOpenAI
 # Add LangGraph imports
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-
+from core.doc_processor import DocumentProcessor
+from core.graph_searcher import RepoSearcher
 # Define a TypedDict for agent state
 class AgentState(TypedDict):
     agent_id: str
@@ -122,8 +124,88 @@ class AgentManager:
         self.registry.register_agent_type("documentation", 
             lambda agent_id, config: create_agent_graph())
         
-        # Add more agent types as needed
-    
+    def create_documentation_agents(self, 
+                                graph: nx.MultiDiGraph,
+                                num_agents: int = 3) -> List[str]:
+        """Create specialized documentation agents"""
+        agents = []
+        
+        # Memory Agent - creates and manages compressed memory
+        memory_agent_id = self.registry.create_agent(
+            "memory_agent", 
+            f"memory_agent_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            {"graph": graph, "role": "memory_creation"}
+        )
+        agents.append(memory_agent_id)
+        
+        # Similarity Agent - manages document similarity and chunking
+        similarity_agent_id = self.registry.create_agent(
+            "similarity_agent",
+            f"similarity_agent_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            {"graph": graph, "role": "similarity_management"}
+        )
+        agents.append(similarity_agent_id)
+        
+        # Content Generation Agents
+        for i in range(num_agents - 2):
+            content_agent_id = self.registry.create_agent(
+                "content_agent",
+                f"content_agent_{i}_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                {"graph": graph, "role": "content_generation", "agent_id": i}
+            )
+            agents.append(content_agent_id)
+        
+        return agents
+
+    async def coordinate_documentation_generation(self, 
+                                            document_ids: List[str],
+                                            graph: nx.MultiDiGraph) -> Dict[str, Any]:
+        """Coordinate multi-agent documentation generation"""
+        
+        # Step 1: Create agents
+        agents = self.create_documentation_agents(graph)
+        memory_agent, similarity_agent = agents[0], agents[1]
+        content_agents = agents[2:]
+        
+        # Step 2: Memory agent creates compressed understanding
+        memory_result = await self.start_agent(memory_agent, {
+            "action": "create_memory",
+            "graph": graph,
+            "documents": document_ids
+        })
+        
+        # Step 3: Similarity agent organizes documents into chunks
+        chunking_result = await self.start_agent(similarity_agent, {
+            "action": "organize_chunks",
+            "documents": document_ids,
+            "memory": memory_result.get("compressed_memory"),
+            "graph": graph
+        })
+        
+        # Step 4: Content agents generate documentation
+        generation_tasks = []
+        chunks = chunking_result.get("chunks", [])
+        
+        for i, chunk in enumerate(chunks):
+            agent_id = content_agents[i % len(content_agents)]
+            task = self.start_agent(agent_id, {
+                "action": "generate_content",
+                "chunk": chunk,
+                "memory": memory_result.get("compressed_memory"),
+                "graph": graph
+            })
+            generation_tasks.append(task)
+        
+        # Wait for all content generation to complete
+        results = await asyncio.gather(*generation_tasks)
+        
+        return {
+            "memory_creation": memory_result,
+            "chunking": chunking_result,
+            "content_generation": results
+        }
+
+
     async def start_agent(self, agent_id: str, initial_state: Dict[str, Any] = None) -> Dict[str, Any]:
         """Start an agent with LangGraph state management"""
         if agent_id not in self.registry.agent_instances:

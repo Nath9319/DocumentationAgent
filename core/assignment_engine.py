@@ -10,7 +10,7 @@ from enum import Enum
 import logging
 import time
 import os
-
+import networkx as nx
 # Import internal components
 from core.chunk_manager import ChunkManager, ChunkState
 from core.similarity_calculator import SimilarityCalculator
@@ -152,7 +152,81 @@ class AssignmentEngine:
                 CREATE INDEX IF NOT EXISTS idx_history_doc ON assignment_history(document_id);
                 CREATE INDEX IF NOT EXISTS idx_conflicts_doc ON assignment_conflicts(document_id);
             """)
-    
+
+# Add to AssignmentEngine class
+    def assign_with_graph_context(self, 
+                                document_id: str, 
+                                graph: nx.MultiDiGraph,
+                                memory_content: str,
+                                max_chunks: int = 3) -> List[AssignmentRecord]:
+        """Assign document considering graph connections and memory"""
+        
+        # Find graph connections for this document
+        connections = self._find_graph_connections(document_id, graph)
+        
+        # Calculate similarity with memory context
+        similarity_scores = self._calculate_memory_similarity(document_id, memory_content)
+        
+        # Find best matching chunks (up to max_chunks)
+        candidate_chunks = self._find_similar_chunks(similarity_scores, max_chunks)
+        
+        assignments = []
+        for chunk_id, score in candidate_chunks:
+            chunk = self.chunk_manager.get_chunk(chunk_id)
+            
+            # Check if chunk can accommodate new document
+            if chunk.current_size < self.config["max_chunk_assignments"]:
+                assignment = self._create_assignment(
+                    document_id=document_id,
+                    chunk_id=chunk_id,
+                    score=score,
+                    strategy=AssignmentStrategy.HYBRID,
+                    metadata={"graph_connections": connections, "memory_similarity": score}
+                )
+                assignments.append(assignment)
+                
+                # Add to chunk
+                self.chunk_manager.add_document_to_chunk(chunk_id, document_id, score)
+        
+        # If no suitable chunks or confidence too low, create new chunk
+        if not assignments or max(s for _, s in candidate_chunks) < self.config["similarity_threshold"]:
+            new_chunk_id = self.chunk_manager.create_similarity_chunk(
+                initial_docs=[document_id],
+                similarity_scores={},
+                max_docs=self.config["max_chunk_assignments"]
+            )
+            
+            assignment = self._create_assignment(
+                document_id=document_id,
+                chunk_id=new_chunk_id,
+                score=1.0,
+                strategy=AssignmentStrategy.MANUAL,
+                metadata={"reason": "new_chunk_created"}
+            )
+            assignments.append(assignment)
+        
+        return assignments
+
+    def _find_graph_connections(self, document_id: str, graph: nx.MultiDiGraph) -> List[str]:
+        """Find connected documents in graph"""
+        if document_id not in graph:
+            return []
+        
+        connections = []
+        for neighbor in graph.neighbors(document_id):
+            connections.append(neighbor)
+        
+        return connections
+
+    def _calculate_memory_similarity(self, document_id: str, memory_content: str) -> float:
+        """Calculate similarity with compressed memory"""
+        doc_content = self.similarity_calculator.doc_cache.get(document_id, {}).get('content', '')
+        
+        if not doc_content:
+            return 0.0
+        
+        return self.similarity_calculator.calculate_similarity(doc_content, memory_content)
+
     def assign_document(self, 
                        document_id: str, 
                        strategy: AssignmentStrategy = None,

@@ -234,7 +234,45 @@ class WorkflowEngine:
         
         compiled_graph = workflow_builder.compile()
         self.workflow_graphs[workflow_name] = compiled_graph
-    
+
+# Add to WorkflowEngine class
+    def create_documentation_workflow(self) -> str:
+        """Create workflow definition for graph-based documentation"""
+        workflow_def = {
+            "version": "1.0",
+            "nodes": {
+                "initialize": {
+                    "type": "initialize_processor",
+                    "params": {"setup_memory": True, "setup_similarity": True}
+                },
+                "create_memory": {
+                    "type": "memory_creation", 
+                    "params": {"compression_level": "balanced"}
+                },
+                "organize_chunks": {
+                    "type": "similarity_chunking",
+                    "params": {"max_docs_per_chunk": 10, "max_similar_chunks": 3}
+                },
+                "generate_content": {
+                    "type": "content_generation",
+                    "params": {"use_memory": True, "use_graph": True}
+                },
+                "finalize": {
+                    "type": "finalize_output",
+                    "params": {"format": "markdown"}
+                }
+            },
+            "edges": [
+                {"source": "initialize", "target": "create_memory"},
+                {"source": "create_memory", "target": "organize_chunks"},
+                {"source": "organize_chunks", "target": "generate_content"},
+                {"source": "generate_content", "target": "finalize"}
+            ]
+        }
+        
+        self.register_workflow("documentation_generation", workflow_def)
+        return "documentation_generation"
+
     def register_node_handler(self, node_type: str, handler: Callable):
         """Register a handler function for a node type"""
         self.node_handlers[node_type] = handler

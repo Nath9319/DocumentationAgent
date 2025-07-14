@@ -7,11 +7,13 @@ from datetime import datetime
 import hashlib
 import re
 from tqdm import tqdm
-
+import re
 # Import our components
 from core.chunk_manager import ChunkManager, ChunkState
 from core.similarity_calculator import SimilarityCalculator, SimilarityConfig, SimilarityMetric, VectorType
 from core.assignment_engine import AssignmentEngine, AssignmentStrategy
+from core.memory_manager import MemoryManager
+from core.compression_engine import CompressionLevel
 
 
 class DocumentProcessor:
@@ -54,6 +56,11 @@ class DocumentProcessor:
         self.conceptual_graph = None
         self.documentation_graph = None
         self.documentation_data = None
+        self.memory_manager = MemoryManager(str(self.data_dir / "memory"))
+        self.graph_memory = None
+        self.similarity_threshold = 0.7
+        self.max_docs_per_chunk = 10
+        self.max_similar_chunks = 3
         
         # Load data if output_dir is provided
         if self.output_dir:
@@ -92,7 +99,47 @@ class DocumentProcessor:
             "similarity_threshold": self.config["similarity_threshold"],
             "max_chunk_assignments": self.config["chunk_size"]
         })
+    def _to_anchor(text: str) -> str:
+        """Convert text to a valid anchor ID"""
+        return re.sub(r'[^a-zA-Z0-9_-]', '-', text.lower())
     
+    def create_graph_memory(self) -> Dict[str, Any]:
+        """Create compressed memory from entire graph traversal"""
+        if not self.documentation_graph:
+            return {"error": "No documentation graph available"}
+        
+        # Traverse entire graph to understand structure
+        graph_content = self._extract_full_graph_content()
+        
+        # Compress into memory using aggressive compression
+        memory_result = self.memory_manager.compressor.compress_documentation(
+            graph_content, CompressionLevel.BALANCED, "graph_overview"
+        )
+        
+        # Store compressed memory
+        self.graph_memory = memory_result.compressed_content
+        
+        return {
+            "original_size": memory_result.original_size,
+            "compressed_size": memory_result.compressed_size,
+            "compression_ratio": memory_result.compression_ratio
+        }
+
+    def _extract_full_graph_content(self) -> str:
+        """Extract content from entire graph for memory creation"""
+        content_parts = []
+        
+        # Get all nodes and their relationships
+        for node in self.documentation_graph.nodes():
+            if node in self.documentation_data:
+                doc_content = self.documentation_data[node].get('documentation', '')
+                connections = list(self.documentation_graph.neighbors(node))
+                
+                summary = f"Node: {node}\nConnections: {connections}\nContent: {doc_content[:200]}..."
+                content_parts.append(summary)
+        
+        return "\n\n".join(content_parts)
+
     def _load_output_data(self):
         """Load data from output directory"""
         if not self.output_dir or not self.output_dir.exists():
@@ -352,17 +399,27 @@ class DocumentProcessor:
         metadata["tags"] = list(set(metadata["tags"]))
         
         return metadata
-    
+
+    def _get_component_summary(self, component: str) -> str:
+        """Get concise summary of component"""
+        if component in self.documentation_data:
+            conceptual = self.documentation_data[component].get('conceptual_data', {})
+            semantic = conceptual.get('semantic_metadata', {})
+            return semantic.get('summary', f"Component: {component}")
+        return f"Component: {component}"
+
+    def _save_documentation(self, content: str, filename: str):
+        """Save documentation to CreatedFile directory"""
+        output_dir = "CreatedFile"
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, filename)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        print(f"Documentation saved to {output_path}")
+
     def _build_chunk_documentation(self, chunk_ids: List[str], documents: List[Dict]) -> Dict[str, Any]:
         """
         Build documentation content for each chunk.
-        
-        Args:
-            chunk_ids: List of chunk IDs
-            documents: List of document dictionaries
-            
-        Returns:
-            Dictionary of chunk_id -> content
         """
         results = {}
         
@@ -377,17 +434,25 @@ class DocumentProcessor:
             # Get assignments for this chunk
             assignments = self.assignment_engine.get_chunk_assignments(chunk_id)
             
-            if not assignments:
-                continue
+            # Debug print to see what's happening
+            print(f"Chunk {chunk_id}: {len(assignments)} assignments")
             
-            # Collect documents
-            chunk_docs = []
-            for assignment in assignments:
-                doc_id = assignment.document_id
-                if doc_id in doc_lookup:
-                    chunk_docs.append(doc_lookup[doc_id])
+            # If no assignments, check if chunk has documents directly
+            if not assignments and chunk.document_ids:
+                # Fallback: use documents directly from chunk
+                chunk_docs = []
+                for doc_id in chunk.document_ids:
+                    if doc_id in doc_lookup:
+                        chunk_docs.append(doc_lookup[doc_id])
+            else:
+                # Collect documents from assignments
+                chunk_docs = []
+                for assignment in assignments:
+                    doc_id = assignment.document_id
+                    if doc_id in doc_lookup:
+                        chunk_docs.append(doc_lookup[doc_id])
             
-            # Build content
+            # Generate content even if no docs (with empty message)
             content = self._generate_chunk_content(chunk, chunk_docs)
             
             results[chunk_id] = {
@@ -397,7 +462,7 @@ class DocumentProcessor:
             }
         
         return results
-    
+
     def _generate_chunk_content(self, chunk, documents: List[Dict]) -> str:
         """Generate content for a chunk"""
         if not documents:
@@ -559,155 +624,68 @@ class DocumentProcessor:
             print(f"Documentation written to {output_path}")
         
         return documentation
+    def _analyze_architectural_layers(self) -> Dict[str, List[str]]:
+        """Analyze components by architectural layer"""
+        layers = {"presentation": [], "business": [], "data": [], "utility": [], "infrastructure": []}
+        
+        for node in self.conceptual_graph.nodes():
+            if node in self.documentation_data:
+                node_data = self.documentation_data[node].get('conceptual_data', {})
+                semantic = node_data.get('semantic_metadata', {})
+                layer = semantic.get('layer', 'utility')
+                layers.get(layer, layers['utility']).append(node)
+        
+        return {k: v for k, v in layers.items() if v}  # Remove empty layers
+def generate_architectural_documentation(self, output_file: str = None) -> str:
+    """Generate comprehensive architectural documentation"""
+    if not self.conceptual_graph:
+        return "No conceptual graph loaded."
     
-    def generate_architectural_documentation(self, output_file: str = None) -> str:
-        """
-        Generate architectural documentation from the conceptual graph.
+    # Analyze architectural layers and patterns
+    layers = self._analyze_architectural_layers()
+    patterns = self._identify_design_patterns()
+    components = self._categorize_components()
+    
+    doc_parts = [
+        "# System Architecture Documentation\n\n",
+        f"*Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}*\n\n",
         
-        Args:
-            output_file: Optional file to write documentation to
-            
-        Returns:
-            Generated documentation content
-        """
-        if not self.conceptual_graph:
-            return "No conceptual graph loaded. Cannot generate architectural documentation."
+        "## Executive Summary\n",
+        f"This system consists of {len(self.conceptual_graph.nodes())} components organized across ",
+        f"{len(layers)} architectural layers with {len(self.conceptual_graph.edges())} documented relationships.\n\n",
         
-        # Build documentation
-        doc_parts = [
-            "# Architectural Documentation\n\n",
-            f"*Generated on {datetime.now().strftime('%Y-%m-%d %H:%M')}*\n\n",
-            "## System Overview\n\n"
-        ]
+        "## Architectural Overview\n\n",
+        "### System Layers\n"
+    ]
+    
+    # Document each layer
+    for layer_name, layer_components in layers.items():
+        doc_parts.append(f"#### {layer_name.title()} Layer\n")
+        doc_parts.append(f"**Components**: {len(layer_components)}\n")
+        doc_parts.append(f"**Responsibility**: {self._get_layer_responsibility(layer_name)}\n\n")
         
-        # Extract architectural components
-        components = {}
-        relationships = []
-        
-        for node, attrs in self.conceptual_graph.nodes(data=True):
-            # Skip nodes without data
-            if not self.documentation_data or node not in self.documentation_data:
-                continue
-            
-            node_data = self.documentation_data[node]
-            
-            if "conceptual_data" in node_data and isinstance(node_data["conceptual_data"], dict):
-                conceptual = node_data["conceptual_data"]
-                
-                if "semantic_metadata" in conceptual:
-                    semantic = conceptual["semantic_metadata"]
-                    
-                    component_type = semantic.get("type", "Unknown")
-                    
-                    if component_type not in components:
-                        components[component_type] = []
-                    
-                    components[component_type].append({
-                        "name": node,
-                        "label": semantic.get("label", node),
-                        "summary": semantic.get("summary", "")
-                    })
-        
-        # Extract relationships
-        for source, target, attrs in self.conceptual_graph.edges(data=True):
-            # Skip nodes without data
-            if (not self.documentation_data or 
-                source not in self.documentation_data or 
-                target not in self.documentation_data):
-                continue
-            
-            relationship = {
-                "source": source,
-                "target": target,
-                "type": attrs.get("label", "RELATED_TO")
-            }
-            
-            relationships.append(relationship)
-        
-        # Generate system overview
-        doc_parts.append(f"This system consists of {len(self.conceptual_graph.nodes())} components with "
-                         f"{len(self.conceptual_graph.edges())} relationships.\n\n")
-        
-        # Generate component type counts
-        doc_parts.append("### Component Types\n\n")
-        
-        for component_type, comps in sorted(components.items()):
-            doc_parts.append(f"- **{component_type}**: {len(comps)} components\n")
-        
-        # Add table of contents
-        doc_parts.append("\n## Table of Contents\n\n")
-        doc_parts.append("1. [Component Types](#component-types)\n")
-        
-        for i, component_type in enumerate(sorted(components.keys()), 2):
-            doc_parts.append(f"{i}. [{component_type} Components](#{_to_anchor(component_type)})\n")
-        
-        doc_parts.append(f"{len(components) + 2}. [Key Relationships](#key-relationships)\n")
-        
-        # Add component details by type
-        for component_type, comps in sorted(components.items()):
-            doc_parts.append(f"\n<a id='{_to_anchor(component_type)}'></a>\n")
-            doc_parts.append(f"## {component_type} Components\n\n")
-            
-            for comp in sorted(comps, key=lambda x: x["name"]):
-                doc_parts.append(f"### {comp['name']}\n\n")
-                
-                if comp["label"] and comp["label"] != comp["name"]:
-                    doc_parts.append(f"**Label**: {comp['label']}\n\n")
-                
-                if comp["summary"]:
-                    doc_parts.append(f"{comp['summary']}\n\n")
-                
-                # Add relationships for this component
-                comp_relationships = [r for r in relationships if r["source"] == comp["name"]]
-                
-                if comp_relationships:
-                    doc_parts.append("**Relationships**:\n\n")
-                    
-                    for rel in comp_relationships:
-                        doc_parts.append(f"- {rel['type']} → {rel['target']}\n")
-                    
-                    doc_parts.append("\n")
-                
-                doc_parts.append("---\n\n")
-        
-        # Add key relationships section
-        doc_parts.append("<a id='key-relationships'></a>\n")
-        doc_parts.append("## Key Relationships\n\n")
-        
-        # Group relationships by type
-        rel_by_type = {}
-        
-        for rel in relationships:
-            rel_type = rel["type"]
-            
-            if rel_type not in rel_by_type:
-                rel_by_type[rel_type] = []
-            
-            rel_by_type[rel_type].append(rel)
-        
-        # Add relationship details by type
-        for rel_type, rels in sorted(rel_by_type.items()):
-            doc_parts.append(f"### {rel_type} Relationships\n\n")
-            
-            for rel in sorted(rels, key=lambda x: (x["source"], x["target"])):
-                doc_parts.append(f"- {rel['source']} → {rel['target']}\n")
-            
-            doc_parts.append("\n")
-        
-        # Build final documentation
-        documentation = "".join(doc_parts)
-        
-        # Write to file if requested
-        if output_file:
-            output_dir = "CreatedFile"
-            os.makedirs(output_dir, exist_ok=True)
-            output_path = os.path.join(output_dir, output_file or "TechnicalDocument.md")
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(documentation)
-            print(f"Architectural documentation written to {output_path}")
-        
-        return documentation
-
+        for component in layer_components[:5]:  # Top 5 components
+            if component in self.documentation_data:
+                doc_parts.append(f"- **{component}**: {self._get_component_summary(component)}\n")
+        doc_parts.append("\n")
+    
+    # Add component details by category
+    doc_parts.append("## Component Catalog\n\n")
+    for category, comps in components.items():
+        doc_parts.append(f"### {category} Components\n\n")
+        for comp in comps:
+            summary = self._get_component_summary(comp)
+            dependencies = list(self.conceptual_graph.successors(comp))[:3]
+            doc_parts.append(f"#### {comp}\n")
+            doc_parts.append(f"{summary}\n\n")
+            if dependencies:
+                doc_parts.append(f"**Key Dependencies**: {', '.join(dependencies)}\n\n")
+    
+    # Save and return
+    documentation = "".join(doc_parts)
+    if output_file:
+        self._save_documentation(documentation, output_file)
+    return documentation
 
 # Helper function to convert text to a valid anchor
 def _to_anchor(text: str) -> str:
