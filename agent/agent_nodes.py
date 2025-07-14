@@ -658,3 +658,42 @@ def should_continue(state: AgentState) -> str:
     else:
         print("\n--- All nodes have been documented. Agent is finished. ---")
         return "end"
+
+def build_documentation_graph(state: AgentState) -> dict:
+    """
+    Builds a graph where nodes contain generated documentation text instead of source code.
+    Preserves the same structure and relationships as the original code graph.
+    """
+    if state.get("is_finished"):
+        return {}
+    
+    print(f"--- Building Documentation Graph ---")
+    
+    # Get or initialize the documentation graph
+    doc_graph = state.get('documentation_graph', nx.MultiDiGraph())
+    repo_graph = state['repo_graph']
+    documented_nodes = state['documented_nodes']
+    
+    # Copy all nodes from repo_graph but replace code with documentation
+    for node_name, node_data in repo_graph.nodes(data=True):
+        if node_name in documented_nodes:
+            # Create a copy of node attributes
+            doc_node_attrs = node_data.copy()
+            
+            # Replace the 'info' field (which contains source code) with documentation
+            doc_node_attrs['info'] = documented_nodes[node_name]
+            doc_node_attrs['content_type'] = 'documentation'
+            doc_node_attrs['original_category'] = doc_node_attrs.get('category', 'unknown')
+            
+            # Add node to documentation graph
+            doc_graph.add_node(node_name, **doc_node_attrs)
+    
+    # Copy all edges from the original graph
+    for u, v, edge_data in repo_graph.edges(data=True):
+        # Only add edge if both nodes have been documented
+        if u in documented_nodes and v in documented_nodes:
+            doc_graph.add_edge(u, v, **edge_data)
+    
+    print(f"Documentation graph updated: {len(doc_graph.nodes())} nodes, {len(doc_graph.edges())} edges")
+    
+    return {"documentation_graph": doc_graph}

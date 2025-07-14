@@ -13,3 +13,15 @@ langchain
 langgraph
 langchain_openai
 python-dotenv
+scikit-learn
+sentence-transformers
+spacy
+scipy
+python-louvain
+numpy
+jinja2
+markdown
+jsonschema
+python-magic
+weasyprint
+# python -m spacy download en_core_web_md

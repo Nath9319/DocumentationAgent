@@ -1,15 +1,15 @@
 {
-  "generation_timestamp": "2025-07-04T19:37:24.028787",
-  "processing_time_seconds": 939.897812,
-  "repository_path": "C:\\Users\\Admin\\Downloads\\DocumentationAgent\\CalculatorCode",
-  "total_nodes": 66,
-  "documented_nodes": 66,
+  "generation_timestamp": "2025-07-09T20:35:55.584356",
+  "processing_time_seconds": 2222.057575,
+  "repository_path": "CalculatorCode",
+  "total_nodes": 168,
+  "documented_nodes": 168,
   "quality_metrics": {
-    "average_context_confidence": 0.23667969996479366,
-    "high_confidence_nodes": 8,
-    "medium_confidence_nodes": 1,
-    "low_confidence_nodes": 57,
-    "total_documented": 66
+    "average_context_confidence": 0.939114534820453,
+    "high_confidence_nodes": 150,
+    "medium_confidence_nodes": 6,
+    "low_confidence_nodes": 12,
+    "total_documented": 168
   },
   "enhanced_features": [
     "fuzzy_dependency_matching",

@@ -400,3 +400,15 @@ Code:
 
 List each dependency on a separate line, one per line, nothing else:
 """
+
+COMPREHENSIVE_DOCUMENTATION_PROMPT_TEMPLATE = """
+You are a senior technical writer creating enterprise-grade documentation for a production codebase.
+
+**Node: `{node_name}`**
+**Type:** {node_category} | **File:** {node_fname} | **Lines:** {node_line_start}-{node_line_end}
+
+**Source Code:**
+```python
+{source_code}
+```
+"""

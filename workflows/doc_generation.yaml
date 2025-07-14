@@ -1,0 +1,9 @@
+version: "1.0"
+nodes:
+  start:
+    type: "process_docs"
+  chunk:
+    type: "generate_chunks"
+edges:
+  - source: "start"
+    target: "chunk"

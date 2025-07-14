@@ -8,6 +8,7 @@
 import networkx as nx
 from typing import List, Dict, Set, Tuple
 
+
 class RepoSearcher:
     """A class to perform searches and traversals on a repository code graph."""
 
@@ -443,3 +444,147 @@ class RepoSearcher:
                         queue.append((successor, current_depth + 1))
         
         return depths
+
+    def calculate_connection_strength(self, node1: str, node2: str) -> Dict[str, float]:
+        """
+        Calculate connection strength between two nodes using multiple metrics.
+        
+        Args:
+            node1 (str): First node
+            node2 (str): Second node
+            
+        Returns:
+            Dict[str, float]: Connection strength metrics
+        """
+        if node1 not in self.graph or node2 not in self.graph:
+            return {'direct': 0.0, 'indirect': 0.0, 'semantic': 0.0, 'overall': 0.0}
+        
+        metrics = {}
+        
+        # Direct connection strength
+        metrics['direct'] = self._calculate_direct_strength(node1, node2)
+        
+        # Indirect connection strength (shortest path)
+        metrics['indirect'] = self._calculate_indirect_strength(node1, node2)
+        
+        # Semantic similarity
+        metrics['semantic'] = self._calculate_semantic_strength(node1, node2)
+        
+        # Overall weighted score
+        metrics['overall'] = (
+            0.5 * metrics['direct'] + 
+            0.3 * metrics['indirect'] + 
+            0.2 * metrics['semantic']
+        )
+        
+        return metrics
+    
+    def _calculate_direct_strength(self, node1: str, node2: str) -> float:
+        """Calculate direct connection strength based on edge types and weights."""
+        if not self.graph.has_edge(node1, node2):
+            return 0.0
+        
+        edge_weights = {
+            'calls': 1.0,
+            'inherits_from': 0.9,
+            'contains': 0.8,
+            'uses': 0.7,
+            'references': 0.6,
+            'invokes': 0.5
+        }
+        
+        max_strength = 0.0
+        for edge_data in self.graph[node1][node2].values():
+            label = edge_data.get('label', 'unknown')
+            weight = edge_weights.get(label, 0.3)
+            max_strength = max(max_strength, weight)
+        
+        return max_strength
+    
+    def _calculate_indirect_strength(self, node1: str, node2: str) -> float:
+        """Calculate indirect connection strength based on shortest path."""
+        try:
+            path_length = nx.shortest_path_length(self.graph, node1, node2)
+            if path_length == 1:
+                return 1.0
+            elif path_length <= 3:
+                return 1.0 / path_length
+            else:
+                return 0.1
+        except nx.NetworkXNoPath:
+            return 0.0
+    
+    def _calculate_semantic_strength(self, node1: str, node2: str) -> float:
+        """Calculate semantic similarity based on node attributes."""
+        node1_attrs = self.graph.nodes[node1]
+        node2_attrs = self.graph.nodes[node2]
+        
+        similarity = 0.0
+        
+        # Same file bonus
+        if node1_attrs.get('fname') == node2_attrs.get('fname'):
+            similarity += 0.3
+        
+        # Same category bonus
+        if node1_attrs.get('category') == node2_attrs.get('category'):
+            similarity += 0.2
+        
+        # Docstring similarity (basic keyword matching)
+        doc1 = node1_attrs.get('docstring', '').lower()
+        doc2 = node2_attrs.get('docstring', '').lower()
+        if doc1 and doc2:
+            words1 = set(doc1.split())
+            words2 = set(doc2.split())
+            if words1 and words2:
+                jaccard = len(words1 & words2) / len(words1 | words2)
+                similarity += 0.5 * jaccard
+        
+        return min(similarity, 1.0)
+    
+    def get_node_relationship_matrix(self, nodes: List[str] = None) -> Dict[str, Dict[str, float]]:
+        """
+        Build comprehensive node relationship matrix with connection strengths.
+        
+        Args:
+            nodes (List[str]): Specific nodes to analyze, or None for all nodes
+            
+        Returns:
+            Dict[str, Dict[str, float]]: Matrix of connection strengths
+        """
+        if nodes is None:
+            nodes = list(self.graph.nodes())
+        
+        matrix = {}
+        for node1 in nodes:
+            matrix[node1] = {}
+            for node2 in nodes:
+                if node1 != node2:
+                    strength = self.calculate_connection_strength(node1, node2)
+                    matrix[node1][node2] = strength['overall']
+                else:
+                    matrix[node1][node2] = 1.0
+        
+        return matrix
+    
+    def get_enhanced_graph_statistics(self) -> Dict[str, Any]:
+        """Enhanced graph statistics with connection analysis."""
+        basic_stats = self.get_graph_statistics()
+        
+        # Add connection strength analysis
+        connection_strengths = []
+        for node1 in self.graph.nodes():
+            for node2 in self.graph.successors(node1):
+                strength = self.calculate_connection_strength(node1, node2)
+                connection_strengths.append(strength['overall'])
+        
+        enhanced_stats = {
+            **basic_stats,
+            'connection_analysis': {
+                'avg_connection_strength': sum(connection_strengths) / len(connection_strengths) if connection_strengths else 0,
+                'max_connection_strength': max(connection_strengths) if connection_strengths else 0,
+                'min_connection_strength': min(connection_strengths) if connection_strengths else 0,
+                'total_connections_analyzed': len(connection_strengths)
+            }
+        }
+        
+        return enhanced_stats    
