@@ -900,7 +900,10 @@ if __name__ == "__main__":
 
     JSON_FILE = "output/CalculatorCode/documentation_and_graph_data.json"
     GRAPH_FILE = "output/CalculatorCode/conceptual_graph.pkl"
-    OUTPUT_FILE = "Complete_Technical_Documentation_v6.md"
+    FINAL_DOC_DIR = "final_docs"
+    os.makedirs(FINAL_DOC_DIR, exist_ok=True)
+    OUTPUT_FILE_BASE = "Complete_Technical_Documentation.md"
+    OUTPUT_FILE = os.path.join(FINAL_DOC_DIR, OUTPUT_FILE_BASE)
 
     logger.info("🚀 Starting documentation generation process")
     logger.info(f"📁 JSON file: {JSON_FILE}")
@@ -959,9 +962,21 @@ if __name__ == "__main__":
             final_state = app.invoke(initial_state, config=config)
             progress_bar.close()
 
+
             if final_state and final_state.get("final_document"):
-                # Save final document
-                with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                # --- Save final document in versioned manner ---
+                def get_versioned_filename(base_path):
+                    base_dir, base_name = os.path.split(base_path)
+                    name, ext = os.path.splitext(base_name)
+                    version = 1
+                    candidate = os.path.join(base_dir, base_name)
+                    while os.path.exists(candidate):
+                        candidate = os.path.join(base_dir, f"{name}_v{version}{ext}")
+                        version += 1
+                    return candidate
+
+                save_path = get_versioned_filename(OUTPUT_FILE)
+                with open(save_path, "w", encoding="utf-8") as f:
                     f.write(final_state["final_document"])
 
                 # Save final state as JSON
@@ -972,11 +987,11 @@ if __name__ == "__main__":
                 duration = end_time - start_time
 
                 logger.info(f"🎉 Success! Documentation generation completed in {duration}")
-                logger.info(f"📝 Final document saved to: {OUTPUT_FILE}")
+                logger.info(f"📝 Final document saved to: {save_path}")
                 logger.info(f"📊 Document length: {len(final_state['final_document'])} characters")
                 logger.info(f"📁 Incremental saves stored in: {INCREMENTAL_SAVE_DIR}")
 
-                print(f"\n🚀 Success! Documentation saved to '{OUTPUT_FILE}'")
+                print(f"\n🚀 Success! Documentation saved to '{save_path}'")
                 print(f"⏱️ Total processing time: {duration}")
                 print(f"📁 Incremental saves: {INCREMENTAL_SAVE_DIR}")
 
