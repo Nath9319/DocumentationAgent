@@ -12,6 +12,12 @@ from dotenv import load_dotenv
 # --- tqdm for progress bar ---
 from tqdm import tqdm
 
+# Set UTF-8 encoding for Windows console to handle emojis
+if sys.platform.startswith('win'):
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -49,6 +55,9 @@ logger = logging.getLogger(__name__)
 # --- Create output directory for incremental saves ---
 INCREMENTAL_SAVE_DIR = "incremental_saves"
 os.makedirs(INCREMENTAL_SAVE_DIR, exist_ok=True)
+
+# --- Global progress bar variable ---
+progress_bar = None
 
 # --- 1. Environment Setup & Model Initialization ---
 llm = AzureChatOpenAI(
@@ -577,8 +586,30 @@ def component_loader_node(state: DocumentationState) -> DocumentationState:
         return state
     
     component_name = state["unprocessed_components"].pop(0)
-    logger.info(f"📥 Loading component: '{component_name}' ({len(state['unprocessed_components'])} remaining)")
-    print(f"\n--- 📥 Loader: Loading component '{component_name}' ---")
+    remaining = len(state["unprocessed_components"])
+    total_components = len(state["all_data"])
+    current_idx = total_components - remaining
+    
+    # Update progress bar with detailed information
+    global progress_bar
+    if progress_bar:
+        # Set the current position correctly
+        progress_bar.n = current_idx - 1
+        remaining_count = total_components - current_idx
+        percentage = (current_idx / total_components) * 100
+        
+        # Update description with file details
+        progress_bar.set_description(f"🔄 {component_name} | {remaining_count} left")
+        
+        # Update by 1 and refresh
+        progress_bar.update(1)
+        progress_bar.refresh()
+        
+        # Log progress without emojis to avoid interference
+        print(f"Progress: {current_idx}/{total_components} ({percentage:.1f}%) - Processing: {component_name}")
+    
+    logger.info(f"📥 Loading component: '{component_name}' ({remaining} remaining - {current_idx}/{total_components})")
+    print(f"\n--- 📥 Loader: Loading component '{component_name}' ({current_idx}/{total_components}) ---")
     
     state["current_component_name"] = component_name
     component_data = state["all_data"][component_name]
@@ -934,7 +965,8 @@ if __name__ == "__main__":
 
             # Use tqdm to show progress of component processing
             component_names = sorted(initial_data["all_data"].keys())
-            progress_bar = tqdm(component_names, desc="Processing components", unit="component")
+            progress_bar = tqdm(total=total_components, desc="Initializing...", unit="component", 
+                               bar_format='{desc}: {percentage:3.0f}%|{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]')
 
             initial_state = DocumentationState(
                 unprocessed_components=component_names.copy(),
