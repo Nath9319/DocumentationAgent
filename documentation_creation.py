@@ -532,33 +532,30 @@ class ContentAgent:
         self.agent_id = agent_id
         self.config = config
         self.output_dir = output_dir
-    
+
     def generate_content(self, chunk: Dict[str, Any], memory: str) -> Dict[str, Any]:
-        # Simplified content generation
         documents = chunk.get("documents", [])
         
-        content = f"""
-## Generated Content for Chunk
-
-**Documents in this chunk:** {len(documents)}
-
-**Memory Context:** {memory[:100]}...
-
-**Generated Documentation:**
-This chunk contains {len(documents)} related documents that work together to provide functionality. 
-Based on the compressed memory context and graph relationships, these components are interconnected 
-and should be understood as a cohesive unit.
-
-**Key Components:**
-{chr(10).join(f"- {doc}" for doc in documents[:5])}
-        """
+        # Load actual documentation from CalculatorCode
+        doc_path = Path("output/CalculatorCode/documentation")
+        content_parts = []
         
-        return {
-            "content": content.strip(),
-            "documents_processed": len(documents),
-            "generation_time": "simulated"
-        }
-
+        for doc_id in documents:
+            md_file = doc_path / f"{doc_id.replace('.', '-').replace('::', '-')}.md"
+            if md_file.exists():
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    content_parts.append(f.read())
+            else:
+                content_parts.append(f"## {doc_id}\nNo documentation found.")
+        
+        final_content = "\n\n---\n\n".join(content_parts)
+        
+        # Save to output
+        output_file = self.output_dir / f"chunk_{self.agent_id}.md"
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(final_content)
+        
+        return {"content": final_content, "file": str(output_file)}
 
 # Main execution functions
 
@@ -595,6 +592,11 @@ async def main():
     except Exception as e:
         print(f"❌ Error during documentation generation: {e}")
         raise
+
+    import threading
+    for thread in threading.enumerate():
+        if thread != threading.current_thread():
+            thread.daemon = True
 
 
 def run_documentation_generation():
