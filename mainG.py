@@ -494,15 +494,23 @@ class DocumentationState(TypedDict):
     scrapper_decision: str
     connected_nodes: List[Dict]  # New field for connected nodes information
 
+
 # --- Helper Functions for Incremental Saving ---
+
+# --- Sanitize filenames for Windows compatibility ---
+import re
+def sanitize_filename(name: str) -> str:
+    """Replace invalid filename characters with underscores."""
+    return re.sub(r'[:\\/*?"<>|]', '_', name)
 
 def save_incremental_progress(state: DocumentationState, operation: str):
     """Save incremental progress after each major operation."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     current_component = state.get("current_component_name", "unknown")
-    
-    # Create filename with timestamp and operation
-    filename = f"{timestamp}_{operation}_{current_component}.json"
+    safe_component = sanitize_filename(str(current_component))
+    safe_operation = sanitize_filename(str(operation))
+    # Create filename with timestamp and operation, sanitized
+    filename = f"{timestamp}_{safe_operation}_{safe_component}.json"
     filepath = os.path.join(INCREMENTAL_SAVE_DIR, filename)
     
     # Create a serializable version of the state
@@ -528,13 +536,13 @@ def save_incremental_progress(state: DocumentationState, operation: str):
 def save_section_content(component_name: str, section_name: str, content: str):
     """Save individual section content after each LLM call."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    
-    # Create section-specific directory
-    section_dir = os.path.join(INCREMENTAL_SAVE_DIR, "sections", component_name)
+    safe_component = sanitize_filename(str(component_name))
+    safe_section = sanitize_filename(str(section_name.replace(' ', '_')))
+    # Create section-specific directory (sanitized)
+    section_dir = os.path.join(INCREMENTAL_SAVE_DIR, "sections", safe_component)
     os.makedirs(section_dir, exist_ok=True)
-    
-    # Save section content
-    filename = f"{timestamp}_{section_name.replace(' ', '_')}.md"
+    # Save section content (sanitized)
+    filename = f"{timestamp}_{safe_section}.md"
     filepath = os.path.join(section_dir, filename)
     
     try:

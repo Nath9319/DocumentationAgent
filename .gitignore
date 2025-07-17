@@ -109,7 +109,7 @@ tags.json
 # Output and incremental save folders (do not track generated docs or progress)
 output/
 incremental_saves/
-
+docstring_output/
 # Ignore RepoGraph folder
 RepoGraph/
 
