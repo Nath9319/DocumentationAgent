@@ -936,22 +936,6 @@ if __name__ == "__main__":
             component_names = sorted(initial_data["all_data"].keys())
             progress_bar = tqdm(component_names, desc="Processing components", unit="component")
 
-            # --- Patch loader to update tqdm with current file/component ---
-            original_loader = component_loader_node
-            def loader_with_progress(state):
-                next_component = None
-                if state["unprocessed_components"]:
-                    next_component = state["unprocessed_components"][0]
-                else:
-                    next_component = state.get("current_component_name", "Done")
-                if progress_bar:
-                    progress_bar.set_description(f"Processing file: {next_component} ({progress_bar.n+1}/{progress_bar.total})")
-                result = original_loader(state)
-                if progress_bar and progress_bar.n < progress_bar.total:
-                    progress_bar.update(1)
-                return result
-            workflow.update_node("loader", loader_with_progress)
-
             initial_state = DocumentationState(
                 unprocessed_components=component_names.copy(),
                 all_data=initial_data["all_data"],
