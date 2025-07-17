@@ -1,0 +1,21 @@
+{
+  "generation_timestamp": "2025-07-17T13:10:12.081689",
+  "processing_time_seconds": 2200.987641,
+  "repository_path": "CalculatorCode",
+  "total_nodes": 168,
+  "documented_nodes": 168,
+  "quality_metrics": {
+    "average_context_confidence": 0.9494230754861365,
+    "high_confidence_nodes": 151,
+    "medium_confidence_nodes": 7,
+    "low_confidence_nodes": 10,
+    "total_documented": 168
+  },
+  "enhanced_features": [
+    "fuzzy_dependency_matching",
+    "context_validation",
+    "multi_strategy_search",
+    "confidence_scoring",
+    "fallback_dependency_extraction"
+  ]
+}

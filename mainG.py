@@ -20,8 +20,8 @@ llm = AzureChatOpenAI(
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
     api_version=os.getenv("OPENAI_API_VERSION", "2024-02-01"),
-    temperature=0.2, # Increased for more creative and better-structured writing
-    max_tokens=4000
+    temperature=0.1, # Increased for more creative and better-structured writing
+    max_tokens=40000
 )
 
 # --- 2. Define the Hierarchical Documentation Structure & Agent Prompts ---
@@ -33,29 +33,29 @@ HIERARCHICAL_STRUCTURE = {
     ],
     "Architecture & Design Documentation": [
         "System Architecture",
-        "Design Decision Logs",
+        # "Design Decision Logs",
         "Logical Architecture",
-        "Physical Architecture",
+        # "Physical Architecture",
         "Data Architecture",
-        "Security Architecture",
+        # "Security Architecture",
     ],
     "Development & Operations Documentation": [
         "Code Documentation",
-        "Contributing Guide",
-        "Build & Deployment",
-        "Development Environment",
-        "Code Review Process",
+        # "Contributing Guide",
+        # "Build & Deployment",
+        # "Development Environment",
+        # "Code Review Process",
     ],
     "API & Integration Documentation": [
         "API Documentation",
         "Integration Guide",
-        "Sequence Diagrams",
+        # "Sequence Diagrams",
     ],
     "Technical Implementation Details": [
         "Implementation View",
         "Database Schemas",
-        "Error Handling",
-        "Performance Considerations",
+        # "Error Handling",
+        # "Performance Considerations",
     ]
 }
 
@@ -66,7 +66,29 @@ AGENT_PROMPTS = {
     "Project Introduction": """
         You are an expert technical writer creating the "Project Introduction". Your tone is engaging and clear.
         Your task is to UPDATE the existing introduction by integrating insights from the component `{component_name}`.
-        Focus on high-level purpose, scope, and what problem this project solves.
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` thoroughly and focus on its high-level purpose, scope, and problem-solving capabilities.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise technical terminology and industry-standard language
+        - Be comprehensive yet concise, covering all relevant aspects
+        - Integrate information from all important connected components as supporting context
 
         **Formatting Instructions:**
         - Use bold (`**...**`) for the project name and key concepts.
@@ -82,8 +104,29 @@ AGENT_PROMPTS = {
     """,
     "Installation & Setup": """
         You are a technical writer creating a crystal-clear "Installation & Setup" guide.
-        Analyze the documentation for `{component_name}` for any prerequisites, dependencies, environment variables, or setup commands.
-        Your task is to UPDATE the existing guide by integrating these new steps logically.
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for prerequisites, dependencies, environment variables, and setup commands.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise technical terminology for all setup procedures
+        - Be comprehensive yet concise, covering all installation aspects
+        - Integrate information from all important connected components as supporting context
 
         **Formatting Instructions:**
         - Use subheadings like `### Prerequisites` and `### Installation Steps`.
@@ -100,8 +143,29 @@ AGENT_PROMPTS = {
     """,
     "System Architecture": """
         You are a system architect documenting the "System Architecture".
-        Analyze `{component_name}` and its dependencies (`{component_context}`) to explain its role.
-        Your task is to UPDATE the existing architecture document.
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` and explain its architectural role, patterns, and design principles.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise architectural terminology and design patterns
+        - Be comprehensive yet concise, covering all architectural aspects
+        - Integrate information from all important connected components as supporting context
 
         **Formatting Instructions:**
         - Use subheadings (`###`) for each major component or architectural pattern.
@@ -118,14 +182,36 @@ AGENT_PROMPTS = {
     """,
     "API Documentation": """
         You are a meticulous API documentarian creating the "API Documentation".
-        From `{component_name}`'s documentation, extract endpoint details, methods, parameters, and example request/response bodies.
-        Your task is to UPDATE the existing API reference by adding a new, clearly-defined section for this component.
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for endpoint details, methods, parameters, request/response schemas, and API contracts.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise API terminology and HTTP standards
+        - Be comprehensive yet concise, covering all API aspects
+        - Integrate information from all important connected components as supporting context
 
         **Formatting Instructions:**
         - Use a main subheading (`###`) for the component/endpoint (e.g., `### POST /api/v1/calculate`).
         - **MUST** use a Markdown table for parameters with headers: `| Parameter | Type | Description |`.
         - **MUST** use code blocks with language identifiers for examples (e.g., ```json\n{{"key": "value"}}\n```).
         - Use blockquotes (`> **Note:**`) for important implementation details.
+        - Include information about connected components and their relationships.
 
         EXISTING API DOCUMENTATION:
         ---
@@ -136,8 +222,29 @@ AGENT_PROMPTS = {
     """,
     "Code Documentation": """
         You are a senior developer documenting the codebase in the "Code Documentation" section.
-        Review `{component_name}` and explain its logic, class structure, and key functions.
-        Your task is to UPDATE the existing documentation by adding a detailed subsection for `{component_name}`.
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for its logic, class structure, key functions, algorithms, and implementation details.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise programming terminology and software engineering concepts
+        - Be comprehensive yet concise, covering all code aspects
+        - Integrate information from all important connected components as supporting context
 
         **Formatting Instructions:**
         - Use a subheading (`###`) for the component/module name (e.g., `### Module: 'stats_service.py'`).
@@ -152,27 +259,31 @@ AGENT_PROMPTS = {
 
         Respond with the complete, updated markdown for the "Code Documentation" section.
     """,
-    "Error Handling": """
-        You are a reliability engineer documenting "Error Handling" strategies.
-        Analyze `{component_name}` for custom exceptions, error codes, and handling logic.
-        Your task is to UPDATE the error handling guide.
-
-        **Formatting Instructions:**
-        - **MUST** use a Markdown table to list custom exceptions with headers: `| Exception Name | Status Code | Description |`.
-        - Provide code examples (```python ... ```) showing how to `try...except` these exceptions.
-        - Use blockquotes (`> **Best Practice:** ...`) for important warnings or advice.
-
-        EXISTING ERROR HANDLING GUIDE:
-        ---
-        {existing_content}
-        ---
-
-        Respond with the complete, updated markdown for the "Error Handling" section.
-    """,
     "Data Architecture": """
         You are a data architect documenting the "Data Architecture".
-        From `{component_name}`, extract information about database interactions, schemas, data models, or data flow.
-        Your task is to UPDATE the existing data architecture documentation.
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for database interactions, schemas, data models, data flow, and storage patterns.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise data architecture terminology and database concepts
+        - Be comprehensive yet concise, covering all data aspects
+        - Integrate information from all important connected components as supporting context
 
         **Formatting Instructions:**
         - Use subheadings (`###`) for different data models or database tables.
@@ -185,6 +296,150 @@ AGENT_PROMPTS = {
         ---
 
         Respond with the complete, updated markdown for the "Data Architecture" section.
+    """,
+    "Logical Architecture": """
+        You are a software architect documenting the "Logical Architecture".
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for its logical structure, component relationships, interfaces, and architectural patterns.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise logical architecture terminology and design patterns
+        - Be comprehensive yet concise, covering all logical aspects
+        - Integrate information from all important connected components as supporting context
+
+        **Formatting Instructions:**
+        - Use subheadings (`###`) for logical components and layers.
+        - Use bullet points to describe component interactions and data flow.
+        - Use blockquotes (`> **Design Principle:** ...`) for architectural decisions.
+
+        EXISTING LOGICAL ARCHITECTURE DOCUMENTATION:
+        ---
+        {existing_content}
+        ---
+
+        Respond with the complete, updated markdown for the "Logical Architecture" section.
+    """,
+    "Integration Guide": """
+        You are an integration specialist documenting the "Integration Guide".
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for integration patterns, APIs, protocols, and connectivity requirements.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise integration terminology and protocol specifications
+        - Be comprehensive yet concise, covering all integration aspects
+        - Integrate information from all important connected components as supporting context
+
+        **Formatting Instructions:**
+        - Use subheadings (`###`) for different integration scenarios.
+        - Use code blocks for configuration examples and API calls.
+        - Use bullet points for step-by-step integration procedures.
+
+        EXISTING INTEGRATION GUIDE:
+        ---
+        {existing_content}
+        ---
+
+        Respond with the complete, updated markdown for the "Integration Guide" section.
+    """,
+    "Implementation View": """
+        You are a technical architect documenting the "Implementation View".
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for implementation details, deployment patterns, runtime behavior, and technical specifications.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **ITERATIVE INTEGRATION POLICY**:
+        - This is an ITERATIVE process - preserve all existing valuable information
+        - DO NOT overwrite or remove important segments from existing content
+        - INTEGRATE new information seamlessly with existing content
+        - AVOID creating contradictory information - if there's a conflict, prioritize the most recent and specific information
+        - ENHANCE and EXPAND existing sections rather than replacing them
+        - Maintain consistency across all iterations
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise implementation terminology and technical specifications
+        - Be comprehensive yet concise, covering all implementation aspects
+        - Integrate information from all important connected components as supporting context
+
+        **Formatting Instructions:**
+        - Use subheadings (`###`) for implementation aspects and deployment scenarios.
+        - Use code blocks for configuration and deployment scripts.
+        - Use tables for technical specifications and requirements.
+
+        EXISTING IMPLEMENTATION VIEW:
+        ---
+        {existing_content}
+        ---
+
+        Respond with the complete, updated markdown for the "Implementation View" section.
+    """,
+    "Database Schemas": """
+        You are a database architect documenting the "Database Schemas".
+        
+        **PRIMARY FOCUS**: Analyze `{component_name}` for database schemas, table structures, relationships, and data constraints.
+        **REFERENCE CONTEXT**: Use connected components as contextual reference only: {component_context}
+        
+        **CRITICAL INFORMATION POLICY**:
+        - ONLY include information that is explicitly present in the provided documents
+        - DO NOT create, infer, or assume any information that is not directly stated
+        - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+        - Base your documentation strictly on the factual content provided in the component documentation and connected components
+        
+        **Output Requirements**:
+        - Produce articulated, detailed, technical documentation
+        - Use precise database terminology and schema specifications
+        - Be comprehensive yet concise, covering all database aspects
+        - Integrate information from all important connected components as supporting context
+
+        **Formatting Instructions:**
+        - Use subheadings (`###`) for different schemas and table groups.
+        - **MUST** use Markdown tables for schema definitions with headers: `| Column | Type | Constraints | Description |`.
+        - Use code blocks (```sql ... ```) for DDL statements and important queries.
+
+        EXISTING DATABASE SCHEMAS:
+        ---
+        {existing_content}
+        ---
+
+        Respond with the complete, updated markdown for the "Database Schemas" section.
     """
 }
 
@@ -202,6 +457,7 @@ class DocumentationState(TypedDict):
     final_document: Optional[str]
     # --- FIX: Add a key to store the scrapper's decision ---
     scrapper_decision: str
+    connected_nodes: List[Dict]  # New field for connected nodes information
 
 # --- 4. Agent Node Functions ---
 
@@ -218,23 +474,70 @@ def load_all_data(json_path: str, graph_path: str) -> Dict:
         return {}
 
 def component_loader_node(state: DocumentationState) -> DocumentationState:
-    """Pops the next component and loads its data into the state."""
+    """Pops the next component and loads its data including connected nodes into the state."""
     if not state["unprocessed_components"]:
         return state
+    
     component_name = state["unprocessed_components"].pop(0)
     print(f"\n--- 📥 Loader: Loading component '{component_name}' ---")
+    
     state["current_component_name"] = component_name
     component_data = state["all_data"][component_name]
     state["current_component_doc"] = component_data["documentation"]
+    
+    # Extract connected nodes from the graph
     graph = state["nx_graph"]
-    context = "This component operates independently."
+    connected_nodes_info = []
+    
     if component_name in graph:
+        # Get all neighbors (connected nodes)
         neighbors = list(nx.all_neighbors(graph, component_name))
-        if neighbors:
-            summaries = [f"- `{n}`: {state['all_data'][n]['conceptual_data']['semantic_metadata']['summary']}" for n in neighbors if n in state['all_data']]
-            if summaries:
-                context = "It interacts with or depends on:\n" + "\n".join(summaries)
+        
+        for neighbor in neighbors:
+            if neighbor in state['all_data']:
+                neighbor_data = state['all_data'][neighbor]
+                
+                # Get edge information between current node and neighbor
+                edge_data = graph.get_edge_data(component_name, neighbor)
+                edge_label = edge_data.get('label', 'RELATED_TO') if edge_data else 'RELATED_TO'
+                
+                # Extract neighbor's key information
+                neighbor_info = {
+                    'name': neighbor,
+                    'relationship': edge_label,
+                    'summary': neighbor_data.get('conceptual_data', {}).get('semantic_metadata', {}).get('summary', 'No summary available'),
+                    'type': neighbor_data.get('conceptual_data', {}).get('semantic_metadata', {}).get('type', 'Unknown'),
+                    'documentation': neighbor_data.get('documentation', ''),
+                    'confidence': neighbor_data.get('context_metadata', {}).get('average_confidence', 0.0)
+                }
+                connected_nodes_info.append(neighbor_info)
+    
+    # Build enhanced context with connected nodes
+    if connected_nodes_info:
+        context_parts = [f"**Connected Components ({len(connected_nodes_info)} found):**\n"]
+        
+        for node_info in connected_nodes_info:
+            context_parts.append(f"- **{node_info['name']}** ({node_info['type']})")
+            context_parts.append(f"  - *Relationship*: {node_info['relationship']}")
+            context_parts.append(f"  - *Summary*: {node_info['summary']}")
+            context_parts.append(f"  - *Confidence*: {node_info['confidence']:.2f}")
+            
+            # Include brief documentation if available
+            if node_info['documentation'] and len(node_info['documentation']) > 50:
+                doc_preview = node_info['documentation'][:200] + "..." if len(node_info['documentation']) > 200 else node_info['documentation']
+                context_parts.append(f"  - *Documentation*: {doc_preview}")
+            context_parts.append("")
+        
+        context = "\n".join(context_parts)
+    else:
+        context = "This component operates independently with no direct connections found in the graph."
+    
     state["current_component_context"] = context
+    
+    # Store connected nodes info for use in other agents
+    state["connected_nodes"] = connected_nodes_info
+    
+    print(f"--- 📥 Loader: Found {len(connected_nodes_info)} connected nodes ---")
     return state
 
 # --- FIX: Modify scrapper_node to return a dictionary for state update ---
@@ -267,35 +570,66 @@ def scrapper_node(state: DocumentationState) -> dict:
     return {"scrapper_decision": decision}
 
 def selector_node(state: DocumentationState) -> DocumentationState:
-    """Selects which documentation sections are relevant for the current component."""
+    """Selects which documentation sections are relevant for the current component and its connections."""
     print(f"--- 🎯 Selector: Choosing sections for '{state['current_component_name']}' ---")
+    
+    # Include connected nodes information in the selection process
+    connected_nodes_summary = ""
+    if state.get("connected_nodes"):
+        connected_nodes_summary = f"\n\nConnected Components:\n"
+        for node in state["connected_nodes"]:
+            connected_nodes_summary += f"- {node['name']} ({node['type']}): {node['summary']}\n"
+    
     prompt = ChatPromptTemplate.from_template(
-        """You are a document routing expert. Based on the documentation for component `{component_name}`, select ALL sections where this information would be relevant.
+        """You are a document routing expert. Based on the documentation for component `{component_name}` and its connected components, select ALL sections where this information would be relevant.
+        
         Component Documentation: --- {component_doc} ---
+        {connected_nodes_summary}
         Available Sections: {sections}
+        
+        Consider the relationships and dependencies when selecting sections. For example:
+        - If connected to API endpoints, include "API Documentation"
+        - If connected to database operations, include "Data Architecture"
+        - If connected to error handling, include "Error Handling"
+        
         Respond with a JSON object containing a single key "relevant_sections" which is a list of strings from the available sections.
         Example: {{"relevant_sections": ["API Documentation", "Error Handling"]}}"""
     )
+    
     section_list_str = "\n".join([f"- {s}" for s in ALL_SECTIONS])
     chain = prompt | llm | JsonOutputParser()
-    response = chain.invoke({"component_name": state["current_component_name"], "component_doc": state["current_component_doc"], "sections": section_list_str})
+    
+    response = chain.invoke({
+        "component_name": state["current_component_name"], 
+        "component_doc": state["current_component_doc"], 
+        "connected_nodes_summary": connected_nodes_summary,
+        "sections": section_list_str
+    })
+    
     relevant_sections = response.get("relevant_sections", [])
     state["target_sections"] = [s for s in relevant_sections if s in ALL_SECTIONS]
     print(f"--- 🎯 Selector: Chosen sections: {state['target_sections']} ---")
     return state
 
-def parallel_writer_node(state: DocumentationState) -> DocumentationState:
-    """Invokes the specialist writer agents in parallel for the selected sections."""
-    print(f"--- ✍️ Parallel Writers: Starting for '{state['current_component_name']}' ---")
+def sequential_writer_node(state: DocumentationState) -> DocumentationState:
+    """Invokes the specialist writer agents sequentially for the selected sections."""
+    print(f"--- ✍️ Sequential Writers: Starting for '{state['current_component_name']}' ---")
     for section_name in state["target_sections"]:
         print(f"    - Invoking writer for section: '{section_name}'")
         writer_prompt_template = AGENT_PROMPTS.get(section_name, 
-            """You are a technical writer. Your task is to update the "{section_name}" section.
+            """You are a technical writer. Your task is to update the \"{section_name}\" section.
+            
+            **CRITICAL INFORMATION POLICY**:
+            - ONLY include information that is explicitly present in the provided documents
+            - DO NOT create, infer, or assume any information that is not directly stated
+            - If you are uncertain about any detail, it is better to OMIT it rather than include potentially incorrect information
+            - Base your documentation strictly on the factual content provided in the component documentation
+            
             Analyze `{component_name}` and integrate any relevant information into the existing content.
             Use rich markdown like code blocks, tables, and lists to format the information clearly.
             EXISTING CONTENT: --- {existing_content} ---
             NEW INFORMATION: --- {component_doc} ---
-            Respond with the complete, updated markdown for the "{section_name}" section."""
+            Respond with the complete, updated markdown for the \"{section_name}\" section."""
         )
         existing_content = state["document_content"].get(section_name, "")
         prompt = ChatPromptTemplate.from_template(writer_prompt_template)
@@ -343,7 +677,7 @@ workflow = StateGraph(DocumentationState)
 workflow.add_node("loader", component_loader_node)
 workflow.add_node("scrapper", scrapper_node)
 workflow.add_node("selector", selector_node)
-workflow.add_node("parallel_writers", parallel_writer_node)
+workflow.add_node("sequential_writers", sequential_writer_node)
 workflow.add_node("compiler", compiler_node)
 
 workflow.set_entry_point("loader")
@@ -356,8 +690,8 @@ workflow.add_conditional_edges(
     {"scrap": "loader", "proceed": "selector"}
 )
 
-workflow.add_edge("selector", "parallel_writers")
-workflow.add_edge("parallel_writers", "loader")
+workflow.add_edge("selector", "sequential_writers")
+workflow.add_edge("sequential_writers", "loader")
 workflow.add_edge("compiler", END)
 
 app = workflow.compile()
@@ -380,7 +714,8 @@ if __name__ == "__main__":
             target_sections=[],
             final_document=None,
             # --- FIX: Initialize the new state key ---
-            scrapper_decision=""
+            scrapper_decision="",
+            connected_nodes=[]  # Initialize connected nodes list
         )
         num_components = len(initial_data["all_data"])
         config = {"recursion_limit": num_components * 4 + 15}
