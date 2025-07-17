@@ -1,9 +1,15 @@
+
 import os
 import json
 import pickle
 import networkx as nx
+import asyncio
+import logging
+from datetime import datetime
 from typing import TypedDict, List, Dict, Optional
 from dotenv import load_dotenv
+# --- tqdm for progress bar ---
+from tqdm import tqdm
 
 # Load environment variables from .env file
 load_dotenv()
@@ -14,6 +20,35 @@ from langchain_core.output_parsers.json import JsonOutputParser
 from langchain_openai import AzureChatOpenAI
 from langgraph.graph import StateGraph, END
 
+# --- Configure logging ---
+
+# --- Custom StreamHandler with UTF-8 encoding for emoji support ---
+import sys
+class StreamHandlerUTF8(logging.StreamHandler):
+    def __init__(self, stream=None):
+        if stream is None:
+            stream = sys.stdout
+        # Wrap the stream with UTF-8 encoding if possible
+        try:
+            stream = open(stream.fileno(), mode='w', encoding='utf-8', buffering=1)
+        except Exception:
+            pass  # fallback to default if not possible
+        super().__init__(stream)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('documentation_generation.log', encoding='utf-8'),
+        StreamHandlerUTF8()
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# --- Create output directory for incremental saves ---
+INCREMENTAL_SAVE_DIR = "incremental_saves"
+os.makedirs(INCREMENTAL_SAVE_DIR, exist_ok=True)
+
 # --- 1. Environment Setup & Model Initialization ---
 llm = AzureChatOpenAI(
     azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME", "gpt-4o"),
@@ -21,7 +56,7 @@ llm = AzureChatOpenAI(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
     api_version=os.getenv("OPENAI_API_VERSION", "2024-02-01"),
     temperature=0.1, # Increased for more creative and better-structured writing
-    max_tokens=40000
+    # max_tokens=40000
 )
 
 # --- 2. Define the Hierarchical Documentation Structure & Agent Prompts ---
@@ -100,7 +135,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Project Introduction" section.
+        Respond with the complete, updated markdown for the "Project Introduction" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Installation & Setup": """
         You are a technical writer creating a crystal-clear "Installation & Setup" guide.
@@ -139,7 +174,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Installation & Setup" section.
+        Respond with the complete, updated markdown for the "Installation & Setup" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "System Architecture": """
         You are a system architect documenting the "System Architecture".
@@ -178,7 +213,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "System Architecture" section.
+        Respond with the complete, updated markdown for the "System Architecture" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "API Documentation": """
         You are a meticulous API documentarian creating the "API Documentation".
@@ -218,7 +253,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "API Documentation" section.
+        Respond with the complete, updated markdown for the "API Documentation" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Code Documentation": """
         You are a senior developer documenting the codebase in the "Code Documentation" section.
@@ -257,7 +292,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Code Documentation" section.
+        Respond with the complete, updated markdown for the "Code Documentation" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Data Architecture": """
         You are a data architect documenting the "Data Architecture".
@@ -295,7 +330,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Data Architecture" section.
+        Respond with the complete, updated markdown for the "Data Architecture" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Logical Architecture": """
         You are a software architect documenting the "Logical Architecture".
@@ -333,7 +368,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Logical Architecture" section.
+        Respond with the complete, updated markdown for the "Logical Architecture" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Integration Guide": """
         You are an integration specialist documenting the "Integration Guide".
@@ -371,7 +406,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Integration Guide" section.
+        Respond with the complete, updated markdown for the "Integration Guide" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Implementation View": """
         You are a technical architect documenting the "Implementation View".
@@ -409,7 +444,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Implementation View" section.
+        Respond with the complete, updated markdown for the "Implementation View" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """,
     "Database Schemas": """
         You are a database architect documenting the "Database Schemas".
@@ -439,7 +474,7 @@ AGENT_PROMPTS = {
         {existing_content}
         ---
 
-        Respond with the complete, updated markdown for the "Database Schemas" section.
+        Respond with the complete, updated markdown for the "Database Schemas" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section.
     """
 }
 
@@ -459,6 +494,60 @@ class DocumentationState(TypedDict):
     scrapper_decision: str
     connected_nodes: List[Dict]  # New field for connected nodes information
 
+# --- Helper Functions for Incremental Saving ---
+
+def save_incremental_progress(state: DocumentationState, operation: str):
+    """Save incremental progress after each major operation."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    current_component = state.get("current_component_name", "unknown")
+    
+    # Create filename with timestamp and operation
+    filename = f"{timestamp}_{operation}_{current_component}.json"
+    filepath = os.path.join(INCREMENTAL_SAVE_DIR, filename)
+    
+    # Create a serializable version of the state
+    serializable_state = {
+        "timestamp": timestamp,
+        "operation": operation,
+        "current_component_name": state.get("current_component_name"),
+        "processed_components": len(state.get("all_data", {})) - len(state.get("unprocessed_components", [])),
+        "total_components": len(state.get("all_data", {})),
+        "target_sections": state.get("target_sections", []),
+        "document_content": state.get("document_content", {}),
+        "connected_nodes_count": len(state.get("connected_nodes", [])),
+        "scrapper_decision": state.get("scrapper_decision", "")
+    }
+    
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(serializable_state, f, indent=2, ensure_ascii=False)
+        logger.info(f"💾 Incremental progress saved: {filepath}")
+    except Exception as e:
+        logger.error(f"❌ Failed to save incremental progress: {e}")
+
+def save_section_content(component_name: str, section_name: str, content: str):
+    """Save individual section content after each LLM call."""
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Create section-specific directory
+    section_dir = os.path.join(INCREMENTAL_SAVE_DIR, "sections", component_name)
+    os.makedirs(section_dir, exist_ok=True)
+    
+    # Save section content
+    filename = f"{timestamp}_{section_name.replace(' ', '_')}.md"
+    filepath = os.path.join(section_dir, filename)
+    
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(f"# {section_name}\n\n")
+            f.write(f"*Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n")
+            f.write(f"*Component: {component_name}*\n\n")
+            f.write("---\n\n")
+            f.write(content)
+        logger.info(f"💾 Section content saved: {filepath}")
+    except Exception as e:
+        logger.error(f"❌ Failed to save section content: {e}")
+
 # --- 4. Agent Node Functions ---
 
 def load_all_data(json_path: str, graph_path: str) -> Dict:
@@ -476,9 +565,11 @@ def load_all_data(json_path: str, graph_path: str) -> Dict:
 def component_loader_node(state: DocumentationState) -> DocumentationState:
     """Pops the next component and loads its data including connected nodes into the state."""
     if not state["unprocessed_components"]:
+        logger.info("🔄 No more components to process")
         return state
     
     component_name = state["unprocessed_components"].pop(0)
+    logger.info(f"📥 Loading component: '{component_name}' ({len(state['unprocessed_components'])} remaining)")
     print(f"\n--- 📥 Loader: Loading component '{component_name}' ---")
     
     state["current_component_name"] = component_name
@@ -492,6 +583,7 @@ def component_loader_node(state: DocumentationState) -> DocumentationState:
     if component_name in graph:
         # Get all neighbors (connected nodes)
         neighbors = list(nx.all_neighbors(graph, component_name))
+        logger.info(f"🔗 Found {len(neighbors)} connected nodes for '{component_name}'")
         
         for neighbor in neighbors:
             if neighbor in state['all_data']:
@@ -531,47 +623,64 @@ def component_loader_node(state: DocumentationState) -> DocumentationState:
         context = "\n".join(context_parts)
     else:
         context = "This component operates independently with no direct connections found in the graph."
+        logger.info(f"🔍 No connected nodes found for '{component_name}'")
     
     state["current_component_context"] = context
     
     # Store connected nodes info for use in other agents
     state["connected_nodes"] = connected_nodes_info
     
+    # Save incremental progress
+    save_incremental_progress(state, "component_loaded")
+    
+    logger.info(f"✅ Component '{component_name}' loaded successfully with {len(connected_nodes_info)} connected nodes")
     print(f"--- 📥 Loader: Found {len(connected_nodes_info)} connected nodes ---")
     return state
 
-# --- FIX: Modify scrapper_node to return a dictionary for state update ---
 def scrapper_node(state: DocumentationState) -> dict:
     """Decides if the component's documentation is substantial and updates the state with the decision."""
-    print(f"--- 🗑️ Scrapper: Analyzing '{state['current_component_name']}' ---")
-    doc_length = len(state['current_component_doc'].split())
+    component_name = state['current_component_name']
+    logger.info(f"🗑️ Scrapper: Analyzing component '{component_name}'")
+    print(f"--- 🗑️ Scrapper: Analyzing '{component_name}' ---")
     
-    decision = "proceed" # Default decision
+    doc_length = len(state['current_component_doc'].split())
+    logger.info(f"📊 Document length: {doc_length} words")
+    
+    decision = "proceed"  # Default decision
     if doc_length < 10:
+        logger.info(f"❌ Decision: SCRAP (document too short: {doc_length} words)")
         print(f"--- 🗑️ Scrapper: Decision is to SCRAP (too short). ---")
         decision = "scrap"
     else:
+        logger.info(f"🤖 Consulting LLM for decision on '{component_name}'")
         prompt = ChatPromptTemplate.from_template(
             """Analyze the documentation for component `{component_name}`. Is it trivial (e.g., a simple import, a variable declaration) or substantial (describes logic, a class, a function, configuration)?
             Documentation: --- {component_doc} ---
             Respond with a single word: "Proceed" if substantial, or "Scrap" if trivial."""
         )
         chain = prompt | llm | StrOutputParser()
-        llm_decision = chain.invoke({"component_name": state["current_component_name"], "component_doc": state["current_component_doc"]})
+        llm_decision = chain.invoke({"component_name": component_name, "component_doc": state["current_component_doc"]})
         
         if "Scrap" in llm_decision:
+            logger.info(f"❌ LLM Decision: SCRAP for '{component_name}'")
             print(f"--- 🗑️ Scrapper: Decision is to SCRAP. ---")
             decision = "scrap"
         else:
+            logger.info(f"✅ LLM Decision: PROCEED for '{component_name}'")
             print(f"--- 🗑️ Scrapper: Decision is to PROCEED. ---")
             decision = "proceed"
-            
+    
+    # Save incremental progress
+    save_incremental_progress(state, f"scrapper_{decision}")
+    
     # Return a dictionary to update the state, this is the main fix.
     return {"scrapper_decision": decision}
 
 def selector_node(state: DocumentationState) -> DocumentationState:
     """Selects which documentation sections are relevant for the current component and its connections."""
-    print(f"--- 🎯 Selector: Choosing sections for '{state['current_component_name']}' ---")
+    component_name = state['current_component_name']
+    logger.info(f"🎯 Selector: Choosing sections for '{component_name}'")
+    print(f"--- 🎯 Selector: Choosing sections for '{component_name}' ---")
     
     # Include connected nodes information in the selection process
     connected_nodes_summary = ""
@@ -580,6 +689,7 @@ def selector_node(state: DocumentationState) -> DocumentationState:
         for node in state["connected_nodes"]:
             connected_nodes_summary += f"- {node['name']} ({node['type']}): {node['summary']}\n"
     
+    logger.info(f"🤖 Consulting LLM for section selection for '{component_name}'")
     prompt = ChatPromptTemplate.from_template(
         """You are a document routing expert. Based on the documentation for component `{component_name}` and its connected components, select ALL sections where this information would be relevant.
         
@@ -600,7 +710,7 @@ def selector_node(state: DocumentationState) -> DocumentationState:
     chain = prompt | llm | JsonOutputParser()
     
     response = chain.invoke({
-        "component_name": state["current_component_name"], 
+        "component_name": component_name, 
         "component_doc": state["current_component_doc"], 
         "connected_nodes_summary": connected_nodes_summary,
         "sections": section_list_str
@@ -608,14 +718,26 @@ def selector_node(state: DocumentationState) -> DocumentationState:
     
     relevant_sections = response.get("relevant_sections", [])
     state["target_sections"] = [s for s in relevant_sections if s in ALL_SECTIONS]
+    
+    logger.info(f"✅ Selected {len(state['target_sections'])} sections for '{component_name}': {state['target_sections']}")
     print(f"--- 🎯 Selector: Chosen sections: {state['target_sections']} ---")
+    
+    # Save incremental progress
+    save_incremental_progress(state, "sections_selected")
+    
     return state
 
-def sequential_writer_node(state: DocumentationState) -> DocumentationState:
-    """Invokes the specialist writer agents sequentially for the selected sections."""
-    print(f"--- ✍️ Sequential Writers: Starting for '{state['current_component_name']}' ---")
-    for section_name in state["target_sections"]:
+async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
+    """Invokes the specialist writer agents in parallel for the selected sections using async/await."""
+    component_name = state['current_component_name']
+    logger.info(f"✍️ Parallel Writers: Starting for '{component_name}' with {len(state['target_sections'])} sections")
+    print(f"--- ✍️ Parallel Writers: Starting for '{component_name}' ---")
+    
+    async def process_section(section_name: str) -> tuple[str, str]:
+        """Process a single section asynchronously and return (section_name, content)."""
+        logger.info(f"🔄 Processing section: '{section_name}' for component '{component_name}'")
         print(f"    - Invoking writer for section: '{section_name}'")
+        
         writer_prompt_template = AGENT_PROMPTS.get(section_name, 
             """You are a technical writer. Your task is to update the \"{section_name}\" section.
             
@@ -631,38 +753,114 @@ def sequential_writer_node(state: DocumentationState) -> DocumentationState:
             NEW INFORMATION: --- {component_doc} ---
             Respond with the complete, updated markdown for the \"{section_name}\" section."""
         )
+        
         existing_content = state["document_content"].get(section_name, "")
         prompt = ChatPromptTemplate.from_template(writer_prompt_template)
         chain = prompt | llm | StrOutputParser()
-        updated_section_content = chain.invoke({
-            "section_name": section_name,
-            "existing_content": existing_content or "This section is empty. Please start it.",
-            "component_name": state["current_component_name"],
-            "component_doc": state["current_component_doc"],
-            "component_context": state["current_component_context"]
-        })
-        state["document_content"][section_name] = updated_section_content
-        print(f"    - ✅ Writer for '{section_name}' finished.")
+        
+        # Use async invoke for concurrent LLM calls
+        try:
+            logger.info(f"🤖 Calling LLM for section '{section_name}' in component '{component_name}'")
+            updated_section_content = await chain.ainvoke({
+                "section_name": section_name,
+                "existing_content": existing_content or "This section is empty. Please start it.",
+                "component_name": component_name,
+                "component_doc": state["current_component_doc"],
+                "component_context": state["current_component_context"]
+            })
+            
+            # Save section content after LLM call
+            save_section_content(component_name, section_name, updated_section_content)
+            
+            logger.info(f"✅ Section '{section_name}' completed for component '{component_name}'")
+            print(f"    - ✅ Writer for '{section_name}' finished.")
+            return section_name, updated_section_content
+            
+        except Exception as e:
+            logger.error(f"❌ Error processing section '{section_name}' for component '{component_name}': {e}")
+            print(f"    - ❌ Error in writer for '{section_name}': {e}")
+            return section_name, f"Error generating content for {section_name}: {str(e)}"
+    
+    # Use asyncio.gather for concurrent execution of all sections
+    try:
+        # Create tasks for all sections
+        tasks = [process_section(section_name) for section_name in state["target_sections"]]
+        
+        # Execute all tasks concurrently
+        logger.info(f"🚀 Executing {len(tasks)} LLM calls concurrently for '{component_name}'")
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Process results and handle any exceptions
+        successful_sections = 0
+        failed_sections = 0
+        
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"❌ Writer exception for '{component_name}': {result}")
+                print(f"    - ❌ Writer generated an exception: {result}")
+                failed_sections += 1
+            else:
+                section_name, content = result
+                state["document_content"][section_name] = content
+                successful_sections += 1
+                
+        logger.info(f"📊 Parallel Writers completed for '{component_name}': {successful_sections} successful, {failed_sections} failed")
+                
+    except Exception as exc:
+        logger.error(f"❌ Parallel writers failed for '{component_name}': {exc}")
+        print(f"    - ❌ Parallel writers failed with exception: {exc}")
+    
+    # Save incremental progress
+    save_incremental_progress(state, "parallel_writers_completed")
+    
+    logger.info(f"✅ Parallel Writers: Completed all {len(state['target_sections'])} sections for '{component_name}'")
+    print(f"--- ✍️ Parallel Writers: Completed all {len(state['target_sections'])} sections ---")
     return state
+
+def parallel_writer_node_sync(state: DocumentationState) -> DocumentationState:
+    """Synchronous wrapper for the async parallel_writer_node function."""
+    return asyncio.run(parallel_writer_node(state))
 
 def compiler_node(state: DocumentationState) -> DocumentationState:
     """Assembles all the final sections into the complete, hierarchical document."""
+    logger.info("📚 Compiler: Starting document assembly")
     print("--- 📚 Compiler: Assembling Final Document ---")
+
+    import re
+    def strip_triple_backticks(text: str) -> str:
+        # Remove wrapping triple backticks (with or without language) from the whole section
+        pattern = r"^```[a-zA-Z]*\n([\s\S]*?)\n```$"
+        return re.sub(pattern, r"\1", text.strip(), flags=re.MULTILINE)
+
     final_doc_parts = []
+    sections_included = 0
+
     for main_section, subsections in HIERARCHICAL_STRUCTURE.items():
         # Check if any subsection within this main section has content
         section_has_content = any(state["document_content"].get(sub, "").strip() for sub in subsections)
-        
+
         # Only add the main section header if it has content
         if section_has_content:
             final_doc_parts.append(f"# {main_section}")
+            logger.info(f"📝 Adding main section: {main_section}")
+
             for subsection_name in subsections:
                 content = state["document_content"].get(subsection_name, "").strip()
                 if content:
-                    final_doc_parts.append(f"## {subsection_name}\n\n{content}")
-    
+                    # Remove wrapping triple backticks if present
+                    cleaned_content = strip_triple_backticks(content)
+                    final_doc_parts.append(f"## {subsection_name}\n\n{cleaned_content}")
+                    sections_included += 1
+                    logger.info(f"📄 Added subsection: {subsection_name}")
+
     state["final_document"] = "\n\n---\n\n".join(final_doc_parts)
+
+    logger.info(f"✅ Compiler: Document assembled with {sections_included} sections")
     print("--- 🎉 Compiler: Final document assembled! ---")
+
+    # Save final document progress
+    save_incremental_progress(state, "final_document_compiled")
+
     return state
 
 # --- 5. Define Graph Edges & Control Flow ---
@@ -677,7 +875,7 @@ workflow = StateGraph(DocumentationState)
 workflow.add_node("loader", component_loader_node)
 workflow.add_node("scrapper", scrapper_node)
 workflow.add_node("selector", selector_node)
-workflow.add_node("sequential_writers", sequential_writer_node)
+workflow.add_node("parallel_writers", parallel_writer_node_sync)
 workflow.add_node("compiler", compiler_node)
 
 workflow.set_entry_point("loader")
@@ -690,21 +888,57 @@ workflow.add_conditional_edges(
     {"scrap": "loader", "proceed": "selector"}
 )
 
-workflow.add_edge("selector", "sequential_writers")
-workflow.add_edge("sequential_writers", "loader")
+workflow.add_edge("selector", "parallel_writers")
+workflow.add_edge("parallel_writers", "loader")
 workflow.add_edge("compiler", END)
 
 app = workflow.compile()
 
 # --- Main execution block ---
 if __name__ == "__main__":
+    start_time = datetime.now()
+
     JSON_FILE = "output/CalculatorCode/documentation_and_graph_data.json"
     GRAPH_FILE = "output/CalculatorCode/conceptual_graph.pkl"
-    OUTPUT_FILE = "Complete_Technical_Documentation_v5.md"
+    OUTPUT_FILE = "Complete_Technical_Documentation_v6.md"
+
+    logger.info("🚀 Starting documentation generation process")
+    logger.info(f"📁 JSON file: {JSON_FILE}")
+    logger.info(f"📁 Graph file: {GRAPH_FILE}")
+    logger.info(f"📁 Output file: {OUTPUT_FILE}")
+
     initial_data = load_all_data(JSON_FILE, GRAPH_FILE)
     if initial_data:
+        total_components = len(initial_data["all_data"])
+        logger.info(f"📊 Total components to process: {total_components}")
+
+        # Use tqdm to show progress of component processing
+        component_names = sorted(initial_data["all_data"].keys())
+        progress_bar = tqdm(component_names, desc="Processing components", unit="component")
+
+
+        # We'll update the progress bar in the loader node
+        # Patch the loader node to update tqdm and show current file/component
+        original_loader = component_loader_node
+        def loader_with_progress(state):
+            # Show the current component name in the tqdm bar
+            next_component = None
+            if state["unprocessed_components"]:
+                next_component = state["unprocessed_components"][0]
+            else:
+                # If none left, show last processed
+                next_component = state.get("current_component_name", "Done")
+            progress_bar.set_description(f"Processing: {next_component} ({progress_bar.n+1}/{progress_bar.total})")
+            result = original_loader(state)
+            if progress_bar.n < progress_bar.total:
+                progress_bar.update(1)
+            return result
+
+        # Patch the workflow node
+        workflow.update_node("loader", loader_with_progress)
+
         initial_state = DocumentationState(
-            unprocessed_components=sorted(initial_data["all_data"].keys()),
+            unprocessed_components=component_names.copy(),
             all_data=initial_data["all_data"],
             nx_graph=initial_data["nx_graph"],
             document_content={section: "" for section in ALL_SECTIONS},
@@ -713,17 +947,47 @@ if __name__ == "__main__":
             current_component_context=None,
             target_sections=[],
             final_document=None,
-            # --- FIX: Initialize the new state key ---
             scrapper_decision="",
-            connected_nodes=[]  # Initialize connected nodes list
+            connected_nodes=[]
         )
-        num_components = len(initial_data["all_data"])
-        config = {"recursion_limit": num_components * 4 + 15}
+
+        config = {"recursion_limit": total_components * 4 + 15}
+        logger.info(f"⚙️ Graph recursion limit set to: {config['recursion_limit']}")
         print(f"--- ⚙️ Running graph with recursion limit: {config['recursion_limit']} ---")
-        final_state = app.invoke(initial_state, config=config)
-        if final_state and final_state.get("final_document"):
-            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                f.write(final_state["final_document"])
-            print(f"\n🚀 Success! Documentation saved to '{OUTPUT_FILE}'")
-        else:
-            print("\n❌ Failure: The final document could not be generated.")
+
+        try:
+            final_state = app.invoke(initial_state, config=config)
+            progress_bar.close()
+
+            if final_state and final_state.get("final_document"):
+                # Save final document
+                with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                    f.write(final_state["final_document"])
+
+                # Save final state as JSON
+                final_state_file = os.path.join(INCREMENTAL_SAVE_DIR, f"final_state_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+                save_incremental_progress(final_state, "final_completion")
+
+                end_time = datetime.now()
+                duration = end_time - start_time
+
+                logger.info(f"🎉 Success! Documentation generation completed in {duration}")
+                logger.info(f"📝 Final document saved to: {OUTPUT_FILE}")
+                logger.info(f"📊 Document length: {len(final_state['final_document'])} characters")
+                logger.info(f"📁 Incremental saves stored in: {INCREMENTAL_SAVE_DIR}")
+
+                print(f"\n🚀 Success! Documentation saved to '{OUTPUT_FILE}'")
+                print(f"⏱️ Total processing time: {duration}")
+                print(f"📁 Incremental saves: {INCREMENTAL_SAVE_DIR}")
+
+            else:
+                logger.error("❌ Failure: The final document could not be generated")
+                print("\n❌ Failure: The final document could not be generated.")
+
+        except Exception as e:
+            logger.error(f"❌ Critical error during documentation generation: {e}")
+            print(f"\n❌ Critical error: {e}")
+
+    else:
+        logger.error("❌ Failed to load initial data")
+        print("❌ Failed to load initial data")

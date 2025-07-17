@@ -1,0 +1,22 @@
+{
+  "timestamp": "20250717_145920",
+  "operation": "scrapper_proceed",
+  "current_component_name": "APIException",
+  "processed_components": 1,
+  "total_components": 168,
+  "target_sections": [],
+  "document_content": {
+    "Project Introduction": "",
+    "Installation & Setup": "",
+    "System Architecture": "",
+    "Logical Architecture": "",
+    "Data Architecture": "",
+    "Code Documentation": "",
+    "API Documentation": "",
+    "Integration Guide": "",
+    "Implementation View": "",
+    "Database Schemas": ""
+  },
+  "connected_nodes_count": 8,
+  "scrapper_decision": ""
+}
