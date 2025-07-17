@@ -1,10 +1,11 @@
-
 import os
 import json
 import pickle
 import networkx as nx
 import asyncio
 import logging
+import re
+import sys
 from datetime import datetime
 from typing import TypedDict, List, Dict, Optional
 from dotenv import load_dotenv
@@ -498,7 +499,6 @@ class DocumentationState(TypedDict):
 # --- Helper Functions for Incremental Saving ---
 
 # --- Sanitize filenames for Windows compatibility ---
-import re
 def sanitize_filename(name: str) -> str:
     """Replace invalid filename characters with underscores."""
     return re.sub(r'[:\\/*?"<>|]', '_', name)
@@ -735,16 +735,24 @@ def selector_node(state: DocumentationState) -> DocumentationState:
     
     return state
 
+# Updated parallel_writer_node with integrated progress tracking
 async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
     """Invokes the specialist writer agents in parallel for the selected sections using async/await."""
     component_name = state['current_component_name']
-    logger.info(f"✍️ Parallel Writers: Starting for '{component_name}' with {len(state['target_sections'])} sections")
+    total_sections = len(state["target_sections"])
+    logger.info(f"✍️ Parallel Writers: Starting for '{component_name}' with {total_sections} sections")
     print(f"--- ✍️ Parallel Writers: Starting for '{component_name}' ---")
+    
+    # Global progress tracking
+    completed_sections = 0
     
     async def process_section(section_name: str) -> tuple[str, str]:
         """Process a single section asynchronously and return (section_name, content)."""
-        logger.info(f"🔄 Processing section: '{section_name}' for component '{component_name}'")
-        print(f"    - Invoking writer for section: '{section_name}'")
+        nonlocal completed_sections
+        completed_sections += 1
+        
+        logger.info(f"🔄 Processing section: '{section_name}' for component '{component_name}' ({completed_sections}/{total_sections})")
+        print(f"    - Invoking writer for section: '{section_name}' ({completed_sections}/{total_sections})")
         
         writer_prompt_template = AGENT_PROMPTS.get(section_name, 
             """You are a technical writer. Your task is to update the \"{section_name}\" section.
@@ -759,14 +767,13 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
             Use rich markdown like code blocks, tables, and lists to format the information clearly.
             EXISTING CONTENT: --- {existing_content} ---
             NEW INFORMATION: --- {component_doc} ---
-            Respond with the complete, updated markdown for the \"{section_name}\" section."""
+            Respond with the complete, updated markdown for the \"{section_name}\" section. Do NOT wrap the entire output in triple backticks or code blocks. Only use code blocks for actual code, not for the whole section."""
         )
         
         existing_content = state["document_content"].get(section_name, "")
         prompt = ChatPromptTemplate.from_template(writer_prompt_template)
         chain = prompt | llm | StrOutputParser()
         
-        # Use async invoke for concurrent LLM calls
         try:
             logger.info(f"🤖 Calling LLM for section '{section_name}' in component '{component_name}'")
             updated_section_content = await chain.ainvoke({
@@ -780,7 +787,7 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
             # Save section content after LLM call
             save_section_content(component_name, section_name, updated_section_content)
             
-            logger.info(f"✅ Section '{section_name}' completed for component '{component_name}'")
+            logger.info(f"✅ Section '{section_name}' completed for component '{component_name}' ({completed_sections}/{total_sections})")
             print(f"    - ✅ Writer for '{section_name}' finished.")
             return section_name, updated_section_content
             
@@ -825,6 +832,7 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
     print(f"--- ✍️ Parallel Writers: Completed all {len(state['target_sections'])} sections ---")
     return state
 
+# Remove the duplicate patching code and use the consolidated version
 def parallel_writer_node_sync(state: DocumentationState) -> DocumentationState:
     """Synchronous wrapper for the async parallel_writer_node function."""
     return asyncio.run(parallel_writer_node(state))
@@ -834,7 +842,6 @@ def compiler_node(state: DocumentationState) -> DocumentationState:
     logger.info("📚 Compiler: Starting document assembly")
     print("--- 📚 Compiler: Assembling Final Document ---")
 
-    import re
     def strip_triple_backticks(text: str) -> str:
         # Remove wrapping triple backticks (with or without language) from the whole section
         pattern = r"^```[a-zA-Z]*\n([\s\S]*?)\n```$"
@@ -905,6 +912,7 @@ app = workflow.compile()
 # --- Main execution block ---
 if __name__ == "__main__":
     start_time = datetime.now()
+    progress_bar = None
 
     JSON_FILE = "output/CalculatorCode/documentation_and_graph_data.json"
     GRAPH_FILE = "output/CalculatorCode/conceptual_graph.pkl"
@@ -918,59 +926,52 @@ if __name__ == "__main__":
     logger.info(f"📁 Graph file: {GRAPH_FILE}")
     logger.info(f"📁 Output file: {OUTPUT_FILE}")
 
-    initial_data = load_all_data(JSON_FILE, GRAPH_FILE)
-    if initial_data:
-        total_components = len(initial_data["all_data"])
-        logger.info(f"📊 Total components to process: {total_components}")
+    try:
+        initial_data = load_all_data(JSON_FILE, GRAPH_FILE)
+        if initial_data:
+            total_components = len(initial_data["all_data"])
+            logger.info(f"📊 Total components to process: {total_components}")
 
-        # Use tqdm to show progress of component processing
-        component_names = sorted(initial_data["all_data"].keys())
-        progress_bar = tqdm(component_names, desc="Processing components", unit="component")
+            # Use tqdm to show progress of component processing
+            component_names = sorted(initial_data["all_data"].keys())
+            progress_bar = tqdm(component_names, desc="Processing components", unit="component")
 
+            # --- Patch loader to update tqdm with current file/component ---
+            original_loader = component_loader_node
+            def loader_with_progress(state):
+                next_component = None
+                if state["unprocessed_components"]:
+                    next_component = state["unprocessed_components"][0]
+                else:
+                    next_component = state.get("current_component_name", "Done")
+                if progress_bar:
+                    progress_bar.set_description(f"Processing file: {next_component} ({progress_bar.n+1}/{progress_bar.total})")
+                result = original_loader(state)
+                if progress_bar and progress_bar.n < progress_bar.total:
+                    progress_bar.update(1)
+                return result
+            workflow.update_node("loader", loader_with_progress)
 
-        # We'll update the progress bar in the loader node
-        # Patch the loader node to update tqdm and show current file/component
-        original_loader = component_loader_node
-        def loader_with_progress(state):
-            # Show the current component name in the tqdm bar
-            next_component = None
-            if state["unprocessed_components"]:
-                next_component = state["unprocessed_components"][0]
-            else:
-                # If none left, show last processed
-                next_component = state.get("current_component_name", "Done")
-            progress_bar.set_description(f"Processing: {next_component} ({progress_bar.n+1}/{progress_bar.total})")
-            result = original_loader(state)
-            if progress_bar.n < progress_bar.total:
-                progress_bar.update(1)
-            return result
+            initial_state = DocumentationState(
+                unprocessed_components=component_names.copy(),
+                all_data=initial_data["all_data"],
+                nx_graph=initial_data["nx_graph"],
+                document_content={section: "" for section in ALL_SECTIONS},
+                current_component_name=None,
+                current_component_doc=None,
+                current_component_context=None,
+                target_sections=[],
+                final_document=None,
+                scrapper_decision="",
+                connected_nodes=[]
+            )
 
-        # Patch the workflow node
-        workflow.update_node("loader", loader_with_progress)
+            config = {"recursion_limit": total_components * 4 + 15}
+            logger.info(f"⚙️ Graph recursion limit set to: {config['recursion_limit']}")
+            print(f"--- ⚙️ Running graph with recursion limit: {config['recursion_limit']} ---")
 
-        initial_state = DocumentationState(
-            unprocessed_components=component_names.copy(),
-            all_data=initial_data["all_data"],
-            nx_graph=initial_data["nx_graph"],
-            document_content={section: "" for section in ALL_SECTIONS},
-            current_component_name=None,
-            current_component_doc=None,
-            current_component_context=None,
-            target_sections=[],
-            final_document=None,
-            scrapper_decision="",
-            connected_nodes=[]
-        )
-
-        config = {"recursion_limit": total_components * 4 + 15}
-        logger.info(f"⚙️ Graph recursion limit set to: {config['recursion_limit']}")
-        print(f"--- ⚙️ Running graph with recursion limit: {config['recursion_limit']} ---")
-
-        try:
             final_state = app.invoke(initial_state, config=config)
-            progress_bar.close()
-
-
+            
             if final_state and final_state.get("final_document"):
                 # --- Save final document in versioned manner ---
                 def get_versioned_filename(base_path):
@@ -1006,11 +1007,16 @@ if __name__ == "__main__":
             else:
                 logger.error("❌ Failure: The final document could not be generated")
                 print("\n❌ Failure: The final document could not be generated.")
-
-        except Exception as e:
-            logger.error(f"❌ Critical error during documentation generation: {e}")
-            print(f"\n❌ Critical error: {e}")
-
-    else:
-        logger.error("❌ Failed to load initial data")
-        print("❌ Failed to load initial data")
+        
+        else:
+            logger.error("❌ Failed to load initial data")
+            print("❌ Failed to load initial data")
+            
+    except Exception as e:
+        logger.error(f"❌ Critical error during documentation generation: {e}")
+        print(f"\n❌ Critical error: {e}")
+    
+    finally:
+        # Ensure progress bar is always closed
+        if progress_bar:
+            progress_bar.close()

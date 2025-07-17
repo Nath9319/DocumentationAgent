@@ -110,6 +110,7 @@ tags.json
 output/
 incremental_saves/
 docstring_output/
+final_docs/
 # Ignore RepoGraph folder
 RepoGraph/
 
