@@ -689,7 +689,7 @@ def component_loader_node(state: DocumentationState) -> DocumentationState:
     
     # Update progress bar with detailed information
     global progress_bar
-    if progress_bar:
+    if progress_bar and threading.current_thread() is threading.main_thread():
         # Set the current position correctly
         progress_bar.n = current_idx - 1
         remaining_count = total_components - current_idx
@@ -887,7 +887,7 @@ Decision:"""
     
     try:
         logger.info(f"🤖 LLM call initiated | Component: '{component_name}' | Type: enhanced_scrapper")
-        llm_decision = chain.invoke({
+        llm_decision = llm.invoke({
             "component_name": component_name, 
             "component_doc": component_doc
         })
@@ -1317,7 +1317,7 @@ async def process_documentation_section(state: DocumentationState, section_name:
     try:
         logger.info(f"🤖 LLM call initiated | Component: '{component_name}' | Section: '{section_name}' | Type: documentation_writer")
         
-        updated_section_content = await chain.ainvoke({
+        updated_section_content = chain.ainvoke({
             "section_name": section_name,
             "existing_content": existing_content or "This section is empty. Please start it.",
             "component_name": component_name,
@@ -1357,9 +1357,9 @@ async def process_architectural_analysis(state: DocumentationState) -> Documenta
     """Process architectural analysis for the current component."""
     return await architectural_diagram_node(state)
 
-def parallel_processing_node_sync(state: DocumentationState) -> DocumentationState:
-    """Synchronous wrapper for parallel processing."""
-    return asyncio.run(parallel_processing_node(state))
+# def parallel_processing_node_sync(state: DocumentationState) -> DocumentationState:
+#     """Synchronous wrapper for parallel processing."""
+#     return asyncio.run(parallel_processing_node(state))
 
 # Updated parallel_writer_node with integrated progress tracking
 async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
@@ -1459,10 +1459,21 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
     return state
 
 # Remove the duplicate patching code and use the consolidated version
+# def parallel_writer_node_sync(state: DocumentationState) -> DocumentationState:
+#     """Synchronous wrapper for the async parallel_writer_node function."""
+#     return asyncio.run(parallel_writer_node(state))
 def parallel_writer_node_sync(state: DocumentationState) -> DocumentationState:
     """Synchronous wrapper for the async parallel_writer_node function."""
-    return asyncio.run(parallel_writer_node(state))
-
+    try:
+        # Add timeout to prevent hanging
+        return asyncio.wait_for(parallel_writer_node(state), timeout=300)  # 5 minutes timeout
+    except asyncio.TimeoutError:
+        logger.error(f"❌ Parallel processing timed out for component: {state.get('current_component_name')}")
+        return state
+    except Exception as e:
+        logger.error(f"❌ Parallel processing failed: {e}")
+        return state
+    
 def compiler_node(state: DocumentationState) -> DocumentationState:
     """Assembles all the final sections into the complete, hierarchical document."""
     logger.info("� Node: compiler | Status: started")
@@ -1693,6 +1704,19 @@ def save_basic_diagram_files(state: DocumentationState, mermaid_code: str, descr
         json.dump(arch_data, f, indent=2, ensure_ascii=False)
     
     logger.info(f"💾 Basic diagram files saved in: {diagrams_dir}")
+
+def check_and_recover_state():
+    """Check for hanging state and provide recovery options."""
+    latest_save = None
+    if os.path.exists(INCREMENTAL_SAVE_DIR):
+        save_files = [f for f in os.listdir(INCREMENTAL_SAVE_DIR) if f.endswith('.json')]
+        if save_files:
+            latest_save = max(save_files, key=lambda x: os.path.getctime(os.path.join(INCREMENTAL_SAVE_DIR, x)))
+            save_time = datetime.fromtimestamp(os.path.getctime(os.path.join(INCREMENTAL_SAVE_DIR, latest_save)))
+            if datetime.now() - save_time > timedelta(minutes=10):
+                logger.warning(f"⚠️ Last save was {datetime.now() - save_time} ago. Possible hang detected.")
+                return os.path.join(INCREMENTAL_SAVE_DIR, latest_save)
+    return None
 
 def create_beautification_script(state: DocumentationState):
     """Create a script to beautify the architectural diagram."""
@@ -1925,6 +1949,7 @@ if __name__ == "__main__":
 
 # --- 5. Define Graph Edges & Control Flow ---
 
+
 def should_continue_processing(state: DocumentationState) -> str:
     """Determines if there are more components to process."""
     return "continue" if state["unprocessed_components"] else "end"
@@ -1935,7 +1960,8 @@ workflow = StateGraph(DocumentationState)
 workflow.add_node("loader", component_loader_node)
 workflow.add_node("scrapper", scrapper_node)
 workflow.add_node("selector", selector_node)
-workflow.add_node("parallel_processing", parallel_processing_node_sync)
+# workflow.add_node("parallel_processing", parallel_processing_node_sync)
+workflow.add_node("parallel_processing", parallel_writer_node_sync)
 workflow.add_node("compiler", compiler_node)
 workflow.add_node("diagram_finalizer", diagram_finalizer_node)
 
