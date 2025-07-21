@@ -104,8 +104,15 @@ tags.json
 # Pickle files
 *.pkl
 
-# Ignore sample data if not needed in repo
-data/sample_database.db
+
+
+# Output and incremental save folders (do not track generated docs or progress)
+output/
+incremental_saves/
+docstring_output/
+final_docs/
+# Ignore RepoGraph folder
+RepoGraph/
 
 # Ignore compiled files in subfolders
 **/__pycache__/
