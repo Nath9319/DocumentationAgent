@@ -1469,7 +1469,7 @@ def parallel_writer_node_sync(state: DocumentationState) -> DocumentationState:
     """Synchronous wrapper for the async parallel_writer_node function."""
     try:
         # Add timeout to prevent hanging
-        return asyncio.wait_for(parallel_writer_node(state), timeout=300)  # 5 minutes timeout
+        return asyncio.run(asyncio.wait_for(parallel_writer_node(state), timeout=300))  # 5 minutes timeout
     except asyncio.TimeoutError:
         logger.error(f"❌ Parallel processing timed out for component: {state.get('current_component_name')}")
         return state
