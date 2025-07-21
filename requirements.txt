@@ -24,4 +24,5 @@ markdown
 jsonschema
 python-magic
 weasyprint
+diagrams
 # python -m spacy download en_core_web_md

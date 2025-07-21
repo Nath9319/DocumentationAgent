@@ -312,7 +312,7 @@ class DocumentationGeneratorUI:
         # Start the subprocess
         try:
             self.process = subprocess.Popen(
-                [sys.executable, 'mainG.py'],
+                [sys.executable, 'main2.py'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
