@@ -295,7 +295,8 @@ def gather_documentation_context(state: AgentState) -> dict:
     
     # Step A: Use an LLM to find out what functions/classes are being called.
     print("\n[STEP A] Analyzing code to identify dependencies...")
-    llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), temperature=0.0, max_tokens=1024)
+    llm = AzureChatOpenAI(deployment_name=os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME"), 
+                          temperature=0.0, max_tokens=1024)
     prompt = PromptTemplate.from_template(CODE_ANALYSIS_PROMPT_TEMPLATE)
     chain = prompt | llm | JsonOutputParser()
     

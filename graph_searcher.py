@@ -254,11 +254,7 @@ class RepoSearcher:
             depth_limit (int): The maximum depth to explore.
 
         Returns:
-<<<<<<< HEAD
-            list[str]: A list of visited nodes in the order they were discovered.
-=======
             List[str]: A list of visited nodes in the order they were discovered.
->>>>>>> f6061b0228250a53c82190181e85a5683699240a
         """
         if start_node not in self.graph:
             return []
