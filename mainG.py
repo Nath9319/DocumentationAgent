@@ -11,6 +11,9 @@ from typing import TypedDict, List, Dict, Optional
 from dotenv import load_dotenv
 # --- tqdm for progress bar ---
 from tqdm import tqdm
+import threading
+from datetime import datetime, timedelta  # timedelta is new, datetime already exists
+import asyncio  # if not already imported
 
 # Set UTF-8 encoding for Windows console to handle emojis
 if sys.platform.startswith('win'):
