@@ -1721,9 +1721,249 @@ def check_and_recover_state():
                 return os.path.join(INCREMENTAL_SAVE_DIR, latest_save)
     return None
 
+# def create_beautification_script(state: DocumentationState):
+#     """Create a script to beautify the architectural diagram."""
+#     script_content = '''
+# import json
+# import os
+# import subprocess
+# import sys
+# from datetime import datetime
+
+# def beautify_architecture_diagram():
+#     """Beautify the architectural diagram using mermaid-cli and additional processing."""
+#     print("🎨 Starting diagram beautification process...")
+    
+#     # Find the latest architecture data file
+#     diagrams_dir = "final_docs/diagrams"
+#     if not os.path.exists(diagrams_dir):
+#         print("❌ Diagrams directory not found!")
+#         return
+    
+#     # Get the most recent architecture data file
+#     arch_files = [f for f in os.listdir(diagrams_dir) if f.startswith("architecture_data_")]
+#     if not arch_files:
+#         print("❌ No architecture data files found!")
+#         return
+    
+#     latest_file = max(arch_files, key=lambda x: os.path.getctime(os.path.join(diagrams_dir, x)))
+#     arch_data_path = os.path.join(diagrams_dir, latest_file)
+    
+#     print(f"📊 Processing: {arch_data_path}")
+    
+#     # Load architectural data
+#     with open(arch_data_path, 'r', encoding='utf-8') as f:
+#         arch_data = json.load(f)
+    
+#     # Create enhanced mermaid diagram
+#     enhanced_mermaid = create_enhanced_mermaid_diagram(arch_data)
+    
+#     # Save enhanced diagram
+#     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+#     enhanced_file = os.path.join(diagrams_dir, f"enhanced_architecture_{timestamp}.mmd")
+    
+#     with open(enhanced_file, 'w', encoding='utf-8') as f:
+#         f.write(enhanced_mermaid)
+    
+#     print(f"✅ Enhanced mermaid diagram saved: {enhanced_file}")
+    
+#     # Try to generate PNG using mermaid-cli if available
+#     try:
+#         png_file = enhanced_file.replace('.mmd', '.png')
+#         subprocess.run([
+#             'mmdc', '-i', enhanced_file, '-o', png_file,
+#             '--theme', 'default', '--backgroundColor', 'white',
+#             '--width', '1200', '--height', '800'
+#         ], check=True)
+#         print(f"🖼️ PNG diagram generated: {png_file}")
+#     except (subprocess.CalledProcessError, FileNotFoundError):
+#         print("⚠️ mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
+#         print("📝 Enhanced mermaid file created. You can manually convert it to PNG.")
+    
+#     # Create HTML preview
+#     create_html_preview(enhanced_mermaid, diagrams_dir, timestamp)
+    
+#     print("🎉 Diagram beautification completed!")
+
+# def create_enhanced_mermaid_diagram(arch_data):
+#     """Create an enhanced version of the mermaid diagram with better styling."""
+#     components = arch_data.get('components', {})
+#     relationships = arch_data.get('relationships', [])
+    
+#     # Enhanced mermaid with styling
+#     lines = [
+#         "graph TB",
+#         "    %% Enhanced Architecture Diagram",
+#         "    %% Generated automatically from code analysis",
+#         ""
+#     ]
+    
+#     # Define colors for different component types
+#     style_definitions = [
+#         "    classDef apiClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px",
+#         "    classDef serviceClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px", 
+#         "    classDef dataClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px",
+#         "    classDef configClass fill:#fff3e0,stroke:#e65100,stroke-width:2px",
+#         "    classDef utilClass fill:#fafafa,stroke:#424242,stroke-width:2px",
+#         ""
+#     ]
+    
+#     # Group components by layer for better organization
+#     layers = {}
+#     for comp_name, comp_info in components.items():
+#         layer = comp_info.get("layer", "UNKNOWN")
+#         if layer not in layers:
+#             layers[layer] = []
+#         layers[layer].append((comp_name, comp_info))
+    
+#     # Add subgraphs for each layer
+#     for layer_name, layer_components in layers.items():
+#         lines.append(f'    subgraph {layer_name}["{layer_name} Layer"]')
+        
+#         for comp_name, comp_info in layer_components:
+#             comp_type = comp_info.get("type", "COMPONENT")
+#             safe_name = comp_name.replace('.', '_').replace('-', '_')
+#             safe_name = re.sub(r'[^a-zA-Z0-9_]', '_', safe_name)
+            
+#             # Enhanced shapes based on component type
+#             if comp_type in ["API_ENDPOINT", "CONTROLLER"]:
+#                 shape = f'{safe_name}(["{comp_name}<br/>{comp_type}"])'
+#                 style_class = "apiClass"
+#             elif comp_type in ["DATABASE", "DATA"]:
+#                 shape = f'{safe_name}[("{comp_name}<br/>{comp_type}")]'
+#                 style_class = "dataClass"
+#             elif comp_type in ["SERVICE", "BUSINESS"]:
+#                 shape = f'{safe_name}["{comp_name}<br/>{comp_type}"]'
+#                 style_class = "serviceClass"
+#             elif comp_type in ["CONFIG", "CONFIGURATION"]:
+#                 shape = f'{safe_name}{{{"{comp_name}<br/>{comp_type}"}}}' 
+#                 style_class = "configClass"
+#             else:
+#                 shape = f'{safe_name}("{comp_name}<br/>{comp_type}")'
+#                 style_class = "utilClass"
+            
+#             lines.append(f"        {shape}")
+#             lines.append(f"        class {safe_name} {style_class}")
+        
+#         lines.append("    end")
+#         lines.append("")
+    
+#     # Add relationships with enhanced styling
+#     for rel in relationships:
+#         from_safe = re.sub(r'[^a-zA-Z0-9_]', '_', rel["from"])
+#         to_safe = re.sub(r'[^a-zA-Z0-9_]', '_', rel["to"])
+#         rel_type = rel.get("type", "DEPENDS_ON")
+#         description = rel.get("description", "")
+        
+#         # Choose arrow style and label based on relationship type
+#         if rel_type == "CALLS":
+#             arrow = f'-->{"|calls|"}'
+#         elif rel_type == "INHERITS":
+#             arrow = f'-..->{"|extends|"}'
+#         elif rel_type == "IMPLEMENTS":
+#             arrow = f'==>{"|implements|"}'
+#         elif rel_type == "CONFIGURES":
+#             arrow = f'-->{"|configures|"}'
+#         else:
+#             arrow = f'-->{"|depends on|"}'
+        
+#         lines.append(f"    {from_safe} {arrow} {to_safe}")
+    
+#     # Add style definitions
+#     lines.extend(style_definitions)
+    
+#     return "\\n".join(lines)
+
+# def create_html_preview(mermaid_code, diagrams_dir, timestamp):
+#     """Create an HTML preview of the diagram."""
+#     html_content = f"""
+# <!DOCTYPE html>
+# <html>
+# <head>
+#     <title>Architecture Diagram Preview</title>
+#     <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+#     <style>
+#         body {{ 
+#             font-family: Arial, sans-serif; 
+#             margin: 20px; 
+#             background-color: #f5f5f5;
+#         }}
+#         .container {{ 
+#             background: white; 
+#             padding: 20px; 
+#             border-radius: 8px; 
+#             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+#         }}
+#         h1 {{ color: #333; }}
+#         .diagram {{ 
+#             text-align: center; 
+#             margin: 20px 0;
+#             background: white;
+#             border: 1px solid #ddd;
+#             border-radius: 4px;
+#             padding: 20px;
+#         }}
+#         .info {{
+#             background: #e8f4fd;
+#             border-left: 4px solid #2196f3;
+#             padding: 10px;
+#             margin: 10px 0;
+#         }}
+#     </style>
+# </head>
+# <body>
+#     <div class="container">
+#         <h1>System Architecture Diagram</h1>
+#         <div class="info">
+#             <strong>Generated:</strong> {timestamp}<br>
+#             <strong>Components:</strong> {len(arch_data.get('components', {}))}<br>
+#             <strong>Relationships:</strong> {len(arch_data.get('relationships', []))}
+#         </div>
+#         <div class="diagram">
+#             <div class="mermaid">
+# {mermaid_code}
+#             </div>
+#         </div>
+#     </div>
+#     <script>
+#         mermaid.initialize({{ startOnLoad: true, theme: 'default' }});
+#     </script>
+# </body>
+# </html>
+# """
+    
+#     html_file = os.path.join(diagrams_dir, f"architecture_preview_{timestamp}.html")
+#     with open(html_file, 'w', encoding='utf-8') as f:
+#         f.write(html_content)
+    
+#     print(f"🌐 HTML preview created: {html_file}")
+
+# if __name__ == "__main__":
+#     beautify_architecture_diagram()
+# '''
+    
+#     # Save the beautification script
+#     script_file = os.path.join(FINAL_DOC_DIR, "beautify_diagram.py")
+#     with open(script_file, 'w', encoding='utf-8') as f:
+#         f.write(script_content)
+    
+#     logger.info(f"🎨 Beautification script created: {script_file}")
+#     print(f"--- 🎨 Beautification script saved: {script_file} ---")
 def create_beautification_script(state: DocumentationState):
     """Create a script to beautify the architectural diagram."""
     script_content = '''
+# Set UTF-8 encoding for Windows console
+import sys
+if sys.platform.startswith('win'):
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
+
+import json
+import os
+import subprocess
+import sys
+from datetime import datetime
 import json
 import os
 import subprocess
@@ -1732,24 +1972,24 @@ from datetime import datetime
 
 def beautify_architecture_diagram():
     """Beautify the architectural diagram using mermaid-cli and additional processing."""
-    print("🎨 Starting diagram beautification process...")
+    print("Starting diagram beautification process...")
     
     # Find the latest architecture data file
     diagrams_dir = "final_docs/diagrams"
     if not os.path.exists(diagrams_dir):
-        print("❌ Diagrams directory not found!")
+        print("ERROR: Diagrams directory not found!")
         return
     
     # Get the most recent architecture data file
     arch_files = [f for f in os.listdir(diagrams_dir) if f.startswith("architecture_data_")]
     if not arch_files:
-        print("❌ No architecture data files found!")
+        print("ERROR: No architecture data files found!")
         return
     
     latest_file = max(arch_files, key=lambda x: os.path.getctime(os.path.join(diagrams_dir, x)))
     arch_data_path = os.path.join(diagrams_dir, latest_file)
     
-    print(f"📊 Processing: {arch_data_path}")
+    print(f"Processing: {arch_data_path}")
     
     # Load architectural data
     with open(arch_data_path, 'r', encoding='utf-8') as f:
@@ -1765,7 +2005,7 @@ def beautify_architecture_diagram():
     with open(enhanced_file, 'w', encoding='utf-8') as f:
         f.write(enhanced_mermaid)
     
-    print(f"✅ Enhanced mermaid diagram saved: {enhanced_file}")
+    print(f"Enhanced mermaid diagram saved: {enhanced_file}")
     
     # Try to generate PNG using mermaid-cli if available
     try:
@@ -1775,181 +2015,16 @@ def beautify_architecture_diagram():
             '--theme', 'default', '--backgroundColor', 'white',
             '--width', '1200', '--height', '800'
         ], check=True)
-        print(f"🖼️ PNG diagram generated: {png_file}")
+        print(f"PNG diagram generated: {png_file}")
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("⚠️ mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
-        print("📝 Enhanced mermaid file created. You can manually convert it to PNG.")
+        print("WARNING: mermaid-cli not found. Install with: npm install -g @mermaid-js/mermaid-cli")
+        print("Enhanced mermaid file created. You can manually convert it to PNG.")
     
     # Create HTML preview
     create_html_preview(enhanced_mermaid, diagrams_dir, timestamp)
     
-    print("🎉 Diagram beautification completed!")
-
-def create_enhanced_mermaid_diagram(arch_data):
-    """Create an enhanced version of the mermaid diagram with better styling."""
-    components = arch_data.get('components', {})
-    relationships = arch_data.get('relationships', [])
-    
-    # Enhanced mermaid with styling
-    lines = [
-        "graph TB",
-        "    %% Enhanced Architecture Diagram",
-        "    %% Generated automatically from code analysis",
-        ""
-    ]
-    
-    # Define colors for different component types
-    style_definitions = [
-        "    classDef apiClass fill:#e1f5fe,stroke:#01579b,stroke-width:2px",
-        "    classDef serviceClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px", 
-        "    classDef dataClass fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px",
-        "    classDef configClass fill:#fff3e0,stroke:#e65100,stroke-width:2px",
-        "    classDef utilClass fill:#fafafa,stroke:#424242,stroke-width:2px",
-        ""
-    ]
-    
-    # Group components by layer for better organization
-    layers = {}
-    for comp_name, comp_info in components.items():
-        layer = comp_info.get("layer", "UNKNOWN")
-        if layer not in layers:
-            layers[layer] = []
-        layers[layer].append((comp_name, comp_info))
-    
-    # Add subgraphs for each layer
-    for layer_name, layer_components in layers.items():
-        lines.append(f'    subgraph {layer_name}["{layer_name} Layer"]')
-        
-        for comp_name, comp_info in layer_components:
-            comp_type = comp_info.get("type", "COMPONENT")
-            safe_name = comp_name.replace('.', '_').replace('-', '_')
-            safe_name = re.sub(r'[^a-zA-Z0-9_]', '_', safe_name)
-            
-            # Enhanced shapes based on component type
-            if comp_type in ["API_ENDPOINT", "CONTROLLER"]:
-                shape = f'{safe_name}(["{comp_name}<br/>{comp_type}"])'
-                style_class = "apiClass"
-            elif comp_type in ["DATABASE", "DATA"]:
-                shape = f'{safe_name}[("{comp_name}<br/>{comp_type}")]'
-                style_class = "dataClass"
-            elif comp_type in ["SERVICE", "BUSINESS"]:
-                shape = f'{safe_name}["{comp_name}<br/>{comp_type}"]'
-                style_class = "serviceClass"
-            elif comp_type in ["CONFIG", "CONFIGURATION"]:
-                shape = f'{safe_name}{{{"{comp_name}<br/>{comp_type}"}}}' 
-                style_class = "configClass"
-            else:
-                shape = f'{safe_name}("{comp_name}<br/>{comp_type}")'
-                style_class = "utilClass"
-            
-            lines.append(f"        {shape}")
-            lines.append(f"        class {safe_name} {style_class}")
-        
-        lines.append("    end")
-        lines.append("")
-    
-    # Add relationships with enhanced styling
-    for rel in relationships:
-        from_safe = re.sub(r'[^a-zA-Z0-9_]', '_', rel["from"])
-        to_safe = re.sub(r'[^a-zA-Z0-9_]', '_', rel["to"])
-        rel_type = rel.get("type", "DEPENDS_ON")
-        description = rel.get("description", "")
-        
-        # Choose arrow style and label based on relationship type
-        if rel_type == "CALLS":
-            arrow = f'-->{"|calls|"}'
-        elif rel_type == "INHERITS":
-            arrow = f'-..->{"|extends|"}'
-        elif rel_type == "IMPLEMENTS":
-            arrow = f'==>{"|implements|"}'
-        elif rel_type == "CONFIGURES":
-            arrow = f'-->{"|configures|"}'
-        else:
-            arrow = f'-->{"|depends on|"}'
-        
-        lines.append(f"    {from_safe} {arrow} {to_safe}")
-    
-    # Add style definitions
-    lines.extend(style_definitions)
-    
-    return "\\n".join(lines)
-
-def create_html_preview(mermaid_code, diagrams_dir, timestamp):
-    """Create an HTML preview of the diagram."""
-    html_content = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Architecture Diagram Preview</title>
-    <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
-    <style>
-        body {{ 
-            font-family: Arial, sans-serif; 
-            margin: 20px; 
-            background-color: #f5f5f5;
-        }}
-        .container {{ 
-            background: white; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }}
-        h1 {{ color: #333; }}
-        .diagram {{ 
-            text-align: center; 
-            margin: 20px 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 20px;
-        }}
-        .info {{
-            background: #e8f4fd;
-            border-left: 4px solid #2196f3;
-            padding: 10px;
-            margin: 10px 0;
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>System Architecture Diagram</h1>
-        <div class="info">
-            <strong>Generated:</strong> {timestamp}<br>
-            <strong>Components:</strong> {len(arch_data.get('components', {}))}<br>
-            <strong>Relationships:</strong> {len(arch_data.get('relationships', []))}
-        </div>
-        <div class="diagram">
-            <div class="mermaid">
-{mermaid_code}
-            </div>
-        </div>
-    </div>
-    <script>
-        mermaid.initialize({{ startOnLoad: true, theme: 'default' }});
-    </script>
-</body>
-</html>
-"""
-    
-    html_file = os.path.join(diagrams_dir, f"architecture_preview_{timestamp}.html")
-    with open(html_file, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-    
-    print(f"🌐 HTML preview created: {html_file}")
-
-if __name__ == "__main__":
-    beautify_architecture_diagram()
-'''
-    
-    # Save the beautification script
-    script_file = os.path.join(FINAL_DOC_DIR, "beautify_diagram.py")
-    with open(script_file, 'w', encoding='utf-8') as f:
-        f.write(script_content)
-    
-    logger.info(f"🎨 Beautification script created: {script_file}")
-    print(f"--- 🎨 Beautification script saved: {script_file} ---")
-
+    print("Diagram beautification completed!")
+    '''
 # --- 5. Define Graph Edges & Control Flow ---
 
 
