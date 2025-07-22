@@ -1,14 +1,18 @@
+# File: main.py
+#
+# This is the main entry point for the AI Documentation Agent.
+# ENHANCED VERSION: Added quality indicators and metadata tracking
+
 import os
 import sys
-import subprocess
 import pickle
 import json
 import networkx as nx
+import subprocess
 from dotenv import load_dotenv
 from datetime import datetime
 from typing import Dict, Any
 from core.construct_graph import CodeGraph
-from core.construct_graph import generate_structure_json
 from agent.agent_graph import create_agent_graph
 from pathlib import Path
 
@@ -24,7 +28,7 @@ def clone_repository(repo_url: str, destination_folder: str):
     except subprocess.CalledProcessError as e:
         print(f"Error cloning the repository: {e}")
         sys.exit(1)
-'''
+
 def run_documentation_agent(repo_path: str):
     """
     Sets up and runs the entire documentation and conceptual graph generation process.
@@ -42,18 +46,8 @@ def run_documentation_agent(repo_path: str):
         print(f"Error: Repository path '{repo_path}' not found.")
         sys.exit(1)
 
-    # --- Step 1.5: Generate structure.json ---
-    structure_json_file = "structure.json"
-    if not os.path.exists(structure_json_file):
-        generate_structure_json(repo_path, output_path=structure_json_file)
-    
-    # Load structure.json from root (not repo path)
-    with open("structure.json", "r", encoding="utf-8") as f:
-        structure_data = json.load(f)
-
-
     # --- Step 2: Construct or Load the AST Code Graph ---
-    graph_file = "pickle_graph.pkl"  # ENHANCED: Use a more descriptive name for clarity
+    graph_file = "rag.pkl"
     if os.path.exists(graph_file):
         print(f"Found existing graph file: '{graph_file}'. Loading it.")
         with open(graph_file, 'rb') as f:
@@ -90,7 +84,7 @@ def run_documentation_agent(repo_path: str):
     }
     
     total_nodes = len(repo_graph.nodes())
-    recursion_limit = total_nodes * 660
+    recursion_limit = total_nodes * 6
     config = {"recursion_limit": recursion_limit}
     
     print(f"\n--- Invoking Enhanced Agent ---")
@@ -112,41 +106,17 @@ def run_documentation_agent(repo_path: str):
         # 1. Save the LLM-generated conceptual graph
         conceptual_graph = final_state.get('conceptual_graph')
         if conceptual_graph:
-            conceptual_graph_path = os.path.join(output_dir, "conceptual_graph.pkl")
+            conceptual_graph_path = os.path.join(output_dir, "conceptual_rag.pkl")
             with open(conceptual_graph_path, 'wb') as f:
                 pickle.dump(conceptual_graph, f)
             print(f"✓ Conceptual graph saved to: {conceptual_graph_path}")
         
         # 2. Save the consolidated documentation and graph data as JSON
         final_output_data = final_state.get('final_output_data', {})
-
-        # modified part...
-        # Enhance each documented node with its source file using structure.json
-        for rel_fname, components in structure_data.items():
-            # Match class/function names to node names in final_output_data
-            for func in components.get("functions", []):
-                node_name = func["name"]
-                if node_name in final_output_data:
-                    final_output_data[node_name]["fname"] = rel_fname
-
-            for cls in components.get("classes", []):
-                cls_name = cls["name"]
-                if cls_name in final_output_data:
-                    final_output_data[cls_name]["fname"] = rel_fname
-                for method in cls.get("methods", []):
-                    method_name = f"{cls_name}.{method['name']}"
-                    if method_name in final_output_data:
-                        final_output_data[method_name]["fname"] = rel_fname
-
-            # Optional: tag module-level code if you created a node like 'filename::module_code'
-            module_code_name = f"{rel_fname}::module_code"
-            if module_code_name in final_output_data:
-                final_output_data[module_code_name]["fname"] = rel_fname
-
-                json_output_path = os.path.join(output_dir, "documentation_and_graph_data.json")
-                with open(json_output_path, 'w', encoding='utf-8') as f:
-                    json.dump(final_output_data, f, indent=2)
-                print(f"✓ Consolidated JSON data saved to: {json_output_path}")
+        json_output_path = os.path.join(output_dir, "documentation_and_graph_data.json")
+        with open(json_output_path, 'w', encoding='utf-8') as f:
+            json.dump(final_output_data, f, indent=2)
+        print(f"✓ Consolidated JSON data saved to: {json_output_path}")
 
         # 3. ENHANCED: Save generation metadata
         quality_metrics = calculate_quality_metrics(final_output_data)
@@ -179,7 +149,7 @@ def run_documentation_agent(repo_path: str):
         # Save the documentation graph
         doc_graph = final_state.get('documentation_graph')
         if doc_graph:
-            doc_graph_path = os.path.join(output_dir, "documentation_graph.pkl")
+            doc_graph_path = os.path.join(output_dir, "documentation_rag.pkl")
             with open(doc_graph_path, 'wb') as f:
                 pickle.dump(doc_graph, f)
             print(f"✓ Documentation graph saved to: {doc_graph_path}")
@@ -215,32 +185,28 @@ def run_documentation_agent(repo_path: str):
         for node_name, data in final_output_data.items():
             if 'documentation' in data and data['documentation']:
                 # Sanitize the node name for use as a filename
-                
-                # Determine the path to the file where this component is located
-                '''component_path = os.path.normpath(data.get('fname', ''))  # Assume file path is in the data
-                component_path = os.path.dirname(component_path)  # Get the directory of the file
+                sanitized_name = "".join(c for c in node_name if c.isalnum() or c in ('_', '-')).rstrip()
+                doc_path = os.path.join(docs_output_dir, f"{sanitized_name}.md")
+        
 
-                # Generate the documentation path based on file's relative path
-                # This now ensures that we create folders based on the component's file location
-                doc_path = os.path.join(output_dir, component_path, f"{sanitized_name}.md")'''
+                # Check confidence score
+                context_metadata = data.get('context_metadata', {})
+                avg_confidence = context_metadata.get('average_confidence', 1.0)
+                if avg_confidence < 0.7:
+                    low_confidence_count += 1
 
+                # Write the markdown file
+                with open(doc_path, "w", encoding='utf-8') as f:
+                    f.write(f"# Documentation for `{node_name}`\n\n")
 
-                # Use fname from final_output_data to reconstruct the relative folder path
-                relative_source_path = data.get('fname', '')
-                if not relative_source_path:  
-                    continue
-                source_subdir = os.path.splitext(relative_source_path)[0]  # removes .py
-                doc_subdir = os.path.join(docs_output_dir, source_subdir)
-                os.makedirs(doc_subdir, exist_ok=True)
+                    if avg_confidence < 0.7:
+                        f.write(f"> ⚠️ **Quality Notice**: Documentation generated with "
+                                f"{avg_confidence:.0%} confidence. Some dependencies could not be fully resolved.\n\n")
 
-                if "::module_code" in node_name:
-                    safe_filename = f"{Path(relative_source_path).stem}__module_code"
-                else:
-                    safe_filename = node_name.replace(" ", "_").replace(":", "_").replace("/", "_").replace("\\", "_")
+                    f.write(data['documentation'])
 
-                # Final .md path
-                doc_path = os.path.join(doc_subdir, f"{safe_filename}.md")
-
+                    f.write(f"\n\n---\n")
+                    f.write(f"*Generated with {avg_confidence:.0%} context confidence*\n")
 
                 
                 # Check context quality
@@ -250,7 +216,7 @@ def run_documentation_agent(repo_path: str):
                     low_confidence_count += 1
                 
                 with open(doc_path, "w", encoding='utf-8') as f:
-                    f.write(f"# Documentation for {node_name}\n\n")
+                    f.write(f"# Documentation for `{node_name}`\n\n")
                     
                     # Add metadata header if confidence is low
                     if avg_confidence < 0.7:
@@ -264,7 +230,9 @@ def run_documentation_agent(repo_path: str):
                     f.write(f"*Generated with {avg_confidence:.0%} context confidence*\n")
                     
         print(f"✓ Saved {len(final_output_data)} documentation files to: '{docs_output_dir}'")
-
+        
+        if low_confidence_count > 0:
+            print(f"⚠️  {low_confidence_count} files generated with low confidence (<70%)")
 
         # 5. Generate summary report
         print("\n{'='*60}")
@@ -319,24 +287,48 @@ def calculate_quality_metrics(final_output_data: Dict[str, Any]) -> Dict[str, An
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python main.py <repository_url>")
+        print("Usage: python main.py <path_to_repository>")
         sys.exit(1)
+        
+    repository_path = sys.argv[1]
+    run_documentation_agent(repository_path)
+
+    # if len(sys.argv) < 2:
+    #     print("Usage: python main.py <repository_url>")
+    #     sys.exit(1)
     
-    # Get the repository URL from the command line argument
-    '''repo_url = sys.argv[1]
-    repo_name = repo_url.split("/")[-1].replace(".git", "")
-    destination_folder = os.path.join(os.getcwd(), repo_name)
+    # # Get the repository URL from the command line argument
+    # repo_url = sys.argv[1]
+    # repo_name = repo_url.split("/")[-1].replace(".git", "")
+    # destination_folder = os.path.join(os.getcwd(), repo_name)
 
-    # Step 1: Clone the repository
-    clone_repository(repo_url, destination_folder)
+    # # Step 1: Clone the repository
+    # clone_repository(repo_url, destination_folder)
 
-    # Step 2: Run the documentation agent on the cloned repository
-    run_documentation_agent(destination_folder)'''
+    # # Step 2: Run the documentation agent on the cloned repository
+    # run_documentation_agent(destination_folder)    python main2.py 
 
-    repo_path = sys.argv[1]
+    
+'''low_confidence_count = 0
+        for node_name, data in final_output_data.items():
+            if 'documentation' in data and data['documentation']:
 
-    if not os.path.isdir(repo_path):
-        print(f"Error: Provided path '{repo_path}' is not a valid directory.")
-        sys.exit(1)
+                # Get the relative file path (like services/age_calculator.py)
+                relative_source_path = data.get('fname', '')
+                if not relative_source_path:
+                    continue
 
-    run_documentation_agent(repo_path)
+                # Remove .py and build nested path for documentation
+                source_subdir = os.path.splitext(relative_source_path)[0]  # e.g., 'services/age_calculator'
+                doc_subdir = os.path.join(docs_output_dir, source_subdir)
+                os.makedirs(doc_subdir, exist_ok=True)
+
+                # Sanitize the name
+                if "::module_code" in node_name:
+                    safe_filename = f"{Path(relative_source_path).stem}__module_code"
+                else:
+                    safe_filename = node_name.replace(" ", "_").replace(":", "_").replace("/", "_").replace("\\", "_")
+
+                # Final documentation file path
+                doc_path = os.path.join(doc_subdir, f"{safe_filename}.md")
+                '''
