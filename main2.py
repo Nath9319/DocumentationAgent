@@ -1629,33 +1629,6 @@ def compiler_node(state: DocumentationState) -> DocumentationState:
 
     return state
 
-'''def diagram_finalizer_node(state: DocumentationState) -> DocumentationState:
-    """Finalizes the architectural diagram and generates the final version."""
-    logger.info("🎨 Diagram Finalizer: Creating final architectural diagram")
-    print("--- 🎨 Diagram Finalizer: Generating final diagram ---")
-    
-    try:
-        # Generate comprehensive mermaid diagram
-        final_diagram = generate_final_diagrams_diagram(state)
-        
-        # Generate description
-        final_description = generate_architectural_description(state)
-        
-        # Save basic diagram files
-        save_basic_diagram_files(state, final_diagram, final_description)
-        
-        # Create beautification script
-        generate_final_diagrams_diagram(state)
-        
-        logger.info("✅ Diagram Finalizer: Basic diagram generated successfully")
-        print("--- 🎨 Diagram Finalizer: Basic diagram completed ---")
-        
-    except Exception as e:
-        logger.error(f"❌ Diagram Finalizer failed: {e}")
-        print(f"--- 🎨 Diagram Finalizer: Failed - {e} ---")
-
-    return state
-'''
 def diagram_finalizer_node(state: DocumentationState) -> DocumentationState:
     logger.info("🎨 Diagram Finalizer: Creating final architectural diagram")
     print("--- 🎨 Diagram Finalizer: Generating final diagram ---")
