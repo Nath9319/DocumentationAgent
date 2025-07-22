@@ -113,7 +113,8 @@ docstring_output/
 final_docs/
 # Ignore RepoGraph folder
 RepoGraph/
-
+drag.py
+email_agent_graph
 # Ignore compiled files in subfolders
 **/__pycache__/
 **/*.pyc
