@@ -411,7 +411,6 @@ def gather_documentation_context(state: AgentState) -> dict:
     
     context_metadata = {
         'total_dependencies': len(dependencies),
-        'each_dependencies': dependencies,
         'found': {
             'documented': sum(1 for v in available_context.values() if v['source'] == 'documented'),
             'graph': sum(1 for v in available_context.values() if v['source'] == 'graph'),
@@ -501,7 +500,7 @@ def generate_documentation(state: AgentState) -> dict:
     prompt = PromptTemplate.from_template(DOCUMENTATION_PROMPT_TEMPLATE)
     chain = prompt | llm | StrOutputParser()
     ### Dependency Adding
-    dependencies = context_metadata.get('each_dependencies', [])
+    dependencies = context_metadata.get('dependencies', [])
     if not dependencies and 'context_for_llm' in state:
         # Optionally, extract dependency names from the context string if not present in metadata
         # (You may want to explicitly pass the dependency list in gather_documentation_context)

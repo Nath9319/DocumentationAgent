@@ -1181,73 +1181,6 @@ Focus on architectural significance. Only include substantial components and mea
     
     return state
 
-#..................New code added......................
-def system_synthesis_node(state: DocumentationState) -> DocumentationState:
-    logger.info("🚀 Node: system_synthesis | Status: started")
-    print("--- 🚀 System Synthesizer: Creating high-level architectural model ---")
-    all_components_summary = json.dumps(state.get('architectural_components', []), indent=2)
-    all_relationships_summary = json.dumps(state.get('architectural_relationships', []), indent=2)
-    synthesis_prompt = ChatPromptTemplate.from_template(
-    """
-    You are an expert System Architect. You have been provided with a list of all the code components (files) and their direct relationships from a codebase.
-
-    Your task is to synthesize this information into a high-level, logical system architecture diagram model.
-
-    Follow these steps:
-    1.  **Group Components**: Group the individual code files into high-level logical blocks (e.g., 'API Gateway', 'Primary Database').
-    2.  **Assign a Type**: For each high-level block, assign a `type`. Use one of the following: 'API', 'Service', 'Database', 'Queue', 'Worker'.
-    3.  **Assign a Group**: For each high-level block, assign a `group` name. Components in the same group will be clustered together (e.g., 'Backend Services', 'Data Tier').
-    4.  **Define Workflow**: Describe the flow between these blocks with a clear `label`.
-
-    Here is the low-level data:
-    ---
-    COMPONENTS: {components}
-    ---
-    RELATIONSHIPS: {relationships}
-    ---
-
-    Respond with a JSON object that defines the high-level architecture. Use this exact format:
-    {{
-        "high_level_components": [
-            {{
-                "id": "api_gateway",
-                "label": "API Gateway",
-                "type": "API",
-                "group": "Backend Services"
-            }},
-            {{
-                "id": "postgres_db",
-                "label": "Postgres DB",
-                "type": "Database",
-                "group": "Data Tier"
-            }}
-        ],
-        "high_level_relationships": [
-            {{
-                "from": "api_gateway",
-                "to": "postgres_db",
-                "label": "Reads user data via SQL"
-            }}
-        ]
-    }}
-    """
-)
-    chain = synthesis_prompt | llm | JsonOutputParser()
-    try:
-        architectural_model = chain.invoke({
-            "components": all_components_summary,
-            "relationships": all_relationships_summary
-        })
-        state['architectural_components'] = architectural_model.get("high_level_components", [])
-        state['architectural_relationships'] = architectural_model.get("high_level_relationships", [])
-        logger.info("✅ High-level architectural model created successfully.")
-        print("--- ✅ System Synthesizer: High-level model created ---")
-    except Exception as e:
-        logger.error(f"❌ System synthesis failed: {e}")
-        print(f"--- ❌ System Synthesizer: Failed to create model: {e} ---")
-    return state
-#........................................................................................
-
 def save_architectural_progress(state: DocumentationState, component_name: str):
     """Save architectural diagram progress incrementally."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -1501,11 +1434,6 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
     try:
         # Create tasks for all sections
         tasks = [process_section(section_name) for section_name in state["target_sections"]]
-
-         # --- FIX: ADD THIS LINE ---
-        # Add the architectural analysis task to run in parallel
-        tasks.append(process_architectural_analysis(state))
-        # -------------------------
         
         # Execute all tasks concurrently
         logger.info(f"🚀 Executing {len(tasks)} LLM calls concurrently for '{component_name}'")
@@ -1515,7 +1443,7 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
         successful_sections = 0
         failed_sections = 0
         
-        for result in results[:-1]:
+        for result in results:
             if isinstance(result, Exception):
                 logger.error(f"❌ Writer exception for '{component_name}': {result}")
                 print(f"    - ❌ Writer generated an exception: {result}")
@@ -1524,12 +1452,6 @@ async def parallel_writer_node(state: DocumentationState) -> DocumentationState:
                 section_name, content = result
                 state["document_content"][section_name] = content
                 successful_sections += 1
-                 
-        # Optional: Check if the architecture task failed
-        arch_result = results[-1]
-        if isinstance(arch_result, Exception):
-            logger.error(f"❌ Architectural analysis exception for '{component_name}': {arch_result}")
-            print(f"     - ❌ Architecture analysis failed: {arch_result}")
                 
         logger.info(f"📊 Parallel Writers completed for '{component_name}': {successful_sections} successful, {failed_sections} failed")
                 
@@ -1630,17 +1552,30 @@ def compiler_node(state: DocumentationState) -> DocumentationState:
     return state
 
 def diagram_finalizer_node(state: DocumentationState) -> DocumentationState:
+    """Finalizes the architectural diagram and generates the final version."""
     logger.info("🎨 Diagram Finalizer: Creating final architectural diagram")
     print("--- 🎨 Diagram Finalizer: Generating final diagram ---")
+    
     try:
-        # NOTE: For testing, we only call the diagram generation, not the other helpers
-        diagram_output = generate_final_diagrams_diagram(state)
-        print(diagram_output)
+        # Generate comprehensive mermaid diagram
+        final_diagram = generate_final_diagrams_diagram(state)
+        
+        # Generate description
+        final_description = generate_architectural_description(state)
+        
+        # Save basic diagram files
+        save_basic_diagram_files(state, final_diagram, final_description)
+        
+        # Create beautification script
+        generate_final_diagrams_diagram(state)
+        
         logger.info("✅ Diagram Finalizer: Basic diagram generated successfully")
         print("--- 🎨 Diagram Finalizer: Basic diagram completed ---")
+        
     except Exception as e:
         logger.error(f"❌ Diagram Finalizer failed: {e}")
         print(f"--- 🎨 Diagram Finalizer: Failed - {e} ---")
+    
     return state
 
 def generate_final_mermaid_diagram(state: DocumentationState) -> str:
@@ -1790,7 +1725,7 @@ def check_and_recover_state():
                 logger.warning(f"⚠️ Last save was {datetime.now() - save_time} ago. Possible hang detected.")
                 return os.path.join(INCREMENTAL_SAVE_DIR, latest_save)
     return None
-'''
+
 def generate_final_diagrams_diagram(state: DocumentationState) -> str:
     from diagrams import Diagram
     from diagrams.programming.language import Python
@@ -1816,66 +1751,7 @@ def generate_final_diagrams_diagram(state: DocumentationState) -> str:
                 nodes[rel["from"]] >> nodes[rel["to"]]
     
     return "Diagrams-based architecture diagram generated"
-'''
-def generate_final_diagrams_diagram(state: DocumentationState) -> str:
-    """
-    Generates a professional architecture diagram using Azure icons.
-    """
-    from diagrams.azure.compute import AppServices, FunctionApps, VM
-    from diagrams.azure.database import SQLDatabases
-    from diagrams.azure.integration import APIManagement
-    from diagrams.azure.storage import BlobStorage
-    from diagrams import Diagram, Cluster, Edge
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    diagrams_dir = os.path.join(FINAL_DOC_DIR, "diagrams")
-    os.makedirs(diagrams_dir, exist_ok=True)
-    output_filename = os.path.join(diagrams_dir, f"azure_architecture_{timestamp}")
-
-    components = state.get("architectural_components", [])
-    relationships = state.get("architectural_relationships", [])
-
-    if not components:
-        return "No architectural components found to generate a diagram."
-
-    # --- UPDATED AZURE ICON MAPPING ---
-    icon_map = {
-        "API": APIManagement,
-        "Service": AppServices,
-        "Worker": FunctionApps,
-        "Database": SQLDatabases,
-        "DEFAULT": Python # Fallback icon
-    }
-
-    with Diagram("System Architecture (Azure)", filename=output_filename, show=False):
-        nodes = {}
-        grouped_nodes = {}
-
-        for comp_info in components:
-            group = comp_info.get("group", "Default Group")
-            if group not in grouped_nodes:
-                grouped_nodes[group] = []
-            grouped_nodes[group].append(comp_info)
-        
-        for group_name, component_list in grouped_nodes.items():
-            with Cluster(group_name):
-                for comp_info in component_list:
-                    node_id = comp_info.get("id")
-                    node_label = comp_info.get("label")
-                    node_type = comp_info.get("type", "DEFAULT")
-                    
-                    Icon = icon_map.get(node_type, icon_map["DEFAULT"])
-                    nodes[node_id] = Icon(node_label)
-
-        for rel in relationships:
-            from_node = rel.get("from")
-            to_node = rel.get("to")
-            rel_label = rel.get("label", "")
-            
-            if from_node in nodes and to_node in nodes:
-                nodes[from_node] >> Edge(label=rel_label) >> nodes[to_node]
-    
-    return f"Azure diagram generated at {output_filename}.png"
 # --- 5. Define Graph Edges & Control Flow ---
 
 
@@ -1892,7 +1768,6 @@ workflow.add_node("selector", selector_node)
 # workflow.add_node("parallel_processing", parallel_processing_node_sync)
 workflow.add_node("parallel_processing", parallel_writer_node_sync)
 workflow.add_node("compiler", compiler_node)
-workflow.add_node("system_synthesis", system_synthesis_node) # Add the new node
 workflow.add_node("diagram_finalizer", diagram_finalizer_node)
 
 workflow.set_entry_point("loader")
@@ -1907,11 +1782,7 @@ workflow.add_conditional_edges(
 
 workflow.add_edge("selector", "parallel_processing")
 workflow.add_edge("parallel_processing", "loader")
-#workflow.add_edge("compiler", "diagram_finalizer")
-# --- FIX: Define the final sequence of nodes ---
-# This ensures a path exists to your new synthesis node.
-workflow.add_edge("compiler", "system_synthesis")
-workflow.add_edge("system_synthesis", "diagram_finalizer") # Run finalizer with the new model
+workflow.add_edge("compiler", "diagram_finalizer")
 workflow.add_edge("diagram_finalizer", END)
 
 app = workflow.compile()

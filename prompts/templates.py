@@ -124,8 +124,6 @@ You are an expert technical writer, tasked with creating clear, comprehensive, a
 
 Based on all the information provided (source code, existing docstring, and the documentation of its dependencies), generate a comprehensive Markdown-formatted documentation block.
 
-IMPORTANT: Do NOT include the actual code or code blocks from the source in your documentation output. Only summarize and explain the code's behavior, logic, and usage.
-Do NOT include the actual code or code blocks from the source in your documentation output. Only summarize and explain.
 
 Your documentation MUST include the following sections:
 1.  **Function/Class Name and Signature:** Clearly state the function or class name, its arguments, and their types.

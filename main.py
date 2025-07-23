@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Dict, Any
 from core.construct_graph import CodeGraph
 from agent.agent_graph import create_agent_graph
+from pathlib import Path
 
 
 def clone_repository(repo_url: str, destination_folder: str):
@@ -46,7 +47,7 @@ def run_documentation_agent(repo_path: str):
         sys.exit(1)
 
     # --- Step 2: Construct or Load the AST Code Graph ---
-    graph_file = "graph.pkl"
+    graph_file = "rag.pkl"
     if os.path.exists(graph_file):
         print(f"Found existing graph file: '{graph_file}'. Loading it.")
         with open(graph_file, 'rb') as f:
@@ -105,7 +106,7 @@ def run_documentation_agent(repo_path: str):
         # 1. Save the LLM-generated conceptual graph
         conceptual_graph = final_state.get('conceptual_graph')
         if conceptual_graph:
-            conceptual_graph_path = os.path.join(output_dir, "conceptual_graph.pkl")
+            conceptual_graph_path = os.path.join(output_dir, "conceptual_rag.pkl")
             with open(conceptual_graph_path, 'wb') as f:
                 pickle.dump(conceptual_graph, f)
             print(f"✓ Conceptual graph saved to: {conceptual_graph_path}")
@@ -148,7 +149,7 @@ def run_documentation_agent(repo_path: str):
         # Save the documentation graph
         doc_graph = final_state.get('documentation_graph')
         if doc_graph:
-            doc_graph_path = os.path.join(output_dir, "documentation_graph.pkl")
+            doc_graph_path = os.path.join(output_dir, "documentation_rag.pkl")
             with open(doc_graph_path, 'wb') as f:
                 pickle.dump(doc_graph, f)
             print(f"✓ Documentation graph saved to: {doc_graph_path}")
@@ -186,6 +187,27 @@ def run_documentation_agent(repo_path: str):
                 # Sanitize the node name for use as a filename
                 sanitized_name = "".join(c for c in node_name if c.isalnum() or c in ('_', '-')).rstrip()
                 doc_path = os.path.join(docs_output_dir, f"{sanitized_name}.md")
+        
+
+                # Check confidence score
+                context_metadata = data.get('context_metadata', {})
+                avg_confidence = context_metadata.get('average_confidence', 1.0)
+                if avg_confidence < 0.7:
+                    low_confidence_count += 1
+
+                # Write the markdown file
+                with open(doc_path, "w", encoding='utf-8') as f:
+                    f.write(f"# Documentation for `{node_name}`\n\n")
+
+                    if avg_confidence < 0.7:
+                        f.write(f"> ⚠️ **Quality Notice**: Documentation generated with "
+                                f"{avg_confidence:.0%} confidence. Some dependencies could not be fully resolved.\n\n")
+
+                    f.write(data['documentation'])
+
+                    f.write(f"\n\n---\n")
+                    f.write(f"*Generated with {avg_confidence:.0%} context confidence*\n")
+
                 
                 # Check context quality
                 context_metadata = data.get('context_metadata', {})
@@ -284,4 +306,29 @@ if __name__ == "__main__":
     # clone_repository(repo_url, destination_folder)
 
     # # Step 2: Run the documentation agent on the cloned repository
-    # run_documentation_agent(destination_folder)    
+    # run_documentation_agent(destination_folder)    python main2.py 
+
+    
+'''low_confidence_count = 0
+        for node_name, data in final_output_data.items():
+            if 'documentation' in data and data['documentation']:
+
+                # Get the relative file path (like services/age_calculator.py)
+                relative_source_path = data.get('fname', '')
+                if not relative_source_path:
+                    continue
+
+                # Remove .py and build nested path for documentation
+                source_subdir = os.path.splitext(relative_source_path)[0]  # e.g., 'services/age_calculator'
+                doc_subdir = os.path.join(docs_output_dir, source_subdir)
+                os.makedirs(doc_subdir, exist_ok=True)
+
+                # Sanitize the name
+                if "::module_code" in node_name:
+                    safe_filename = f"{Path(relative_source_path).stem}__module_code"
+                else:
+                    safe_filename = node_name.replace(" ", "_").replace(":", "_").replace("/", "_").replace("\\", "_")
+
+                # Final documentation file path
+                doc_path = os.path.join(doc_subdir, f"{safe_filename}.md")
+                '''
