@@ -47,7 +47,7 @@ def run_documentation_agent(repo_path: str):
         sys.exit(1)
 
     # --- Step 2: Construct or Load the AST Code Graph ---
-    graph_file = "rag.pkl"
+    graph_file = "graph.pkl"
     if os.path.exists(graph_file):
         print(f"Found existing graph file: '{graph_file}'. Loading it.")
         with open(graph_file, 'rb') as f:
@@ -106,7 +106,7 @@ def run_documentation_agent(repo_path: str):
         # 1. Save the LLM-generated conceptual graph
         conceptual_graph = final_state.get('conceptual_graph')
         if conceptual_graph:
-            conceptual_graph_path = os.path.join(output_dir, "conceptual_rag.pkl")
+            conceptual_graph_path = os.path.join(output_dir, "conceptual_graph.pkl")
             with open(conceptual_graph_path, 'wb') as f:
                 pickle.dump(conceptual_graph, f)
             print(f"✓ Conceptual graph saved to: {conceptual_graph_path}")
